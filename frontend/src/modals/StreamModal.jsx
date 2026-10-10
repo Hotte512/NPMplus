@@ -26,10 +26,9 @@ const StreamModal = EasyModal.create(({ id, visible, remove }) => {
 		setIsSubmitting(true);
 		setErrorMsg(null);
 
-		const { ...payload } = {
+		const payload = {
 			id: id === "new" ? undefined : id,
 			...values,
-			forwardingPort: values.forwardingPort || null,
 		};
 
 		setStream(payload, {
@@ -76,11 +75,11 @@ const StreamModal = EasyModal.create(({ id, visible, remove }) => {
 						npmplusProxyProtocolForwarding: data?.npmplusProxyProtocolForwarding,
 						npmplusProxyTls: data?.npmplusProxyTls,
 						certificateId: data?.certificateId,
-						npmplusAdvancedConfig: data?.npmplusAdvancedConfig || "",
-						npmplusDirectory: data?.npmplusDirectory || "",
-						npmplusMtlsCertificateId: data?.npmplusMtlsCertificateId || 0,
-						npmplusMtlsVerifyClientOptional: data?.npmplusMtlsVerifyClientOptional || false,
-						npmplusDescription: data?.npmplusDescription || "",
+						npmplusAdvancedConfig: data?.npmplusAdvancedConfig,
+						npmplusDirectory: data?.npmplusDirectory,
+						npmplusMtlsCertificateId: data?.npmplusMtlsCertificateId,
+						npmplusMtlsVerifyClientOptional: data?.npmplusMtlsVerifyClientOptional,
+						npmplusDescription: data?.npmplusDescription,
 					}}
 					onSubmit={onSubmit}
 				>

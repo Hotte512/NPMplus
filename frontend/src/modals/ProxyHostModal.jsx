@@ -40,23 +40,15 @@ const ProxyHostModal = EasyModal.create(({ id, isClone = false, visible, remove 
 
 		// Set the unrestricted acls here (remove any data in their acl lists)
 		const globalType = values.npmplusAccessListType;
-		let globalAclIds = values.npmplusAccessListIds || [];
+		let globalAclIds = values.npmplusAccessListIds;
 		if (globalType === "public") {
 			globalAclIds = [];
 		}
-		const locations = (values.locations || []).map((loc) => {
-			const newLoc = { ...loc };
-			if (loc.npmplusAccessListType === "global" || loc.npmplusAccessListType === "public") {
-				newLoc.npmplusAccessListIds = [];
-			}
-			return newLoc;
-		});
 
-		const { ...payload } = {
+		const payload = {
 			id: id === "new" || isClone ? undefined : id,
 			...values,
 			npmplusAccessListIds: globalAclIds,
-			locations,
 			forwardPort: values.forwardPort || null,
 		};
 
@@ -97,36 +89,36 @@ const ProxyHostModal = EasyModal.create(({ id, isClone = false, visible, remove 
 				<Formik
 					initialValues={{
 						// Details tab
-						domainNames: data?.domainNames || [],
-						forwardScheme: data?.forwardScheme || "http",
-						forwardHost: data?.forwardHost || "",
+						domainNames: data?.domainNames,
+						forwardScheme: data?.forwardScheme,
+						forwardHost: data?.forwardHost,
 						forwardPort: data?.forwardPort || undefined,
-						npmplusAccessListIds: data?.npmplusAccessListIds || [],
-						npmplusAccessListType: data?.npmplusAccessListType || "public",
+						npmplusAccessListIds: data?.npmplusAccessListIds,
+						npmplusAccessListType: data?.npmplusAccessListType,
 						// Locations tab
-						locations: data?.locations || [],
+						locations: data?.locations,
 						// SSL tab
-						certificateId: data?.certificateId || 0,
-						sslForced: data?.sslForced || false,
-						npmplusHttp3Support: data?.npmplusHttp3Support || false,
-						hstsEnabled: data?.hstsEnabled || false,
-						hstsSubdomains: data?.hstsSubdomains || false,
+						certificateId: data?.certificateId,
+						sslForced: data?.sslForced,
+						npmplusHttp3Support: data?.npmplusHttp3Support,
+						hstsEnabled: data?.hstsEnabled,
+						hstsSubdomains: data?.hstsSubdomains,
 						// Advanced tab
-						advancedConfig: data?.advancedConfig || "",
-						npmplusLocationConfig: data?.npmplusLocationConfig || "",
-						npmplusDirectory: data?.npmplusDirectory || "",
-						npmplusMtlsCertificateId: data?.npmplusMtlsCertificateId || 0,
-						npmplusMtlsVerifyClientOptional: data?.npmplusMtlsVerifyClientOptional || false,
-						npmplusMtlsBypassAuthRequest: data?.npmplusMtlsBypassAuthRequest || false,
-						npmplusNoindex: data?.npmplusNoindex || false,
-						npmplusCrowdsecAppsec: data?.npmplusCrowdsecAppsec || false,
-						npmplusProxyResponseBuffering: data?.npmplusProxyResponseBuffering || false,
-						npmplusProxyRequestBuffering: data?.npmplusProxyRequestBuffering || false,
-						npmplusUpstreamCompression: data?.npmplusUpstreamCompression || false,
-						npmplusFancyindex: data?.npmplusFancyindex || false,
-						npmplusXFrameOptions: data?.npmplusXFrameOptions || "SAMEORIGIN",
-						npmplusAuthRequest: data?.npmplusAuthRequest || "none",
-						npmplusAuthRequestUpstream: data?.npmplusAuthRequestUpstream || "",
+						advancedConfig: data?.advancedConfig,
+						npmplusLocationConfig: data?.npmplusLocationConfig,
+						npmplusDirectory: data?.npmplusDirectory,
+						npmplusMtlsCertificateId: data?.npmplusMtlsCertificateId,
+						npmplusMtlsVerifyClientOptional: data?.npmplusMtlsVerifyClientOptional,
+						npmplusMtlsBypassAuthRequest: data?.npmplusMtlsBypassAuthRequest,
+						npmplusNoindex: data?.npmplusNoindex,
+						npmplusCrowdsecAppsec: data?.npmplusCrowdsecAppsec,
+						npmplusProxyResponseBuffering: data?.npmplusProxyResponseBuffering,
+						npmplusProxyRequestBuffering: data?.npmplusProxyRequestBuffering,
+						npmplusUpstreamCompression: data?.npmplusUpstreamCompression,
+						npmplusFancyindex: data?.npmplusFancyindex,
+						npmplusXFrameOptions: data?.npmplusXFrameOptions,
+						npmplusAuthRequest: data?.npmplusAuthRequest,
+						npmplusAuthRequestUpstream: data?.npmplusAuthRequestUpstream,
 					}}
 					onSubmit={onSubmit}
 				>
@@ -666,8 +658,8 @@ const ProxyHostModal = EasyModal.create(({ id, isClone = false, visible, remove 
 														<T id="proxy-host.global-access-lists" />
 													</h4>
 													<AccessFields
-														initialAccessListType={data?.npmplusAccessListType || "public"}
-														initialAccessListIds={data?.npmplusAccessListIds || []}
+														initialAccessListType={data?.npmplusAccessListType}
+														initialAccessListIds={data?.npmplusAccessListIds}
 														name="npmplusAccessListIds"
 														typeFieldName="npmplusAccessListType"
 														authRequest={values.npmplusAuthRequest}
@@ -694,7 +686,7 @@ const ProxyHostModal = EasyModal.create(({ id, isClone = false, visible, remove 
 												</Field>
 											</div>
 											<div className="tab-pane" id="tab-locations" role="tabpanel">
-												<LocationsFields initialValues={data?.locations || []} />
+												<LocationsFields initialValues={data?.locations} />
 											</div>
 											<div className="tab-pane" id="tab-ssl" role="tabpanel">
 												<SSLCertificateField

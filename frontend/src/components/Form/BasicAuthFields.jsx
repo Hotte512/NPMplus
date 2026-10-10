@@ -6,7 +6,7 @@ import { T } from "src/locale";
 const blankItem = { username: "", password: "" };
 
 export function BasicAuthFields({ initialValues, name = "items" }) {
-	const [values, setValues] = useState(initialValues || []);
+	const [values, setValues] = useState(initialValues);
 	const [revealed, setRevealed] = useState({});
 	const { setFieldValue } = useFormikContext();
 

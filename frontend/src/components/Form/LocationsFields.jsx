@@ -23,7 +23,7 @@ export function LocationsFields({ initialValues, name = "locations" }) {
 		uiKey: nextUiKey.current++,
 	});
 
-	const [values, setValues] = useState((initialValues || []).map(createUiLocation));
+	const [values, setValues] = useState(initialValues.map(createUiLocation));
 	const { setFieldValue } = useFormikContext();
 	const [advVisible, setAdvVisible] = useState([]);
 	const [expanded, setExpanded] = useState([]);
@@ -620,9 +620,9 @@ export function LocationsFields({ initialValues, name = "locations" }) {
 									<T id="proxy-host.access-lists" />
 								</h4>
 								<AccessFields
-									initialAccessListType={item?.npmplusAccessListType || "global"}
+									initialAccessListType={item?.npmplusAccessListType}
 									location={item.path}
-									initialAccessListIds={item?.npmplusAccessListIds || []}
+									initialAccessListIds={item?.npmplusAccessListIds}
 									name={`locations[${idx}].npmplusAccessListIds`}
 									typeFieldName={`locations[${idx}].npmplusAccessListType`}
 									onChange={(changes) => handleAccessFieldsChange(idx, changes)}

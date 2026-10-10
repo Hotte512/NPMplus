@@ -43,7 +43,7 @@ export function AccessFields({
 	onChange,
 	authRequest,
 }) {
-	const [values, setValues] = useState(initialAccessListIds || []);
+	const [values, setValues] = useState(initialAccessListIds);
 	const [aclValue, setAclValue] = useState(initialAccessListType);
 	const { values: formValues, setFieldValue } = useFormikContext();
 	const { isLoading, isError, error, data } = useAccessLists(["owner", "items", "clients"]);

@@ -34,7 +34,7 @@ const DeadHostModal = EasyModal.create(({ id, visible, remove }) => {
 		setIsSubmitting(true);
 		setErrorMsg(null);
 
-		const { ...payload } = {
+		const payload = {
 			id: id === "new" ? undefined : id,
 			...values,
 		};
@@ -82,9 +82,9 @@ const DeadHostModal = EasyModal.create(({ id, visible, remove }) => {
 						npmplusHttp3Support: data?.npmplusHttp3Support,
 						hstsEnabled: data?.hstsEnabled,
 						hstsSubdomains: data?.hstsSubdomains,
-						npmplusDirectory: data?.npmplusDirectory || "",
-						npmplusMtlsCertificateId: data?.npmplusMtlsCertificateId || 0,
-						npmplusMtlsVerifyClientOptional: data?.npmplusMtlsVerifyClientOptional || false,
+						npmplusDirectory: data?.npmplusDirectory,
+						npmplusMtlsCertificateId: data?.npmplusMtlsCertificateId,
+						npmplusMtlsVerifyClientOptional: data?.npmplusMtlsVerifyClientOptional,
 					}}
 					onSubmit={onSubmit}
 				>

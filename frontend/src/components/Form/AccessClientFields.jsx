@@ -5,11 +5,10 @@ import { useState } from "react";
 import { intl, T } from "src/locale";
 
 export function AccessClientFields({ initialValues, name = "clients" }) {
-	const initial = initialValues || [];
 	const [values, setValues] = useState(
-		initial.at(-1)?.address?.trim().toLowerCase() === "all"
-			? initial
-			: [...initial, { directive: "deny", address: "all" }],
+		initialValues.at(-1)?.address?.trim().toLowerCase() === "all"
+			? initialValues
+			: [...initialValues, { directive: "deny", address: "all" }],
 	);
 	const { setFieldValue } = useFormikContext();
 

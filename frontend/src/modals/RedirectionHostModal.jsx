@@ -35,7 +35,7 @@ const RedirectionHostModal = EasyModal.create(({ id, visible, remove }) => {
 		setIsSubmitting(true);
 		setErrorMsg(null);
 
-		const { ...payload } = {
+		const payload = {
 			id: id === "new" ? undefined : id,
 			...values,
 		};
@@ -77,22 +77,22 @@ const RedirectionHostModal = EasyModal.create(({ id, visible, remove }) => {
 				<Formik
 					initialValues={{
 						// Details tab
-						domainNames: data?.domainNames || [],
-						forwardDomainName: data?.forwardDomainName || "",
-						forwardScheme: data?.forwardScheme || "$scheme",
-						forwardHttpCode: data?.forwardHttpCode || 301,
-						preservePath: data?.preservePath || false,
+						domainNames: data?.domainNames,
+						forwardDomainName: data?.forwardDomainName,
+						forwardScheme: data?.forwardScheme,
+						forwardHttpCode: data?.forwardHttpCode,
+						preservePath: data?.preservePath,
 						// SSL tab
-						certificateId: data?.certificateId || 0,
-						sslForced: data?.sslForced || false,
-						npmplusHttp3Support: data?.npmplusHttp3Support || false,
-						hstsEnabled: data?.hstsEnabled || false,
-						hstsSubdomains: data?.hstsSubdomains || false,
+						certificateId: data?.certificateId,
+						sslForced: data?.sslForced,
+						npmplusHttp3Support: data?.npmplusHttp3Support,
+						hstsEnabled: data?.hstsEnabled,
+						hstsSubdomains: data?.hstsSubdomains,
 						// Advanced tab
-						advancedConfig: data?.advancedConfig || "",
-						npmplusDirectory: data?.npmplusDirectory || "",
-						npmplusMtlsCertificateId: data?.npmplusMtlsCertificateId || 0,
-						npmplusMtlsVerifyClientOptional: data?.npmplusMtlsVerifyClientOptional || false,
+						advancedConfig: data?.advancedConfig,
+						npmplusDirectory: data?.npmplusDirectory,
+						npmplusMtlsCertificateId: data?.npmplusMtlsCertificateId,
+						npmplusMtlsVerifyClientOptional: data?.npmplusMtlsVerifyClientOptional,
 					}}
 					onSubmit={onSubmit}
 				>
