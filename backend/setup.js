@@ -1,4 +1,5 @@
 import { writeFile } from "node:fs/promises";
+import dnsPlugins from "./certbot/dns-plugins.json" with { type: "json" };
 import internalHost from "./internal/host.js";
 import internalNginx from "./internal/nginx.js";
 import internalProxyHost from "./internal/proxy-host.js";
@@ -92,7 +93,11 @@ const setupCertbotPlugins = async () => {
 
 		for (const certificate of certificates) {
 			if (certificate.npmplus_dns_challenge) {
-				if (plugins.indexOf(certificate.npmplus_dns_provider) === -1) {
+				if (dnsPlugins[certificate.npmplus_dns_provider]?.package_name === undefined) {
+					logger.warn(
+						`Unknown DNS provider '${certificate.npmplus_dns_provider}' for Cert #${certificate.id}, skipping Certbot plugin installation`,
+					);
+				} else if (plugins.indexOf(certificate.npmplus_dns_provider) === -1) {
 					plugins.push(certificate.npmplus_dns_provider);
 				}
 
