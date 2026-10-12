@@ -201,6 +201,7 @@ upstream cu_mybackend {
 ```
 3. Configure your proxy host/stream like always in the UI, but set the hostname to the exact name of your upstream block (e.g. `cu_mybackend`) and leave the forward port field empty (ports are defined inside the upstream block)
    - The `cu_` prefix (short for **c**ustom **u**pstream) is required: NPMplus uses it to detect that the hostname refers to a custom upstream block and skips generating its own upstream block for it
+   - This also works for auth request upstreams (env or UI field), use the scheme and the name of your upstream block without port (e.g. `http://cu_myauth`), SNI and Host header are then set to the requested host like for proxy hosts, so the servers inside the upstream block need to point directly to the auth service and not to NPMplus itself
 
 ## Encrypted Client Hello (ECH)
 

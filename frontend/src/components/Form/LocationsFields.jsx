@@ -588,7 +588,7 @@ export function LocationsFields({ initialValues, name = "locations" }) {
 														type="text"
 														className={`form-control ${item.npmplusAuthRequestUpstream && !upstreamUrlPattern.test(item.npmplusAuthRequestUpstream) ? "is-invalid" : ""}`}
 														placeholder="keep empty to reuse env value"
-														pattern="^https?://([^/:]+|\[[a-fA-F0-9:]+\]):[0-9]+$"
+														pattern="^https?://(([^\/:]+|\[[a-fA-F0-9:]+\]):[0-9]+|cu_[^\/:]+)$"
 														value={item.npmplusAuthRequestUpstream}
 														onChange={(e) =>
 															handleChange(

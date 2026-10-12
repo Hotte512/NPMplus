@@ -612,7 +612,7 @@ const ProxyHostModal = EasyModal.create(({ id, isClone, visible, remove }) => {
 																						type="text"
 																						className={`form-control ${form.errors.npmplusAuthRequestUpstream && form.touched.npmplusAuthRequestUpstream ? "is-invalid" : ""}`}
 																						placeholder="keep empty to reuse env value"
-																						pattern="^https?://([^/:]+|\[[a-fA-F0-9:]+\]):[0-9]+$"
+																						pattern="^https?://(([^\/:]+|\[[a-fA-F0-9:]+\]):[0-9]+|cu_[^\/:]+)$"
 																						{...field}
 																					/>
 

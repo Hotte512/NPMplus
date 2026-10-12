@@ -136,7 +136,7 @@
 	"error.invalid-code": "Ungültiger Verifizierungscode",
 	"error.invalid-domain": "Ungültige Domain: {domain}",
 	"error.invalid-email": "Ungültige E-Mail-Adresse",
-	"error.invalid-upstream-url": "Muss eine gültige URL mit Schema, Host und Port sein (ohne Pfad)",
+	"error.invalid-upstream-url": "Muss eine gültige URL mit Schema, Host und Port oder mit Schema und cu_-Upstream-Name sein (ohne Pfad)",
 	"error.max-character-length": "Die maximale Länge beträgt {max} Zeichen{max, plural, one {} other {s}}",
 	"error.max-domains": "Zu viele Domains, maximal sind {max}",
 	"error.maximum": "Maximum ist {max}",

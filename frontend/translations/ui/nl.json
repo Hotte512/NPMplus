@@ -136,7 +136,7 @@
 	"error.invalid-code": "Ongeldige verificatiecode",
 	"error.invalid-domain": "Ongeldige domeinnaam: {domain}",
 	"error.invalid-email": "Ongeldig e-mailadres",
-	"error.invalid-upstream-url": "Moet een geldige URL zijn met schema, host en poort (geen pad)",
+	"error.invalid-upstream-url": "Moet een geldige URL zijn met schema, host en poort of met schema en cu_-upstreamnaam (geen pad)",
 	"error.max-character-length": "Maximale lengte is {max} teken{max, plural, one {} other {s}}",
 	"error.max-domains": "Te veel domeinnamen, max is {max}",
 	"error.maximum": "Maximum is {max}",
