@@ -185,30 +185,28 @@ export default function Table({ data, isFetching, onDelete, onRenew, onDownload,
 									)}
 
 									{row.provider === "letsencrypt" && (
-										<>
-											<button
-												type="button"
-												className="dropdown-item"
-												onClick={() => {
-													onRenew?.(row.id);
-												}}
-											>
-												<IconRefresh size={16} />
-												<T id="action.renew" />
-											</button>
-
-											<button
-												type="button"
-												className="dropdown-item"
-												onClick={() => {
-													onDownload?.(row.id);
-												}}
-											>
-												<IconDownload size={16} />
-												<T id="action.download" />
-											</button>
-										</>
+										<button
+											type="button"
+											className="dropdown-item"
+											onClick={() => {
+												onRenew?.(row.id);
+											}}
+										>
+											<IconRefresh size={16} />
+											<T id="action.renew" />
+										</button>
 									)}
+
+									<button
+										type="button"
+										className="dropdown-item"
+										onClick={() => {
+											onDownload?.(row.id);
+										}}
+									>
+										<IconDownload size={16} />
+										<T id="action.download" />
+									</button>
 
 									{!inUse && (
 										<>

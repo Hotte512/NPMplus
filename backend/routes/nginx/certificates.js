@@ -256,7 +256,7 @@ router
 	});
 
 /**
- * Download certbot Certs
+ * Download Certs
  *
  * /api/nginx/certificates/123/download
  */
