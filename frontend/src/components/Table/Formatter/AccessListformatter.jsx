@@ -4,9 +4,7 @@ import { intl } from "src/locale";
 import { showAccessListModal, showProxyHostModal } from "src/modals";
 
 export function AccessListFormatter({ proxyHostId, access, type, locations }) {
-	const hasLocationAcls =
-		locations.filter((loc) => loc.npmplusAccessListType === "custom" && loc.npmplusAccessListIds.length > 0)
-			.length > 0;
+	const hasLocationAcls = locations.some((loc) => loc.accessLists.length > 0);
 
 	let triggerLabel =
 		type === "custom"

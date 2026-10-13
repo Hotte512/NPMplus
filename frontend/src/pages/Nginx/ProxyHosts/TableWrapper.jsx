@@ -53,7 +53,7 @@ export default function TableWrapper() {
 			return (
 				item.domainNames.some((domain) => domain.toLowerCase().includes(search)) ||
 				item.forwardHost.toLowerCase().includes(search) ||
-				`${item.forwardPort ?? ""}`.includes(search) ||
+				`${item.forwardPort || ""}`.includes(search) ||
 				directory.includes(search)
 			);
 		});

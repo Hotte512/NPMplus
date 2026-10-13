@@ -31,6 +31,10 @@ const ProxyHostModal = EasyModal.create(({ id, isClone, visible, remove }) => {
 	const [errorMsg, setErrorMsg] = useState(null);
 	const [isSubmitting, setIsSubmitting] = useState(false);
 	const [advVisible, setAdvVisible] = useState(false);
+	const initialLocations = data?.locations.map(({ accessLists, ...location }) => ({
+		...location,
+		npmplusAccessListIds: accessLists.map((accessList) => accessList.id),
+	}));
 
 	const onSubmit = (values, { setSubmitting }) => {
 		if (isSubmitting) return;
@@ -48,7 +52,8 @@ const ProxyHostModal = EasyModal.create(({ id, isClone, visible, remove }) => {
 			id: id === "new" || isClone ? undefined : id,
 			...values,
 			npmplusAccessListIds: globalAclIds,
-			forwardPort: values.forwardPort || null,
+			forwardPort: values.forwardPort || 0,
+			locations: values.locations.map((location) => ({ ...location, forwardPort: location.forwardPort || 0 })),
 		};
 
 		setProxyHost(payload, {
@@ -92,10 +97,10 @@ const ProxyHostModal = EasyModal.create(({ id, isClone, visible, remove }) => {
 						forwardScheme: data?.forwardScheme,
 						forwardHost: data?.forwardHost,
 						forwardPort: data?.forwardPort || "",
-						npmplusAccessListIds: data?.npmplusAccessListIds,
+						npmplusAccessListIds: data?.accessLists.map((accessList) => accessList.id),
 						npmplusAccessListType: data?.npmplusAccessListType,
 						// Locations tab
-						locations: data?.locations,
+						locations: initialLocations,
 						// SSL tab
 						certificateId: data?.certificateId,
 						sslForced: data?.sslForced,
@@ -279,7 +284,7 @@ const ProxyHostModal = EasyModal.create(({ id, isClone, visible, remove }) => {
 																		id="forwardPort"
 																		type="text"
 																		inputMode="numeric"
-																		pattern="[0-9]*"
+																		pattern="[1-9][0-9]*"
 																		className={`form-control ${form.errors.forwardPort && form.touched.forwardPort ? "is-invalid" : ""}`}
 																		placeholder="eg: 8081"
 																		{...field}
@@ -623,7 +628,8 @@ const ProxyHostModal = EasyModal.create(({ id, isClone, visible, remove }) => {
 																						type="text"
 																						className={`form-control ${form.errors.npmplusAuthRequestUpstream && form.touched.npmplusAuthRequestUpstream ? "is-invalid" : ""}`}
 																						placeholder="keep empty to reuse env value"
-																						pattern="^https?://(([^\/:]+|\[[a-fA-F0-9:]+\]):[0-9]+|cu_[^\/:]+)$"
+																						maxLength={255}
+																						pattern="^https?://(([^\s\/:]+|\[[a-fA-F0-9:]+\]):[0-9]+|cu_[^\s\/:]+)$"
 																						{...field}
 																					/>
 
@@ -652,7 +658,9 @@ const ProxyHostModal = EasyModal.create(({ id, isClone, visible, remove }) => {
 													</h4>
 													<AccessFields
 														initialAccessListType={data?.npmplusAccessListType}
-														initialAccessListIds={data?.npmplusAccessListIds}
+														initialAccessListIds={data?.accessLists.map(
+															(accessList) => accessList.id,
+														)}
 														name="npmplusAccessListIds"
 														typeFieldName="npmplusAccessListType"
 														authRequest={values.npmplusAuthRequest}
@@ -679,7 +687,7 @@ const ProxyHostModal = EasyModal.create(({ id, isClone, visible, remove }) => {
 												</Field>
 											</div>
 											<div className="tab-pane" id="tab-locations" role="tabpanel">
-												<LocationsFields initialValues={data?.locations} />
+												<LocationsFields initialValues={initialLocations} />
 											</div>
 											<div className="tab-pane" id="tab-ssl" role="tabpanel">
 												<SSLCertificateField

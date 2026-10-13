@@ -3,7 +3,7 @@ import { intl } from "src/locale";
 const emailPattern = /@/;
 const domainPattern = /^(?!.*:[0-9]+$).+$/;
 const ipv4Pattern = /^[0-9.]+$/;
-const upstreamUrlPattern = /^https?:\/\/(([^/:]+|\[[a-fA-F0-9:]+\]):[0-9]+|cu_[^/:]+)$/;
+const upstreamUrlPattern = /^https?:\/\/(([^\s/:]+|\[[a-fA-F0-9:]+\]):[0-9]+|cu_[^\s/:]+)$/;
 
 const validateString =
 	(minLength = 0, maxLength = 0) =>

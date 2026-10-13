@@ -9,7 +9,6 @@
 		"domain_names",
 		"forward_host",
 		"forward_port",
-		"npmplus_access_list_ids",
 		"npmplus_access_list_type",
 		"certificate_id",
 		"ssl_forced",
@@ -61,11 +60,8 @@
 			"example": "127.0.0.1"
 		},
 		"forward_port": {
-			"type": [
-				"integer",
-				"null"
-			],
-			"minimum": 1,
+			"type": "integer",
+			"minimum": 0,
 			"maximum": 65535,
 			"example": 8080
 		},
@@ -125,7 +121,7 @@
 		},
 		"npmplus_auth_request_upstream": {
 			"type": "string",
-			"pattern": "^(https?://(([^/:]+|\\[[a-fA-F0-9:]+\\]):[0-9]+|cu_[^/:]+))?$",
+			"pattern": "^(https?://(([^\\s/:]+|\\[[a-fA-F0-9:]+\\]):[0-9]+|cu_[^\\s/:]+))?$",
 			"maxLength": 255,
 			"example": ""
 		},
@@ -183,7 +179,6 @@
 					"forward_host",
 					"forward_port",
 					"path",
-					"npmplus_access_list_ids",
 					"npmplus_access_list_type"
 				],
 				"additionalProperties": false,
@@ -193,6 +188,9 @@
 							"integer",
 							"null"
 						]
+					},
+					"proxy_host_id": {
+						"$ref": "../common.json#/properties/id"
 					},
 					"npmplus_enabled": {
 						"$ref": "../common.json#/properties/enabled"
@@ -258,6 +256,9 @@
 					},
 					"npmplus_access_list_type": {
 						"$ref": "../common.json#/properties/npmplus_location_access_list_type"
+					},
+					"access_lists": {
+						"$ref": "#/properties/access_lists"
 					}
 				}
 			},

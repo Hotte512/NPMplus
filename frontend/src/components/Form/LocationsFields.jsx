@@ -344,7 +344,7 @@ export function LocationsFields({ initialValues, name = "locations" }) {
 										max={65535}
 										className="form-control"
 										placeholder="eg: 8081"
-										value={item.forwardPort ?? ""}
+										value={item.forwardPort || ""}
 										onChange={(e) => handleChange(idx, "forwardPort", e.target.value)}
 									/>
 								</div>
@@ -587,7 +587,8 @@ export function LocationsFields({ initialValues, name = "locations" }) {
 														type="text"
 														className={`form-control ${item.npmplusAuthRequestUpstream && !upstreamUrlPattern.test(item.npmplusAuthRequestUpstream) ? "is-invalid" : ""}`}
 														placeholder="keep empty to reuse env value"
-														pattern="^https?://(([^\/:]+|\[[a-fA-F0-9:]+\]):[0-9]+|cu_[^\/:]+)$"
+														maxLength={255}
+														pattern="^https?://(([^\s\/:]+|\[[a-fA-F0-9:]+\]):[0-9]+|cu_[^\s\/:]+)$"
 														value={item.npmplusAuthRequestUpstream}
 														onChange={(e) =>
 															handleChange(

@@ -258,6 +258,7 @@
 			]
 		},
 		"npmplus_access_list_ids": {
+			"writeOnly": true,
 			"type": "array",
 			"items": {
 				"type": "integer",

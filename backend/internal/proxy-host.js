@@ -1,11 +1,37 @@
 import errs from "../lib/error.js";
 import { castJsonIfNeed } from "../lib/helpers.js";
+import locationModel from "../models/location.js";
 import proxyHostModel from "../models/proxy_host.js";
 import internalAuditLog from "./audit-log.js";
 import internalCertificate from "./certificate.js";
 import internalHost from "./host.js";
 import internalNginx from "./nginx.js";
 import internalProxyHostAccessList from "./proxy-host-access-list.js";
+
+const replaceLocationsAndAccessLists = async (trx, proxyHostId, data) => {
+	const insertAccessLists = async (locationId, accessListIds) => {
+		if (accessListIds.length > 0) {
+			await trx("npmplus_proxy_host_access_list").insert(
+				accessListIds.map((access_list_id, position) => ({
+					proxy_host_id: proxyHostId,
+					location_id: locationId,
+					access_list_id,
+					position,
+				})),
+			);
+		}
+	};
+
+	await trx("npmplus_proxy_host_access_list").where("proxy_host_id", proxyHostId).delete();
+	await locationModel.query(trx).where("proxy_host_id", proxyHostId).delete();
+	await insertAccessLists(0, data.npmplus_access_list_ids);
+	for (const { id, npmplus_access_list_ids: accessListIds, ...location } of data.locations ?? []) {
+		await insertAccessLists(
+			(await locationModel.query(trx).insert({ ...location, proxy_host_id: proxyHostId })).id,
+			accessListIds,
+		);
+	}
+};
 
 const internalProxyHost = {
 	/**
@@ -45,12 +71,7 @@ const internalProxyHost = {
 
 		const createdRow = await proxyHostModel.transaction(async (trx) => {
 			const insertedRow = await proxyHostModel.query(trx).insertAndFetch(thisData);
-
-			const relationRows = internalProxyHostAccessList.getAccessListRelationRows(insertedRow.id, thisData);
-			if (relationRows.length > 0) {
-				await trx("npmplus_proxy_host_access_list").insert(relationRows);
-			}
-
+			await replaceLocationsAndAccessLists(trx, insertedRow.id, thisData);
 			return insertedRow;
 		});
 
@@ -64,14 +85,10 @@ const internalProxyHost = {
 					.patch({ certificate_id: (await internalCertificate.createQuickCertificate(access, thisData)).id });
 			}
 
-			const fetchedRow = await internalProxyHost.get(access, {
+			const row = await internalProxyHost.get(access, {
 				id: createdRow.id,
-				expand: ["certificate", "access_lists.[clients,items]"],
+				expand: ["certificate", "access_lists.[clients,items]", "locations.access_lists.[clients,items]"],
 			});
-
-			const row = await internalProxyHostAccessList.populateLocationAccessLists(
-				internalProxyHostAccessList.cleanAccessListTypes(fetchedRow),
-			);
 
 			// Configure nginx
 			await internalNginx.configure(proxyHostModel, "proxy_host", row);
@@ -149,22 +166,16 @@ const internalProxyHost = {
 
 		await proxyHostModel.transaction(async (trx) => {
 			const patchResult = await proxyHostModel.query(trx).where({ id: thisData.id }).patch(thisData);
-
-			await internalProxyHostAccessList.syncAccessListRelations(trx, thisData.id, thisData);
-
+			await replaceLocationsAndAccessLists(trx, thisData.id, thisData);
 			return patchResult;
 		});
 
 		let savedRow;
 		try {
-			const fetchedRow = await internalProxyHost.get(access, {
+			const row = await internalProxyHost.get(access, {
 				id: thisData.id,
-				expand: ["certificate", "access_lists.[clients,items]"],
+				expand: ["certificate", "access_lists.[clients,items]", "locations.access_lists.[clients,items]"],
 			});
-
-			const row = await internalProxyHostAccessList.populateLocationAccessLists(
-				internalProxyHostAccessList.cleanAccessListTypes(fetchedRow),
-			);
 
 			// No need to add nginx config if host is disabled
 			if (row.enabled) {
@@ -201,7 +212,8 @@ const internalProxyHost = {
 		const query = proxyHostModel
 			.query()
 			.where("id", thisData.id)
-			.allowGraph("[access_lists.[clients,items],certificate]")
+			.allowGraph("[access_lists.[clients,items],certificate,locations.access_lists.[clients,items]]")
+			.withGraphFetched("[access_lists, locations.access_lists]")
 			.first();
 
 		if (access.visibility !== "all") {
@@ -217,7 +229,7 @@ const internalProxyHost = {
 			throw new errs.ItemNotFoundError(thisData.id);
 		}
 
-		return internalProxyHostAccessList.cleanAccessListTypes(row);
+		return row;
 	},
 
 	/**
@@ -237,6 +249,7 @@ const internalProxyHost = {
 
 		await proxyHostModel.transaction(async (trx) => {
 			await trx("npmplus_proxy_host_access_list").where("proxy_host_id", row.id).delete();
+			await locationModel.query(trx).where("proxy_host_id", row.id).delete();
 			await proxyHostModel.query(trx).deleteById(row.id);
 		});
 
@@ -271,7 +284,7 @@ const internalProxyHost = {
 
 		const row = await internalProxyHost.get(access, {
 			id: data.id,
-			expand: ["certificate", "access_lists.[clients,items]"],
+			expand: ["certificate", "access_lists.[clients,items]", "locations.access_lists.[clients,items]"],
 		});
 		if (!row?.id) {
 			throw new errs.ItemNotFoundError(data.id);
@@ -297,13 +310,7 @@ const internalProxyHost = {
 		let savedRow;
 		try {
 			// Configure nginx
-			await internalNginx.configure(
-				proxyHostModel,
-				"proxy_host",
-				await internalProxyHostAccessList.populateLocationAccessLists(
-					internalProxyHostAccessList.cleanAccessListTypes(row),
-				),
-			);
+			await internalNginx.configure(proxyHostModel, "proxy_host", row);
 		} finally {
 			savedRow = await internalProxyHost.get(access, { id: row.id });
 
@@ -377,7 +384,8 @@ const internalProxyHost = {
 		const query = proxyHostModel
 			.query()
 			.groupBy("id")
-			.allowGraph("[owner,access_lists,certificate]")
+			.allowGraph("[owner,access_lists,certificate,locations.access_lists]")
+			.withGraphFetched("[access_lists, locations.access_lists]")
 			.orderBy(castJsonIfNeed("domain_names"), "ASC");
 
 		if (access.visibility !== "all") {
@@ -395,7 +403,7 @@ const internalProxyHost = {
 			query.withGraphFetched(`[${expand.join(", ")}]`);
 		}
 
-		return (await query).map((row) => internalProxyHostAccessList.cleanAccessListTypes(row));
+		return await query;
 	},
 
 	/**

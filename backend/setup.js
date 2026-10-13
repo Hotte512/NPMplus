@@ -3,7 +3,6 @@ import dnsPlugins from "./certbot/dns-plugins.json" with { type: "json" };
 import internalHost from "./internal/host.js";
 import internalNginx from "./internal/nginx.js";
 import internalProxyHost from "./internal/proxy-host.js";
-import internalProxyHostAccessList from "./internal/proxy-host-access-list.js";
 import internalUser from "./internal/user.js";
 import Access from "./lib/access.js";
 import { installPlugins } from "./lib/certbot.js";
@@ -127,18 +126,10 @@ const regenerateAllHosts = async () => {
 		const proxyHosts = await proxyModel
 			.query()
 			.where("enabled", 1)
-			.withGraphFetched("[access_lists.[clients,items],certificate]");
+			.withGraphFetched("[access_lists.[clients,items],certificate,locations.access_lists.[clients,items]]");
 
 		if (proxyHosts?.length > 0) {
-			// locations dont contain access list objects, so prepopulate them before generating the nginx files
-			const updatedProxyHosts = await Promise.all(
-				proxyHosts.map((host) => {
-					const cleanedHost = internalProxyHostAccessList.cleanAccessListTypes(host);
-					return internalProxyHostAccessList.populateLocationAccessLists(cleanedHost);
-				}),
-			);
-
-			await internalNginx.bulkGenerateConfigs(proxyModel, "proxy_host", updatedProxyHosts, { skipReload: true });
+			await internalNginx.bulkGenerateConfigs(proxyModel, "proxy_host", proxyHosts, { skipReload: true });
 		}
 
 		const redirectionHosts = await redirectionModel.query().where("enabled", 1).withGraphFetched("certificate");

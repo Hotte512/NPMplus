@@ -6,6 +6,7 @@ import db from "../db.js";
 import { convertBoolFieldsToInt, convertIntFieldsToBool, removeCertificateFields } from "../lib/helpers.js";
 import AccessList from "./access_list.js";
 import Certificate from "./certificate.js";
+import Location from "./location.js";
 import now from "./now_helper.js";
 import User from "./user.js";
 
@@ -41,13 +42,9 @@ class ProxyHost extends Model {
 		this.advanced_config ??= "";
 		this.npmplus_location_config ??= "";
 		this.npmplus_nginx_err ??= "";
-		this.locations ??= [];
 
 		// Default for access list type
 		this.npmplus_access_list_type ??= "public";
-
-		// Default for access list ids
-		this.npmplus_access_list_ids ??= [];
 	}
 
 	$beforeUpdate() {
@@ -64,13 +61,17 @@ class ProxyHost extends Model {
 			allow_websocket_upgrade,
 			http2_support,
 			trust_forwarded_proto,
+			locations,
 			...thisJson
 		} = super.$parseDatabaseJson(json);
 		return convertIntFieldsToBool(thisJson, boolFields);
 	}
 
 	$formatDatabaseJson(json) {
-		const thisJson = convertBoolFieldsToInt(removeCertificateFields(json), boolFields);
+		const { npmplus_access_list_ids, ...thisJson } = convertBoolFieldsToInt(
+			removeCertificateFields(json),
+			boolFields,
+		);
 		return super.$formatDatabaseJson(thisJson);
 	}
 
@@ -83,7 +84,7 @@ class ProxyHost extends Model {
 	}
 
 	static get jsonAttributes() {
-		return ["domain_names", "meta", "locations", "npmplus_access_list_ids"];
+		return ["domain_names", "meta"];
 	}
 
 	static get relationMappings() {
@@ -107,6 +108,11 @@ class ProxyHost extends Model {
 					},
 					to: "access_list.id",
 				},
+				modify: (qb) => {
+					qb.where("npmplus_proxy_host_access_list.location_id", 0).orderBy(
+						"npmplus_proxy_host_access_list.position",
+					);
+				},
 			},
 			certificate: {
 				relation: Model.HasOneRelation,
@@ -114,6 +120,17 @@ class ProxyHost extends Model {
 				join: {
 					from: "proxy_host.certificate_id",
 					to: "certificate.id",
+				},
+			},
+			locations: {
+				relation: Model.HasManyRelation,
+				modelClass: Location,
+				join: {
+					from: "proxy_host.id",
+					to: "npmplus_location.proxy_host_id",
+				},
+				modify: (qb) => {
+					qb.orderBy("npmplus_location.id");
 				},
 			},
 		};

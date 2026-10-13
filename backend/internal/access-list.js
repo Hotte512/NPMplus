@@ -5,10 +5,10 @@ import { access as logger } from "../logger.js";
 import accessListModel from "../models/access_list.js";
 import accessListAuthModel from "../models/access_list_auth.js";
 import accessListClientModel from "../models/access_list_client.js";
+import locationModel from "../models/location.js";
 import proxyHostModel from "../models/proxy_host.js";
 import internalAuditLog from "./audit-log.js";
 import internalNginx from "./nginx.js";
-import internalProxyHostAccessList from "./proxy-host-access-list.js";
 
 const hasNoRules = (items = [], clients = []) =>
 	items.length === 0 && clients.every(({ address = "" }) => ["", "all"].includes(address.trim().toLowerCase()));
@@ -171,7 +171,11 @@ const internalAccessList = {
 		// re-fetch with expansions
 		const freshRow = await internalAccessList.get(access, {
 			id: data.id,
-			expand: ["items", "clients", "proxy_hosts.[certificate,access_lists.[clients,items]]"],
+			expand: [
+				"items",
+				"clients",
+				"proxy_hosts.[certificate,access_lists.[clients,items],locations.access_lists.[clients,items]]",
+			],
 		});
 
 		const savedRow = { ...freshRow, proxy_hosts: undefined };
@@ -179,13 +183,6 @@ const internalAccessList = {
 		try {
 			await internalAccessList.build(freshRow);
 			if (freshRow.proxy_host_count) {
-				// locations don't have accessList objects, only IDs, so populate it with the object itself
-				freshRow.proxy_hosts = await Promise.all(
-					(freshRow.proxy_hosts || []).map((host) => {
-						const cleanedHost = internalProxyHostAccessList.cleanAccessListTypes(host);
-						return internalProxyHostAccessList.populateLocationAccessLists(cleanedHost);
-					}),
-				);
 				await internalNginx.bulkGenerateConfigs(proxyHostModel, "proxy_host", freshRow.proxy_hosts);
 			}
 			await internalNginx.reload();
@@ -224,7 +221,9 @@ const internalAccessList = {
 			.leftJoin("proxy_host", "proxy_host.id", "npmplus_proxy_host_access_list.proxy_host_id")
 			.where("access_list.id", thisData.id)
 			.groupBy("access_list.id")
-			.allowGraph("[items,clients,proxy_hosts.[certificate,access_lists.[clients,items]]]")
+			.allowGraph(
+				"[items,clients,proxy_hosts.[certificate,access_lists.[clients,items],locations.access_lists.[clients,items]]]",
+			)
 			.first();
 
 		if (access.visibility !== "all") {
@@ -239,6 +238,9 @@ const internalAccessList = {
 
 		if (!row?.id) {
 			throw new errs.ItemNotFoundError(thisData.id);
+		}
+		if (Array.isArray(row.proxy_hosts)) {
+			row.proxy_hosts = [...new Map(row.proxy_hosts.map((host) => [host.id, host])).values()];
 		}
 
 		return row;
@@ -255,7 +257,11 @@ const internalAccessList = {
 		access.can("access_lists:manage");
 		const row = await internalAccessList.get(access, {
 			id: data.id,
-			expand: ["proxy_hosts.[certificate, access_lists.[clients,items]]", "items", "clients"],
+			expand: [
+				"proxy_hosts.[certificate, access_lists.[clients,items], locations.access_lists.[clients,items]]",
+				"items",
+				"clients",
+			],
 		});
 
 		if (!row?.id) {
@@ -268,19 +274,13 @@ const internalAccessList = {
 
 		const affectedHosts = (row.proxy_hosts || []).map((host) => {
 			const updatedHost = { ...host };
-			// check in case something crazy happened. This should never be the case, but safeguard
-			if (!Array.isArray(updatedHost.npmplus_access_list_ids)) {
-				updatedHost.npmplus_access_list_ids = [];
-			}
-			updatedHost.npmplus_access_list_ids = updatedHost.npmplus_access_list_ids.filter((id) => id !== row.id);
-
-			// update the access_lists object (separate from the access_lists_ids)
+			// update the access_lists object
 			if (!Array.isArray(updatedHost.access_lists)) {
 				updatedHost.access_lists = [];
 			}
 			updatedHost.access_lists = updatedHost.access_lists.filter((acl) => acl.id !== row.id);
 
-			if (updatedHost.npmplus_access_list_ids.length === 0) {
+			if (updatedHost.access_lists.length === 0) {
 				updatedHost.npmplus_access_list_type = "public";
 			}
 			if (!Array.isArray(updatedHost.locations)) {
@@ -288,14 +288,9 @@ const internalAccessList = {
 			}
 			updatedHost.locations = updatedHost.locations.map((location) => {
 				const updatedLocation = { ...location };
-				if (!Array.isArray(updatedLocation.npmplus_access_list_ids)) {
-					updatedLocation.npmplus_access_list_ids = [];
-				}
-				updatedLocation.npmplus_access_list_ids = updatedLocation.npmplus_access_list_ids.filter(
-					(id) => id !== row.id,
-				);
+				updatedLocation.access_lists = updatedLocation.access_lists.filter((acl) => acl.id !== row.id);
 				if (
-					updatedLocation.npmplus_access_list_ids.length === 0 &&
+					updatedLocation.access_lists.length === 0 &&
 					updatedLocation.npmplus_access_list_type === "custom"
 				) {
 					updatedLocation.npmplus_access_list_type = "global";
@@ -313,17 +308,16 @@ const internalAccessList = {
 			await accessListClientModel.query(trx).where("access_list_id", row.id).delete();
 			await accessListModel.query(trx).deleteById(row.id);
 			// 2. update any proxy hosts that were using it (ignoring permissions)
-			await Promise.all(
-				affectedHosts.map(async (host) => {
-					await proxyHostModel.query(trx).patchAndFetchById(host.id, {
-						npmplus_access_list_ids: host.npmplus_access_list_ids,
-						npmplus_access_list_type: host.npmplus_access_list_type,
-						locations: host.locations,
+			for (const host of affectedHosts) {
+				await proxyHostModel.query(trx).patchAndFetchById(host.id, {
+					npmplus_access_list_type: host.npmplus_access_list_type,
+				});
+				for (const location of host.locations) {
+					await locationModel.query(trx).where("id", location.id).patch({
+						npmplus_access_list_type: location.npmplus_access_list_type,
 					});
-
-					return internalProxyHostAccessList.syncAccessListRelations(trx, host.id, host);
-				}),
-			);
+				}
+			}
 		});
 
 		try {
@@ -331,13 +325,6 @@ const internalAccessList = {
 			if (affectedHosts.length > 0) {
 				row.proxy_hosts = affectedHosts;
 				// Regenerate configs and htpasswd files
-				// locations don't have accessList objects, only IDs, so populate it with the object itself
-				row.proxy_hosts = await Promise.all(
-					(row.proxy_hosts || []).map((host) => {
-						const cleanedHost = internalProxyHostAccessList.cleanAccessListTypes(host);
-						return internalProxyHostAccessList.populateLocationAccessLists(cleanedHost);
-					}),
-				);
 				await internalNginx.bulkGenerateConfigs(proxyHostModel, "proxy_host", row.proxy_hosts);
 			}
 

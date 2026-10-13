@@ -251,14 +251,6 @@ const internalNginx = {
 			// note that there is access_lists -> an array in the correct order
 			// and access_list -> an object used in the config generation
 			// note the (s) in the former and lack thereof in the latter
-
-			// must be ordered by ID as the AccessList constructed is unordered, but for generation it must be.
-			// the IDs are retrieved in the correct order (specified in the UI) from the DB so they are used for the ordering
-			const hostAccessLists = Array.isArray(host.access_lists) ? host.access_lists : [];
-			host.access_lists = internalProxyHostAccessList.orderAccessListsByIds(
-				hostAccessLists,
-				host.npmplus_access_list_ids,
-			);
 			host.access_list = internalProxyHostAccessList.buildAclFile(host.access_lists);
 		}
 		const hostHtpasswdFileName = internalProxyHostAccessList.getHostFileName(host);
@@ -276,13 +268,6 @@ const internalNginx = {
 					// note that there is access_lists -> an array in the correct order
 					// and access_list -> an object used in the config generation
 					// note the (s) in the former and lack thereof in the latter
-
-					// must be ordered by ID as the AccessList constructed is unordered, but for generation it must be.
-					// the IDs are retrieved in the correct order (specified in the UI) from the DB so they are used for the ordering
-					location.access_lists = internalProxyHostAccessList.orderAccessListsByIds(
-						location.access_lists || [],
-						location.npmplus_access_list_ids,
-					);
 					location.access_list = internalProxyHostAccessList.buildAclFile(location.access_lists);
 				}
 
