@@ -1,20 +1,21 @@
 import { intl } from "src/locale";
 
 const emailPattern = /@/;
-const domainPattern = /^(?!.*:[0-9]+$).+$/;
+const domainPattern = /^(?!.*:[0-9]+$)\S{1,253}$/;
 const ipv4Pattern = /^[0-9.]+$/;
 const upstreamUrlPattern = /^https?:\/\/(([^\s/:]+|\[[a-fA-F0-9:]+\]):[0-9]+|cu_[^\s/:]+)$/;
 
 const validateString =
-	(minLength = 0, maxLength = 0) =>
+	(minLength = 0, maxLength = 0, trim = true) =>
 	(value) => {
-		if (minLength && value.length === 0) {
+		const { length } = trim ? value.trim() : value;
+		if (minLength && length === 0) {
 			return intl.formatMessage({ id: "error.required" });
 		}
-		if (value.length < minLength) {
+		if (length < minLength) {
 			return intl.formatMessage({ id: "error.min-character-length" }, { min: minLength });
 		}
-		if (maxLength && value.length > maxLength) {
+		if (maxLength && length > maxLength) {
 			return intl.formatMessage({ id: "error.max-character-length" }, { max: maxLength });
 		}
 	};
@@ -40,6 +41,9 @@ const validateEmail = () => (value) => {
 	}
 	if (!emailPattern.test(value)) {
 		return intl.formatMessage({ id: "error.invalid-email" });
+	}
+	if (value.length > 255) {
+		return intl.formatMessage({ id: "error.max-character-length" }, { max: 255 });
 	}
 };
 
@@ -75,6 +79,10 @@ const validateDomains = (allowWildcards) => {
 	return (value) => {
 		if (!value?.length) {
 			return intl.formatMessage({ id: "error.required" });
+		}
+
+		if (value.length > 99) {
+			return intl.formatMessage({ id: "error.max-domains" }, { max: 99 });
 		}
 
 		// validate each domain

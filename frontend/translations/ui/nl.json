@@ -139,6 +139,7 @@
 	"error.invalid-upstream-url": "Moet een geldige URL zijn met schema, host en poort of met schema en cu_-upstreamnaam (geen pad)",
 	"error.max-character-length": "Maximale lengte is {max} teken{max, plural, one {} other {s}}",
 	"error.max-domains": "Te veel domeinnamen, max is {max}",
+	"error.max-upload-size": "De upload is te groot, het maximum is 1 MiB",
 	"error.maximum": "Maximum is {max}",
 	"error.min-character-length": "Minimale lengte is {min} teken{min, plural, one {} other {s}}",
 	"error.minimum": "Minimum is {min}",

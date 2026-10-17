@@ -315,7 +315,11 @@ const internalNginx = {
 		logger.debug("Wrote config:", filename);
 
 		if (process.env.DISABLE_NGINX_BEAUTIFIER === "false") {
-			await utils.execFile("nginxbeautifier", ["-s", "2", filename]).catch(() => {});
+			try {
+				await utils.execFile("nginxbeautifier", ["-s", "2", filename]);
+			} catch {
+				// do nothing
+			}
 		}
 
 		return true;

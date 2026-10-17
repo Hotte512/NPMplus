@@ -21,7 +21,12 @@ function buildBody(data) {
 }
 
 async function processResponse(response, reload = true) {
-	const payload = await response.json();
+	let payload = {};
+	try {
+		payload = await response.json();
+	} catch (err) {
+		if (response.ok) throw err;
+	}
 	if (!response.ok) {
 		if (response.status === 401) {
 			// Force logout user and reload the page if Unauthorized
@@ -68,6 +73,7 @@ export async function post({ url, params, data }, abortController) {
 	// Check if the data is an instance of FormData
 	// If data is FormData, let the browser set the Content-Type header
 	if (data instanceof FormData) {
+		if ((await new Response(data).blob()).size > 1024 * 1024) throw new Error("error.max-upload-size");
 		body = data;
 	} else {
 		// If data is JSON, set the Content-Type header to 'application/json'

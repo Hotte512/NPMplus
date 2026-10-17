@@ -15,7 +15,7 @@ export function DomainNamesField({
 	const { setFieldValue } = useFormikContext();
 
 	const handleChange = (v, _actionMeta) => {
-		const doms = v?.map((i) => i.value.trim());
+		const doms = [...new Set(v?.map((i) => i.value.trim()))];
 		void setFieldValue(name, doms);
 		onChange?.(doms);
 	};
@@ -43,6 +43,7 @@ export function DomainNamesField({
 						isClearable={false}
 						isValidNewOption={validateDomain(isWildcardPermitted && dnsProviderWildcardSupported)}
 						isMulti
+						required
 						placeholder={intl.formatMessage({ id: "domain-names.placeholder" })}
 						onChange={handleChange}
 						value={field.value?.map((d) => ({ label: d, value: d }))}

@@ -139,6 +139,7 @@
 	"error.invalid-upstream-url": "Must be a valid URL with scheme, host and port or with scheme and cu_ upstream name (no path)",
 	"error.max-character-length": "Maximum length is {max} character{max, plural, one {} other {s}}",
 	"error.max-domains": "Too many domains, max is {max}",
+	"error.max-upload-size": "The upload is too large, the maximum is 1 MiB",
 	"error.maximum": "Maximum is {max}",
 	"error.min-character-length": "Minimum length is {min} character{min, plural, one {} other {s}}",
 	"error.minimum": "Minimum is {min}",

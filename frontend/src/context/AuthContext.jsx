@@ -54,8 +54,12 @@ function AuthProvider({ children, tokenRefreshInterval = 5 * 60 * 1000 }) {
 	};
 
 	const refresh = async (reload = true) => {
-		const response = await refreshToken(reload);
-		handleTokenUpdate(response);
+		try {
+			const response = await refreshToken(reload);
+			handleTokenUpdate(response);
+		} catch {
+			// do nothing
+		}
 	};
 
 	useEffect(() => {
@@ -64,14 +68,14 @@ function AuthProvider({ children, tokenRefreshInterval = 5 * 60 * 1000 }) {
 				window.cookieStore.delete("__Host-npmplus_oidc_totp_required");
 				return;
 			}
-			refresh(false).catch(() => {});
+			void refresh(false);
 		}
 	});
 
 	useIntervalWhen(
 		() => {
 			if (authenticated) {
-				refresh().catch(() => {});
+				void refresh();
 			}
 		},
 		tokenRefreshInterval,
