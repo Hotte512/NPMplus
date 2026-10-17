@@ -24,6 +24,9 @@ const internalAccessList = {
 		if (data.items?.some((item) => !item.password)) {
 			throw new errs.ValidationError("New access list users need a password");
 		}
+		if (data.items?.some((item) => item.password && bcrypt.truncates(item.password))) {
+			throw new errs.ValidationError("Access list passwords can not be longer than 72 bytes");
+		}
 		if (hasNoRules(data.items, data.clients)) {
 			throw new errs.ValidationError("Access list needs at least one user or one rule that is not all");
 		}
@@ -105,6 +108,9 @@ const internalAccessList = {
 			data.items?.some((item) => !item.password && !row.items.some(({ username }) => username === item.username))
 		) {
 			throw new errs.ValidationError("New access list users need a password");
+		}
+		if (data.items?.some((item) => item.password && bcrypt.truncates(item.password))) {
+			throw new errs.ValidationError("Access list passwords can not be longer than 72 bytes");
 		}
 		if (hasNoRules(data.items ?? row.items, data.clients ?? row.clients)) {
 			throw new errs.ValidationError("Access list needs at least one user or one rule that is not all");

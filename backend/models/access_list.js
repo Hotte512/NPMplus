@@ -29,6 +29,7 @@ class AccessList extends Model {
 
 	$parseDatabaseJson(json) {
 		const { is_deleted, meta, ...thisJson } = super.$parseDatabaseJson(json);
+		thisJson.proxy_host_count &&= Number(thisJson.proxy_host_count);
 		return convertIntFieldsToBool(thisJson, boolFields);
 	}
 

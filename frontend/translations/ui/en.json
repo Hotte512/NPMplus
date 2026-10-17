@@ -137,6 +137,7 @@
 	"error.invalid-domain": "Invalid domain: {domain}",
 	"error.invalid-email": "Invalid email address",
 	"error.invalid-upstream-url": "Must be a valid URL with scheme, host and port or with scheme and cu_ upstream name (no path)",
+	"error.max-byte-length": "Maximum length is {max} bytes",
 	"error.max-character-length": "Maximum length is {max} character{max, plural, one {} other {s}}",
 	"error.max-domains": "Too many domains, max is {max}",
 	"error.max-upload-size": "The upload is too large, the maximum is 1 MiB",

@@ -137,6 +137,7 @@
 	"error.invalid-domain": "Ungültige Domain: {domain}",
 	"error.invalid-email": "Ungültige E-Mail-Adresse",
 	"error.invalid-upstream-url": "Muss eine gültige URL mit Schema, Host und Port oder mit Schema und cu_-Upstream-Name sein (ohne Pfad)",
+	"error.max-byte-length": "Die maximale Länge beträgt {max} Bytes",
 	"error.max-character-length": "Die maximale Länge beträgt {max} Zeichen",
 	"error.max-domains": "Zu viele Domains, maximal sind {max}",
 	"error.max-upload-size": "Der Upload ist zu groß, maximal ist 1 MiB erlaubt",
