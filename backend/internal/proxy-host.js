@@ -69,6 +69,10 @@ const internalProxyHost = {
 		thisData = internalProxyHostAccessList.cleanAccessListTypes(thisData);
 		await internalProxyHostAccessList.validateAccessLists(access, thisData);
 
+		if (createCertificate) {
+			thisData.certificate_id = (await internalCertificate.createQuickCertificate(access, thisData)).id;
+		}
+
 		const createdRow = await proxyHostModel.transaction(async (trx) => {
 			const insertedRow = await proxyHostModel.query(trx).insertAndFetch(thisData);
 			await replaceLocationsAndAccessLists(trx, insertedRow.id, thisData);
@@ -77,14 +81,6 @@ const internalProxyHost = {
 
 		let savedRow;
 		try {
-			if (createCertificate) {
-				// update host with cert id
-				await proxyHostModel
-					.query()
-					.where("id", createdRow.id)
-					.patch({ certificate_id: (await internalCertificate.createQuickCertificate(access, thisData)).id });
-			}
-
 			const row = await internalProxyHost.get(access, {
 				id: createdRow.id,
 				expand: ["certificate", "access_lists.[clients,items]", "locations.access_lists.[clients,items]"],

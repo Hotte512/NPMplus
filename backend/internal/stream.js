@@ -33,18 +33,14 @@ const internalStream = {
 			thisData.npmplus_mtls_verify_client_optional = false;
 		}
 
+		if (createCertificate) {
+			thisData.certificate_id = (await internalCertificate.createQuickCertificate(access, thisData)).id;
+		}
+
 		const createdRow = await streamModel.query().insertAndFetch(thisData);
 
 		let savedRow;
 		try {
-			if (createCertificate) {
-				// update host with cert id
-				await streamModel
-					.query()
-					.where("id", createdRow.id)
-					.patch({ certificate_id: (await internalCertificate.createQuickCertificate(access, thisData)).id });
-			}
-
 			const row = await internalStream.get(access, {
 				id: createdRow.id,
 				expand: ["certificate"],

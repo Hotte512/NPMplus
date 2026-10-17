@@ -40,18 +40,14 @@ const internalRedirectionHost = {
 		thisData.owner_user_id = access.token.getUserId(1);
 		thisData = internalHost.cleanSslHstsData(createCertificate, thisData);
 
+		if (createCertificate) {
+			thisData.certificate_id = (await internalCertificate.createQuickCertificate(access, thisData)).id;
+		}
+
 		const createdRow = await redirectionHostModel.query().insertAndFetch(thisData);
 
 		let savedRow;
 		try {
-			if (createCertificate) {
-				// update host with cert id
-				await redirectionHostModel
-					.query()
-					.where("id", createdRow.id)
-					.patch({ certificate_id: (await internalCertificate.createQuickCertificate(access, thisData)).id });
-			}
-
 			const row = await internalRedirectionHost.get(access, {
 				id: createdRow.id,
 				expand: ["certificate"],
