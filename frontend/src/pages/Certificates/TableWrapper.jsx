@@ -20,7 +20,7 @@ import Table from "./Table";
 
 export default function TableWrapper() {
 	const [search, setSearch] = useState("");
-	const { isFetching, isLoading, isError, error, data } = useCertificates([
+	const { isFetching, isPending, isError, error, data } = useCertificates([
 		"owner",
 		"dead_hosts",
 		"proxy_hosts",
@@ -39,7 +39,7 @@ export default function TableWrapper() {
 		}
 	});
 
-	if (isLoading) {
+	if (isPending) {
 		return <LoadingPage />;
 	}
 

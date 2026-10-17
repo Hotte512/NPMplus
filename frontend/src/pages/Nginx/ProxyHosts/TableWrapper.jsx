@@ -16,7 +16,7 @@ export default function TableWrapper() {
 	const queryClient = useQueryClient();
 	const [search, setSearch] = useState("");
 	const [sorting, setSorting] = useState([{ id: "enabled", desc: false }]);
-	const { isFetching, isLoading, isError, error, data } = useProxyHosts(["owner", "access_lists", "certificate"]);
+	const { isFetching, isPending, isError, error, data } = useProxyHosts(["owner", "access_lists", "certificate"]);
 
 	useEffect(() => {
 		// this can happen if someone deletes the last item while searching
@@ -25,7 +25,7 @@ export default function TableWrapper() {
 		}
 	});
 
-	if (isLoading) {
+	if (isPending) {
 		return <LoadingPage />;
 	}
 

@@ -25,7 +25,7 @@ export function SSLCertificateField({
 	mtlsName = "npmplusMtlsCertificateId",
 	mtlsLabel = "mtls-certificate",
 }) {
-	const { isLoading, isError, error, data } = useCertificates();
+	const { isPending, isError, error, data } = useCertificates();
 	const { values: v, setFieldValue } = useFormikContext();
 
 	const handleChange = (newValue, _actionMeta) => {
@@ -117,9 +117,9 @@ export function SSLCertificateField({
 						<label className="form-label" htmlFor={id}>
 							<T id={label} />
 						</label>
-						{isLoading ? <div className="placeholder placeholder-lg col-12 my-3 placeholder-glow" /> : null}
+						{isPending ? <div className="placeholder placeholder-lg col-12 my-3 placeholder-glow" /> : null}
 						{isError ? <div className="invalid-feedback">{`${error}`}</div> : null}
-						{!isLoading && !isError ? (
+						{!isPending && !isError ? (
 							<Select
 								inputId={id}
 								unstyled
@@ -146,9 +146,9 @@ export function SSLCertificateField({
 						<label className="form-label" htmlFor="mtlsCertificate">
 							<T id={mtlsLabel} />
 						</label>
-						{isLoading ? <div className="placeholder placeholder-lg col-12 my-3 placeholder-glow" /> : null}
+						{isPending ? <div className="placeholder placeholder-lg col-12 my-3 placeholder-glow" /> : null}
 						{isError ? <div className="invalid-feedback">{`${error}`}</div> : null}
-						{!isLoading && !isError ? (
+						{!isPending && !isError ? (
 							<Select
 								inputId="mtlsCertificate"
 								unstyled

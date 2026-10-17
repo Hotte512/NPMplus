@@ -5,13 +5,13 @@ import { T } from "src/locale";
 import { hasPermission } from "src/modules/Permissions";
 
 function HasPermission({ section, permission, children, hideError, pageLoading, loadingNoLogo }) {
-	const { data, isLoading } = useUser("me");
+	const { data, isPending } = useUser("me");
 
 	if (!section) {
 		return <>{children}</>;
 	}
 
-	if (isLoading) {
+	if (isPending) {
 		if (hideError) {
 			return null;
 		}

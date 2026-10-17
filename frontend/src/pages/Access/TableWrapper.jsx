@@ -12,7 +12,7 @@ import Table from "./Table";
 
 export default function TableWrapper() {
 	const [search, setSearch] = useState("");
-	const { isFetching, isLoading, isError, error, data } = useAccessLists(["owner", "items", "clients"]);
+	const { isFetching, isPending, isError, error, data } = useAccessLists(["owner", "items", "clients"]);
 
 	useEffect(() => {
 		// this can happen if someone deletes the last item while searching
@@ -21,7 +21,7 @@ export default function TableWrapper() {
 		}
 	});
 
-	if (isLoading) {
+	if (isPending) {
 		return <LoadingPage />;
 	}
 

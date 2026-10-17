@@ -9,7 +9,7 @@ import Table from "./Table";
 
 export default function TableWrapper() {
 	const [search, setSearch] = useState("");
-	const { isFetching, isLoading, isError, error, data } = useAuditLogs(["user"]);
+	const { isFetching, isPending, isError, error, data } = useAuditLogs(["user"]);
 
 	useEffect(() => {
 		// this can happen if someone deletes the last item while searching
@@ -18,7 +18,7 @@ export default function TableWrapper() {
 		}
 	});
 
-	if (isLoading) {
+	if (isPending) {
 		return <LoadingPage />;
 	}
 
