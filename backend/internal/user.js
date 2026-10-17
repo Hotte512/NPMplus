@@ -405,7 +405,17 @@ const internalUser = {
 		const { id, ...permissionData } = data;
 		const existing_auth = await userPermissionModel.query().where("user_id", user.id).first();
 
-		const merged = { ...existing_auth, ...permissionData };
+		const merged = {
+			visibility: "user",
+			proxy_hosts: "hidden",
+			redirection_hosts: "hidden",
+			dead_hosts: "hidden",
+			streams: "hidden",
+			access_lists: "hidden",
+			certificates: "hidden",
+			...existing_auth,
+			...permissionData,
+		};
 		if (merged.proxy_hosts !== "hidden" && merged.access_lists === "hidden") {
 			throw new errs.ValidationError("Access lists can not be hidden while proxy hosts are visible");
 		}
@@ -422,7 +432,7 @@ const internalUser = {
 				.where("user_id", user.id)
 				.patchAndFetchById(existing_auth.id, { user_id: user.id, ...permissionData });
 		} else {
-			permissions = await userPermissionModel.query().insertAndFetch({ user_id: user.id, ...permissionData });
+			permissions = await userPermissionModel.query().insertAndFetch({ user_id: user.id, ...merged });
 		}
 
 		await internalAuditLog.add(access, {

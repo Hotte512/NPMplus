@@ -657,6 +657,11 @@ if [ -n "$INITIAL_ADMIN_EMAIL" ] && ! echo "$INITIAL_ADMIN_EMAIL" | grep -q "@.*
     sleep inf
 fi
 
+if [ -n "$INITIAL_ADMIN_PASSWORD" ] && { [ "${#INITIAL_ADMIN_PASSWORD}" -lt 8 ] || [ "${#INITIAL_ADMIN_PASSWORD}" -gt 255 ]; }; then
+    echo "INITIAL_ADMIN_PASSWORD needs to be between 8 and 255 characters long."
+    sleep inf
+fi
+
 if [ -n "$INITIAL_DEFAULT_PAGE" ] && ! echo "$INITIAL_DEFAULT_PAGE" | grep -q "^\(404\|444\|redirect\|congratulations\|html\)$"; then
     echo "INITIAL_DEFAULT_PAGE needs to be 404, 444, redirect, congratulations or html."
     sleep inf

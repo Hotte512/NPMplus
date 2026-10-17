@@ -41,9 +41,9 @@ const useSetUser = () => {
 			return () => queryClient.setQueryData(["user", values.id], previousObject);
 		},
 		onError: (_, __, rollback) => rollback?.(),
-		onSuccess: async ({ id }) => {
+		onSuccess: async () => {
 			await Promise.all([
-				queryClient.invalidateQueries({ queryKey: ["user", id] }),
+				queryClient.invalidateQueries({ queryKey: ["user"] }),
 				queryClient.invalidateQueries({ queryKey: ["users"] }),
 				queryClient.invalidateQueries({ queryKey: ["audit-logs"] }),
 			]);

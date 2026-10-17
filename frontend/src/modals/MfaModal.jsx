@@ -32,7 +32,7 @@ const MfaModal = EasyModal.create(({ id, visible, remove }) => {
 			setStep("status");
 		} catch (err) {
 			setError(err.message);
-			setStep("status");
+			setStep("error");
 		}
 	}, [id]);
 
@@ -200,6 +200,7 @@ const MfaModal = EasyModal.create(({ id, visible, remove }) => {
 													type={showCode || !field.value ? "text" : "password"}
 													inputMode="numeric"
 													autoComplete="one-time-code"
+													required
 													className={`form-control ${form.errors.code && form.touched.code ? "is-invalid" : ""}`}
 													placeholder="000000"
 													maxLength={6}
@@ -287,6 +288,7 @@ const MfaModal = EasyModal.create(({ id, visible, remove }) => {
 													{...field}
 													type={showCode || !field.value ? "text" : "password"}
 													autoComplete="one-time-code"
+													required
 													className={`form-control ${form.errors.code && form.touched.code ? "is-invalid" : ""}`}
 													placeholder="000000"
 													maxLength={8}
@@ -355,6 +357,7 @@ const MfaModal = EasyModal.create(({ id, visible, remove }) => {
 													{...field}
 													type={showCode || !field.value ? "text" : "password"}
 													autoComplete="one-time-code"
+													required
 													className={`form-control ${form.errors.code && form.touched.code ? "is-invalid" : ""}`}
 													placeholder="000000"
 													maxLength={6}

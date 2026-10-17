@@ -143,13 +143,13 @@ const PermissionsModal = EasyModal.create(({ id, visible, remove }) => {
 			{data && (
 				<Formik
 					initialValues={{
-						visibility: data.permissions?.visibility,
-						accessLists: data.permissions?.accessLists,
-						certificates: data.permissions?.certificates,
-						deadHosts: data.permissions?.deadHosts,
-						proxyHosts: data.permissions?.proxyHosts,
-						redirectionHosts: data.permissions?.redirectionHosts,
-						streams: data.permissions?.streams,
+						visibility: data.permissions?.visibility ?? "user",
+						accessLists: data.permissions?.accessLists ?? "hidden",
+						certificates: data.permissions?.certificates ?? "hidden",
+						deadHosts: data.permissions?.deadHosts ?? "hidden",
+						proxyHosts: data.permissions?.proxyHosts ?? "hidden",
+						redirectionHosts: data.permissions?.redirectionHosts ?? "hidden",
+						streams: data.permissions?.streams ?? "hidden",
 					}}
 					onSubmit={onSubmit}
 				>

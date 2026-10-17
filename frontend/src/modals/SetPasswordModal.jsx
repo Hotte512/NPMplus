@@ -20,6 +20,7 @@ const SetPasswordModal = EasyModal.create(({ id, visible, remove }) => {
 
 	const onSubmit = async (values, { setSubmitting }) => {
 		if (isSubmitting) return;
+		setIsSubmitting(true);
 		setError(null);
 		try {
 			await updateAuth(id, values.new);
@@ -54,7 +55,7 @@ const SetPasswordModal = EasyModal.create(({ id, visible, remove }) => {
 								<T id="logout-other-devices" />
 							</Alert>
 							<div className="mb-3">
-								<Field name="new" validate={validateString(8, 100)}>
+								<Field name="new" validate={validateString(8, 255, false)}>
 									{({ field, form }) => (
 										<div className="input-group input-group-flat">
 											<div className="form-floating">

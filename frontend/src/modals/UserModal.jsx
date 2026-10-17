@@ -34,7 +34,7 @@ const UserModal = EasyModal.create(({ id, visible, remove }) => {
 				queryClient.invalidateQueries({ queryKey: ["users"] }),
 			]);
 		} catch (err) {
-			setErrorMsg(err.message);
+			setErrorMsg(<T id={err.message} />);
 		}
 	};
 
@@ -60,7 +60,7 @@ const UserModal = EasyModal.create(({ id, visible, remove }) => {
 		delete payload.isAdmin;
 
 		setUser(payload, {
-			onError: (err) => setErrorMsg(err.message),
+			onError: (err) => setErrorMsg(<T id={err.message} />),
 			onSuccess: () => {
 				showObjectSuccess("user", "saved");
 				remove();
@@ -137,12 +137,13 @@ const UserModal = EasyModal.create(({ id, visible, remove }) => {
 									</div>
 								)}
 								<div className="mb-3">
-									<Field name="name" validate={validateString(1, 50)}>
+									<Field name="name" validate={validateString(1, 255)}>
 										{({ field, form }) => (
 											<div className="form-floating mb-3">
 												<input
 													id="name"
 													autoComplete="off"
+													required
 													className={`form-control ${form.errors.name && form.touched.name ? "is-invalid" : ""}`}
 													placeholder={intl.formatMessage({
 														id: "user.full-name",
@@ -170,6 +171,7 @@ const UserModal = EasyModal.create(({ id, visible, remove }) => {
 													id="email"
 													type="email"
 													autoComplete="off"
+													required
 													className={`form-control ${form.errors.email && form.touched.email ? "is-invalid" : ""}`}
 													placeholder={intl.formatMessage({
 														id: "email-address",

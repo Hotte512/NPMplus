@@ -40,10 +40,10 @@ export default function Setup() {
 				await queryClient.refetchQueries({ queryKey: ["health"] });
 				// window.location.reload();
 			} catch (err) {
-				setErrorMsg(err.message);
+				setErrorMsg(<T id={err.message} />);
 			}
 		} catch (err) {
-			setErrorMsg(err.message);
+			setErrorMsg(<T id={err.message} />);
 		}
 		setSubmitting(false);
 	};
@@ -83,12 +83,13 @@ export default function Setup() {
 								<hr />
 								<div className="card-body">
 									<div className="mb-3">
-										<Field name="name" validate={validateString(1, 50)}>
+										<Field name="name" validate={validateString(1, 255)}>
 											{({ field, form }) => (
 												<div className="form-floating mb-3">
 													<input
 														id="name"
 														autoComplete="name"
+														required
 														className={`form-control ${form.errors.name && form.touched.name ? "is-invalid" : ""}`}
 														placeholder={intl.formatMessage({
 															id: "user.full-name",
@@ -116,6 +117,7 @@ export default function Setup() {
 														id="email"
 														type="email"
 														autoComplete="username"
+														required
 														className={`form-control ${form.errors.email && form.touched.email ? "is-invalid" : ""}`}
 														placeholder={intl.formatMessage({
 															id: "email-address",
@@ -136,7 +138,7 @@ export default function Setup() {
 										</Field>
 									</div>
 									<div className="mb-3">
-										<Field name="password" validate={validateString(8, 100)}>
+										<Field name="password" validate={validateString(8, 255, false)}>
 											{({ field, form }) => (
 												<div className="input-group input-group-flat">
 													<div className="form-floating">
@@ -144,6 +146,7 @@ export default function Setup() {
 															id="password"
 															type={showPassword ? "text" : "password"}
 															autoComplete="new-password"
+															required
 															className={`form-control ${form.errors.password && form.touched.password ? "is-invalid" : ""}`}
 															placeholder={intl.formatMessage({
 																id: "user.new-password",
