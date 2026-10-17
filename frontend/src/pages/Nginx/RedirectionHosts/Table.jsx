@@ -80,7 +80,7 @@ export default function Table({
 			columnHelper.accessor((row) => row.forwardScheme, {
 				id: "forwardScheme",
 				header: intl.formatMessage({ id: "column.scheme" }),
-				cell: (info) => info.getValue(),
+				cell: (info) => (info.getValue() === "$scheme" ? "keep" : info.getValue()),
 			}),
 			columnHelper.accessor((row) => row.forwardDomainName, {
 				id: "forwardDomainName",

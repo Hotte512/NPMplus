@@ -44,8 +44,13 @@
 		"forward_http_code": {
 			"description": "Redirect HTTP Status Code",
 			"type": "integer",
-			"minimum": 300,
-			"maximum": 308,
+			"enum": [
+				301,
+				302,
+				303,
+				307,
+				308
+			],
 			"example": 302
 		},
 		"forward_scheme": {

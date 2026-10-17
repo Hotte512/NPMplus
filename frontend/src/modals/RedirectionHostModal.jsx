@@ -184,7 +184,7 @@ const RedirectionHostModal = EasyModal.create(({ id, visible, remove }) => {
 													<div className="col-md-8">
 														<Field
 															name="forwardDomainName"
-															validate={validateString(1, 255)}
+															validate={validateString(1, 253)}
 														>
 															{({ field, form }) => (
 																<div className="mb-3">
@@ -199,6 +199,7 @@ const RedirectionHostModal = EasyModal.create(({ id, visible, remove }) => {
 																		type="text"
 																		className={`form-control ${form.errors.forwardDomainName && form.touched.forwardDomainName ? "is-invalid" : ""}`}
 																		required
+																		pattern="\S+"
 																		placeholder="example.com"
 																		{...field}
 																	/>
@@ -227,9 +228,6 @@ const RedirectionHostModal = EasyModal.create(({ id, visible, remove }) => {
 																required
 																{...field}
 															>
-																<option value="300">
-																	<T id="redirection-hosts.http-code.300" />
-																</option>
 																<option value="301">
 																	<T id="redirection-hosts.http-code.301" />
 																</option>

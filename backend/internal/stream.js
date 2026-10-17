@@ -28,6 +28,11 @@ const internalStream = {
 
 		thisData.owner_user_id = access.token.getUserId(1);
 
+		if (!createCertificate && !(Number(thisData.certificate_id) > 0)) {
+			thisData.npmplus_mtls_certificate_id = 0;
+			thisData.npmplus_mtls_verify_client_optional = false;
+		}
+
 		const createdRow = await streamModel.query().insertAndFetch(thisData);
 
 		let savedRow;
@@ -99,6 +104,11 @@ const internalStream = {
 
 			// update host with cert id
 			thisData.certificate_id = cert.id;
+		}
+
+		if (!(Number(thisData.certificate_id ?? existingRow.certificate_id) > 0)) {
+			thisData.npmplus_mtls_certificate_id = 0;
+			thisData.npmplus_mtls_verify_client_optional = false;
 		}
 
 		await streamModel.query().where({ id: thisData.id }).patch(thisData);

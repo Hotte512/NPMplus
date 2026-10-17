@@ -152,6 +152,7 @@ const StreamModal = EasyModal.create(({ id, visible, remove }) => {
 																type="text"
 																minLength={1}
 																maxLength={11}
+																pattern="[0-9]{1,5}(-[0-9]{1,5})?"
 																className={`form-control ${form.errors.incomingPort && form.touched.incomingPort ? "is-invalid" : ""}`}
 																required
 																placeholder="eg: 8080"
@@ -197,7 +198,7 @@ const StreamModal = EasyModal.create(({ id, visible, remove }) => {
 												</Field>
 												<div className="row">
 													<div className="col-md-8">
-														<Field name="forwardingHost" validate={validateString(1, 255)}>
+														<Field name="forwardingHost" validate={validateString(1, 253)}>
 															{({ field, form }) => (
 																<div className="mb-3">
 																	<label
@@ -211,6 +212,7 @@ const StreamModal = EasyModal.create(({ id, visible, remove }) => {
 																		type="text"
 																		className={`form-control ${form.errors.forwardingHost && form.touched.forwardingHost ? "is-invalid" : ""}`}
 																		required
+																		pattern="\S+"
 																		placeholder={intl.formatMessage({
 																			id: "stream.forward-host.placeholder",
 																		})}
@@ -242,6 +244,7 @@ const StreamModal = EasyModal.create(({ id, visible, remove }) => {
 																		id="forwardingPort"
 																		type="text"
 																		maxLength={12}
+																		pattern="[0-9]{0,5}|\$server_port"
 																		className={`form-control ${form.errors.forwardingPort && form.touched.forwardingPort ? "is-invalid" : ""}`}
 																		placeholder="eg: 8081"
 																		{...field}
@@ -308,6 +311,14 @@ const StreamModal = EasyModal.create(({ id, visible, remove }) => {
 																							setFieldValue(
 																								"certificateId",
 																								0,
+																							);
+																							setFieldValue(
+																								"npmplusMtlsCertificateId",
+																								0,
+																							);
+																							setFieldValue(
+																								"npmplusMtlsVerifyClientOptional",
+																								false,
 																							);
 																						}
 																					}}
