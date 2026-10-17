@@ -45,6 +45,7 @@ export function DNSProviderFields({ showBoundaryBox }) {
 							})}
 							isLoading={isPending}
 							isSearchable
+							required
 							onChange={handleChange}
 							options={options}
 						/>
@@ -93,7 +94,9 @@ export function DNSProviderFields({ showBoundaryBox }) {
 									className="form-control"
 									min={0}
 									max={7200}
+									required
 									{...field}
+									value={field.value ?? 0}
 								/>
 
 								<small className="text-secondary">

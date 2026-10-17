@@ -35,6 +35,8 @@ const internalHost = {
 
 		if (!combinedData.certificate_id && !newCert) {
 			combinedData.ssl_forced = false;
+			combinedData.npmplus_mtls_certificate_id = 0;
+			combinedData.npmplus_mtls_verify_client_optional = false;
 		}
 
 		if (!combinedData.ssl_forced) {

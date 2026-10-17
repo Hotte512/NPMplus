@@ -12,6 +12,7 @@ import {
 import { useMemo } from "react";
 import {
 	CertificateInUseFormatter,
+	certificateProviderTranslation,
 	DateFormatter,
 	DomainsFormatter,
 	EmptyData,
@@ -96,10 +97,7 @@ export default function Table({ data, isFetching, onDelete, onRenew, onDownload,
 							}
 							return <T id="lets-encrypt" />;
 						}
-						if (r.provider === "other") {
-							return <T id="certificates.custom" />;
-						}
-						return <T id={r.provider} />;
+						return <T id={certificateProviderTranslation(r.provider)} />;
 					},
 				},
 			),

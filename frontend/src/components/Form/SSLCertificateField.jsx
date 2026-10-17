@@ -1,6 +1,7 @@
 import { IconShield } from "@tabler/icons-react";
 import { Field, useFormikContext } from "formik";
 import Select, { components } from "react-select";
+import { certificateProviderTranslation } from "src/components";
 import { useCertificates } from "src/hooks";
 import { formatDateTime, intl, T } from "src/locale";
 import { selectClassNames } from "src/modules/Select";
@@ -58,7 +59,7 @@ export function SSLCertificateField({
 			if (npmplusDnsChallenge) void setFieldValue("npmplusDnsChallenge", undefined);
 			if (npmplusDnsProvider) void setFieldValue("npmplusDnsProvider", undefined);
 			if (npmplusDnsProviderCredentials) void setFieldValue("npmplusDnsProviderCredentials", undefined);
-			if (npmplusPropagationSeconds) void setFieldValue("npmplusPropagationSeconds", undefined);
+			if (npmplusPropagationSeconds !== undefined) void setFieldValue("npmplusPropagationSeconds", undefined);
 		}
 	};
 
@@ -68,7 +69,7 @@ export function SSLCertificateField({
 			.map((cert) => ({
 				value: cert.id,
 				label: cert.niceName,
-				subLabel: `${cert.provider === "letsencrypt" ? intl.formatMessage({ id: "lets-encrypt" }) : cert.provider} — ${intl.formatMessage({ id: "expires.on" }, { date: formatDateTime(cert.expiresOn) })}`,
+				subLabel: `${intl.formatMessage({ id: certificateProviderTranslation(cert.provider) })} — ${intl.formatMessage({ id: "expires.on" }, { date: formatDateTime(cert.expiresOn) })}`,
 				icon: <IconShield size={14} className="text-pink" />,
 			})) || [];
 
@@ -78,7 +79,7 @@ export function SSLCertificateField({
 			.map((cert) => ({
 				value: cert.id,
 				label: cert.niceName,
-				subLabel: `${cert.provider} — ${intl.formatMessage({ id: "expires.on" }, { date: formatDateTime(cert.expiresOn) })}`,
+				subLabel: `${intl.formatMessage({ id: certificateProviderTranslation(cert.provider) })} — ${intl.formatMessage({ id: "expires.on" }, { date: formatDateTime(cert.expiresOn) })}`,
 				icon: <IconShield size={14} className="text-pink" />,
 			})) || [];
 
@@ -118,13 +119,20 @@ export function SSLCertificateField({
 							<T id={label} />
 						</label>
 						{isPending ? <div className="placeholder placeholder-lg col-12 my-3 placeholder-glow" /> : null}
-						{isError ? <div className="invalid-feedback">{`${error}`}</div> : null}
+						{isError ? (
+							<div className="invalid-feedback d-block">
+								<T id={error.message} />
+							</div>
+						) : null}
 						{!isPending && !isError ? (
 							<Select
 								inputId={id}
 								unstyled
 								classNames={selectClassNames}
-								value={options.find((o) => o.value === field.value) || options[0]}
+								value={
+									options.find((o) => o.value === field.value) ??
+									(field.value ? { value: field.value, label: `#${field.value}` } : options[0])
+								}
 								options={options}
 								components={{ Option }}
 								styles={{
@@ -147,13 +155,20 @@ export function SSLCertificateField({
 							<T id={mtlsLabel} />
 						</label>
 						{isPending ? <div className="placeholder placeholder-lg col-12 my-3 placeholder-glow" /> : null}
-						{isError ? <div className="invalid-feedback">{`${error}`}</div> : null}
+						{isError ? (
+							<div className="invalid-feedback d-block">
+								<T id={error.message} />
+							</div>
+						) : null}
 						{!isPending && !isError ? (
 							<Select
 								inputId="mtlsCertificate"
 								unstyled
 								classNames={selectClassNames}
-								value={mtlsOptions.find((o) => o.value === field.value) || mtlsOptions[0]}
+								value={
+									mtlsOptions.find((o) => o.value === field.value) ??
+									(field.value ? { value: field.value, label: `#${field.value}` } : mtlsOptions[0])
+								}
 								options={mtlsOptions}
 								components={{ Option }}
 								styles={{

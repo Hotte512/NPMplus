@@ -87,6 +87,7 @@
 			"description": "DNS propagation seconds, 0 uses the default of the DNS plugin",
 			"type": "integer",
 			"minimum": 0,
+			"maximum": 7200,
 			"example": 0
 		}
 	}

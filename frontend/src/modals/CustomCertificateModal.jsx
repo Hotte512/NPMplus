@@ -96,7 +96,7 @@ const CustomCertificateModal = EasyModal.create(({ visible, remove, cert, provid
 										<IconAlertTriangle size={16} className="me-1" />
 										<T id="certificates.custom.warning" />
 									</p>
-									<Field name="niceName" validate={validateString(1, 255)}>
+									<Field name="niceName" validate={isEdit ? undefined : validateString(1, 255)}>
 										{({ field, form }) => (
 											<div className="mb-3">
 												<label htmlFor="niceName" className="form-label">
@@ -109,7 +109,7 @@ const CustomCertificateModal = EasyModal.create(({ visible, remove, cert, provid
 													autoComplete="off"
 													// Disable name editing in edit mode as we only update files
 													disabled={isEdit}
-													className="form-control"
+													className={`form-control ${form.errors.niceName && form.touched.niceName ? "is-invalid" : ""}`}
 													{...field}
 												/>
 

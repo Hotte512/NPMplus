@@ -30,6 +30,22 @@
 				"schema": {
 					"type": "object",
 					"additionalProperties": false,
+					"if": {
+						"properties": {
+							"npmplus_dns_challenge": {
+								"type": "boolean",
+								"const": true
+							}
+						},
+						"required": [
+							"npmplus_dns_challenge"
+						]
+					},
+					"then": {
+						"required": [
+							"npmplus_dns_provider"
+						]
+					},
 					"minProperties": 1,
 					"properties": {
 						"domain_names": {

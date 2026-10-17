@@ -20,6 +20,40 @@
 					"required": [
 						"provider"
 					],
+					"allOf": [
+						{
+							"if": {
+								"properties": {
+									"provider": {
+										"const": "letsencrypt"
+									}
+								}
+							},
+							"then": {
+								"required": [
+									"domain_names"
+								]
+							}
+						},
+						{
+							"if": {
+								"properties": {
+									"npmplus_dns_challenge": {
+										"type": "boolean",
+										"const": true
+									}
+								},
+								"required": [
+									"npmplus_dns_challenge"
+								]
+							},
+							"then": {
+								"required": [
+									"npmplus_dns_provider"
+								]
+							}
+						}
+					],
 					"properties": {
 						"provider": {
 							"$ref": "../../../components/certificate-object.json#/properties/provider"

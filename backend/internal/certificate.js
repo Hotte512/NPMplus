@@ -602,7 +602,7 @@ const internalCertificate = {
 	requestCertbotWithDnsChallenge: async (certificate) => {
 		const dnsPlugin = dnsPlugins[certificate.npmplus_dns_provider];
 		if (!dnsPlugin) {
-			throw new Error(`Unknown DNS provider '${certificate.npmplus_dns_provider}'`);
+			throw new error.ValidationError(`Unknown DNS provider '${certificate.npmplus_dns_provider}'`);
 		}
 		await installPlugin(certificate.npmplus_dns_provider);
 
@@ -686,7 +686,7 @@ const internalCertificate = {
 	renewCertbot: async (certificate) => {
 		const dnsPlugin = certificate.npmplus_dns_challenge ? dnsPlugins[certificate.npmplus_dns_provider] : null;
 		if (certificate.npmplus_dns_challenge && !dnsPlugin) {
-			throw new Error(`Unknown DNS provider '${certificate.npmplus_dns_provider}'`);
+			throw new error.ValidationError(`Unknown DNS provider '${certificate.npmplus_dns_provider}'`);
 		}
 
 		logger.info(

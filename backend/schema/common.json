@@ -288,8 +288,7 @@
 						"type": "object",
 						"additionalProperties": false,
 						"required": [
-							"certificate",
-							"certificate_key"
+							"certificate"
 						],
 						"properties": {
 							"certificate": {
@@ -298,13 +297,14 @@
 							},
 							"certificate_key": {
 								"type": "string",
-								"example": "-----BEGIN CERTIFICATE-----\nMIID...-----END CERTIFICATE-----"
+								"description": "Required for custom certificates, not used for mTLS certificates",
+								"example": "-----BEGIN PRIVATE KEY-----\nMIIE...-----END PRIVATE KEY-----"
 							}
 						}
 					},
 					"example": {
 						"certificate": "-----BEGIN CERTIFICATE-----\nMIID...-----END CERTIFICATE-----",
-						"certificate_key": "-----BEGIN PRIVATE\nMIID...-----END CERTIFICATE-----"
+						"certificate_key": "-----BEGIN PRIVATE KEY-----\nMIIE...-----END PRIVATE KEY-----"
 					}
 				}
 			}
