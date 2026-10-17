@@ -73,7 +73,7 @@ const DNSCertificateModal = EasyModal.create(({ visible, remove }) => {
 							</Alert>
 							<div className="card m-0 border-0">
 								<div className="card-body">
-									<DomainNamesField isWildcardPermitted dnsProviderWildcardSupported />
+									<DomainNamesField isWildcardPermitted dnsProviderWildcardSupported forCertificate />
 									<DNSProviderFields />
 									<div className="row">
 										<div className="col-6">

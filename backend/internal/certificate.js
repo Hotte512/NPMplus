@@ -11,6 +11,7 @@ import { installPlugin } from "../lib/certbot.js";
 import error from "../lib/error.js";
 import { pickCertificateFields } from "../lib/helpers.js";
 import utils from "../lib/utils.js";
+import apiValidator from "../lib/validator/api.js";
 import { ssl as logger } from "../logger.js";
 import certificateModel from "../models/certificate.js";
 import deadHostModel from "../models/dead_host.js";
@@ -18,6 +19,7 @@ import proxyHostModel from "../models/proxy_host.js";
 import redirectionHostModel from "../models/redirection_host.js";
 import streamModel from "../models/stream.js";
 import pjson from "../package.json" with { type: "json" };
+import certificateObject from "../schema/components/certificate-object.json" with { type: "json" };
 import internalAuditLog from "./audit-log.js";
 import internalNginx from "./nginx.js";
 
@@ -414,7 +416,7 @@ const internalCertificate = {
 	createQuickCertificate: (access, data) =>
 		internalCertificate.create(access, {
 			provider: "letsencrypt",
-			domain_names: data.domain_names,
+			domain_names: apiValidator(certificateObject.properties.domain_names, data.domain_names),
 			...pickCertificateFields(data),
 		}),
 

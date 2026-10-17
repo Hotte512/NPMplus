@@ -10,6 +10,7 @@ export function DomainNamesField({
 	id = "domainNames",
 	isWildcardPermitted,
 	dnsProviderWildcardSupported,
+	forCertificate,
 	onChange,
 }) {
 	const { setFieldValue } = useFormikContext();
@@ -28,7 +29,10 @@ export function DomainNamesField({
 	}
 
 	return (
-		<Field name={name} validate={validateDomains(isWildcardPermitted && dnsProviderWildcardSupported)}>
+		<Field
+			name={name}
+			validate={validateDomains(isWildcardPermitted && dnsProviderWildcardSupported, forCertificate)}
+		>
 			{({ field, form }) => (
 				<div className="mb-3">
 					<label className="form-label" htmlFor={id}>
@@ -41,7 +45,10 @@ export function DomainNamesField({
 						id={id}
 						closeMenuOnSelect={true}
 						isClearable={false}
-						isValidNewOption={validateDomain(isWildcardPermitted && dnsProviderWildcardSupported)}
+						isValidNewOption={validateDomain(
+							isWildcardPermitted && dnsProviderWildcardSupported,
+							forCertificate,
+						)}
 						isMulti
 						required
 						placeholder={intl.formatMessage({ id: "domain-names.placeholder" })}

@@ -17,22 +17,45 @@
 				"schema": {
 					"type": "object",
 					"additionalProperties": false,
-					"if": {
-						"properties": {
-							"npmplus_dns_challenge": {
-								"type": "boolean",
-								"const": true
+					"allOf": [
+						{
+							"if": {
+								"properties": {
+									"npmplus_dns_challenge": {
+										"type": "boolean",
+										"const": true
+									}
+								},
+								"required": [
+									"npmplus_dns_challenge"
+								]
+							},
+							"then": {
+								"required": [
+									"npmplus_dns_provider"
+								]
 							}
 						},
-						"required": [
-							"npmplus_dns_challenge"
-						]
-					},
-					"then": {
-						"required": [
-							"npmplus_dns_provider"
-						]
-					},
+						{
+							"if": {
+								"properties": {
+									"certificate_id": {
+										"const": "new"
+									}
+								},
+								"required": [
+									"certificate_id"
+								]
+							},
+							"then": {
+								"properties": {
+									"domain_names": {
+										"$ref": "../../../components/certificate-object.json#/properties/domain_names"
+									}
+								}
+							}
+						}
+					],
 					"required": [
 						"domain_names"
 					],

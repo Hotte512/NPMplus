@@ -132,6 +132,7 @@ const HTTPCertificateModal = EasyModal.create(({ visible, remove }) => {
 										<T id="certificates.http.warning" />
 									</p>
 									<DomainNamesField
+										forCertificate
 										onChange={(doms) => {
 											setDomains(doms);
 											setTestResults(null);

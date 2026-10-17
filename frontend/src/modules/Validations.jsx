@@ -2,6 +2,7 @@ import { intl } from "src/locale";
 
 const emailPattern = /@/;
 const domainPattern = /^(?!.*:[0-9]+$)\S{1,253}$/;
+const certificateDomainPattern = /^(([^\s.]+\.)+[^\s.]+|\[[0-9a-fA-F:]+\])$/;
 const ipv4Pattern = /^[0-9.]+$/;
 const upstreamUrlPattern = /^https?:\/\/(([^\s/:]+|\[[a-fA-F0-9:]+\]):[0-9]+|cu_[^\s/:]+)$/;
 
@@ -47,7 +48,7 @@ const validateEmail = () => (value) => {
 	}
 };
 
-const validateDomain = (allowWildcards) => {
+const validateDomain = (allowWildcards, forCertificate) => {
 	return (d) => {
 		const dom = d.trim();
 
@@ -69,12 +70,12 @@ const validateDomain = (allowWildcards) => {
 		}
 
 		// This will match *.com type domains,
-		return domainPattern.test(dom);
+		return domainPattern.test(dom) && (!forCertificate || certificateDomainPattern.test(dom));
 	};
 };
 
-const validateDomains = (allowWildcards) => {
-	const vDom = validateDomain(allowWildcards);
+const validateDomains = (allowWildcards, forCertificate) => {
+	const vDom = validateDomain(allowWildcards, forCertificate);
 
 	return (value) => {
 		if (!value?.length) {
