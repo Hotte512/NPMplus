@@ -22,6 +22,11 @@ const internalSetting = {
 			);
 		}
 
+		const merged = { ...existingRow, ...data };
+		if (["html", "redirect"].includes(merged.value) && !merged.meta?.[merged.value]) {
+			throw new errs.ValidationError(`meta.${merged.value} is required for ${merged.value}`);
+		}
+
 		await settingModel.query().where({ id: data.id }).patch(data);
 
 		const row = await internalSetting.get(access, {

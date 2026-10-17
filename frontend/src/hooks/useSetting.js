@@ -26,7 +26,7 @@ const useSetSetting = () => {
 			}));
 			return () => queryClient.setQueryData(["setting", values.id], previousObject);
 		},
-		onError: (_, __, rollback) => rollback(),
+		onError: (_, __, rollback) => rollback?.(),
 		onSuccess: async ({ id }) => {
 			await Promise.all([
 				queryClient.invalidateQueries({ queryKey: ["setting", id] }),
