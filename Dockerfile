@@ -14,7 +14,7 @@ ARG ZNP_VER=1.30.0
 
 ARG NB_VER=df036cc80cd4f5b0bf67b25b0a10d0ee86ba5bdb # master
 ARG NUB_VER=bce69c4295e43ae62e95a9ddff7902baf5b0cbd7 # 1.0.0
-ARG ZNM_VER=53927b6408ebf166496a3d79f016563f7f720cb0 # v0.4.0
+ARG ZNM_VER=1c0d3f96708c86afeebd7d9778504f77c7893227 # 0.1.2
 ARG NHUZFM_VER=f743b0250c93ae5fa721bed6bebc4c66c5139aee # 1.0.0
 ARG NF_VER=70311f239ec1e88ff79c669d126d08532ddb8554 # v0.6.0
 ARG HMNM_VER=0bf283ff92017acd616814b0e5153e0ccf93e2c9 # v0.40
@@ -92,7 +92,7 @@ RUN git-clone-commit.sh https://github.com/nginx/nginx "$NGINX_VER" /src/nginx &
     \
     git-clone-commit.sh https://github.com/HanadaLee/ngx_http_brotli_module "$NB_VER" /src/ngx_http_brotli_module && \
     git-clone-commit.sh https://github.com/HanadaLee/ngx_http_unbrotli_filter_module "$NUB_VER" /src/ngx_http_unbrotli_filter_module && \
-    git-clone-commit.sh https://github.com/hsw/zstd-nginx-module "$ZNM_VER" /src/zstd-nginx-module && \
+    git-clone-commit.sh https://github.com/HanadaLee/ngx_http_zstd_module "$ZNM_VER" /src/zstd-nginx-module && \
     git-clone-commit.sh https://github.com/HanadaLee/ngx_http_unzstd_filter_module "$NHUZFM_VER" /src/ngx_http_unzstd_filter_module && \
     git-clone-commit.sh https://github.com/aperezdc/ngx-fancyindex "$NF_VER" /src/ngx-fancyindex && \
     cd /src/ngx-fancyindex && \
@@ -154,7 +154,6 @@ RUN cd /src/nginx && \
     --add-dynamic-module=/src/nginx-auth-ldap \
     --add-dynamic-module=/src/nginx-module-vts \
     --add-dynamic-module=/src/nginx-ntlm-module \
-    --with-cc-opt="-DZSTD_STATIC_LINKING_ONLY" \
     --with-ld-opt="$LDFLAGS" && \
     \
     make -j "$(nproc)" install

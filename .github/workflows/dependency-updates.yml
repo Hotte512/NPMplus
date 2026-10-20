@@ -41,7 +41,7 @@ jobs:
             fine: main
           - name: zstd-nginx-module
             arg: ZNM
-            repo: hsw/zstd-nginx-module
+            repo: HanadaLee/ngx_http_zstd_module
           - name: ngx_http_unzstd_filter_module
             arg: NHUZFM
             repo: HanadaLee/ngx_http_unzstd_filter_module
