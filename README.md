@@ -220,17 +220,13 @@ upstream cu_mybackend {
 
 ## Geoblocking example (mainly community support) 
 
-1. set the `NGINX_LOAD_GEOIP2_MODULE` env to true and redeploy NPMplus
-2. deploy a geoipupdate container (see the compose.yaml for an example, create credentials [here](https://www.maxmind.com/en/geolite2/signup))
-3. open and edit this file: `/opt/npmplus/custom_nginx/http_top.conf`, if you changed /opt/npmplus to a different path make sure to change the path to fit
+1. deploy a geoipupdate container (see the compose.yaml for an example, create credentials [here](https://www.maxmind.com/en/geolite2/signup))
+2. open and edit this file: `/opt/npmplus/custom_nginx/http_top.conf`, if you changed /opt/npmplus to a different path make sure to change the path to fit, the database is only reread when nginx reloads
 ```yaml
-geoip2 /data/goaccess/geoip/GeoLite2-Country.mmdb {
-  auto_reload 60m;
-  $geoip2_country_iso_code country iso_code;
-}
+geoip_country /data/goaccess/geoip/GeoLite2-Country.mmdb;
 
 # whitelist example, you can add as many country codes as you want, country code list: https://en.wikipedia.org/wiki/ISO_3166-1_alpha-2#XY
-#map $geoip2_country_iso_code $geoip2_country_rule {
+#map $geoip_country_code $geoip2_country_rule {
 #  default no;
 #  AA yes;
 #  XY yes;
@@ -238,7 +234,7 @@ geoip2 /data/goaccess/geoip/GeoLite2-Country.mmdb {
 #}
 
 # blacklist example, you can add as many country codes as you want, country code list: https://en.wikipedia.org/wiki/ISO_3166-1_alpha-2#XY
-#map $geoip2_country_iso_code $geoip2_country_rule {
+#map $geoip_country_code $geoip2_country_rule {
 #  default yes;
 #  AA no;
 #  XY no;
@@ -258,7 +254,7 @@ geoip2 /data/goaccess/geoip/GeoLite2-Country.mmdb {
 #  fec0::/10 yes;
 #}
 ```  
-4a. to set it per location: press the gear button (on the tab itself, not the tab selection) on the details tab (or on the custom location you want to use), set your proxy settings and paste the following in the new text field at the bottom, you may want to adjust the last lines (do not use the advanced tab with this example as it may break cert renewals):
+3a. to set it per location: press the gear button (on the tab itself, not the tab selection) on the details tab (or on the custom location you want to use), set your proxy settings and paste the following in the new text field at the bottom, you may want to adjust the last lines (do not use the advanced tab with this example as it may break cert renewals):
 ```yaml
 # uncomment if you block/don't allow IPs with unknown country codes
 #if ($is_private_ip = yes) { 
@@ -268,7 +264,7 @@ if ($geoip2_country_rule = no) {
   return 444; # this rejects the connection, but you can also return 403 to tell the client that it was denied
 } 
 ```
-4b. to set it for an entire host: put this in the advanced tab:
+3b. to set it for an entire host: put this in the advanced tab:
 ```yaml
 # uncomment if you block/don't allow IPs with unknown country codes
 #if ($is_private_ip = yes) { 
@@ -281,7 +277,7 @@ if ($geoip2_country_rule = no) {
   return 444; # this rejects the connection, but you can also return 403 to tell the client that it was denied
 } 
 ```
-4c. to set it for all http hosts of them same type: put this in the `custom_nginx/server_proxy.conf` / `custom_nginx/server_redirect.conf` / `custom_nginx/server_dead.conf` file(s):
+3c. to set it for all http hosts of them same type: put this in the `custom_nginx/server_proxy.conf` / `custom_nginx/server_redirect.conf` / `custom_nginx/server_dead.conf` file(s):
 ```yaml
 # uncomment if you block/don't allow IPs with unknown country codes
 #if ($is_private_ip = yes) { 
@@ -294,7 +290,7 @@ if ($geoip2_country_rule = no) {
   return 444; # this rejects the connection, but you can also return 403 to tell the client that it was denied
 } 
 ```
-4d. to set it for all http hosts: put this in the `custom_nginx/server_http.conf` file:
+3d. to set it for all http hosts: put this in the `custom_nginx/server_http.conf` file:
 ```yaml
 # uncomment if you block/don't allow IPs with unknown country codes
 #if ($is_private_ip = yes) { 
@@ -307,7 +303,7 @@ if ($geoip2_country_rule = no) {
   return 444; # this rejects the connection, but you can also return 403 to tell the client that it was denied
 } 
 ```
-5. you can create multiple rule lists by adding multiple map directive, but you need to use a unique name instead of `$geoip2_country_rule` for each rule list (you need the unique name also in the custom locations)
+4. you can create multiple rule lists by adding multiple map directive, but you need to use a unique name instead of `$geoip2_country_rule` for each rule list (you need the unique name also in the custom locations)
 
 ## Prerun scripts (EXPERT option) - if you don't know what this is, ignore it
 If you need to run scripts before NPMplus launches put them under: `/opt/npmplus/prerun/*.sh` (please add `#!/usr/bin/env sh` / `#!/usr/bin/env bash` to the top of the script) you need to create this folder yourself, also set the `ENABLE_PRERUN` env to `true`

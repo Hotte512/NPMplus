@@ -136,7 +136,6 @@ export PHP84="${PHP84:-false}"
 export PHP85="${PHP85:-false}"
 export DISABLE_GRAVATAR="${DISABLE_GRAVATAR:-false}"
 export NGINX_LOAD_NJS_MODULE="${NGINX_LOAD_NJS_MODULE:-false}"
-export NGINX_LOAD_GEOIP2_MODULE="${NGINX_LOAD_GEOIP2_MODULE:-false}"
 export NGINX_LOAD_LDAP_MODULE="${NGINX_LOAD_LDAP_MODULE:-false}"
 export NGINX_LOAD_NTLM_MODULE="${NGINX_LOAD_NTLM_MODULE:-false}"
 export NGINX_LOAD_VHOST_TRAFFIC_STATUS_MODULE="${NGINX_LOAD_VHOST_TRAFFIC_STATUS_MODULE:-false}"
@@ -210,6 +209,12 @@ fi
 #tmp
 if [ -n "$NGINX_LOAD_GEOIP_MODULE" ]; then
     echo "NGINX_LOAD_GEOIP_MODULE env is not supported. The module was removed."
+    sleep inf
+fi
+
+#tmp
+if [ -n "$NGINX_LOAD_GEOIP2_MODULE" ]; then
+    echo "NGINX_LOAD_GEOIP2_MODULE env is not supported. The geoip2 module was replaced by the geoip module, which is always loaded, please check the README for the new config."
     sleep inf
 fi
 
@@ -689,11 +694,6 @@ fi
 
 if ! echo "$NGINX_LOAD_NJS_MODULE" | grep -q "^true$\|^false$"; then
     echo "NGINX_LOAD_NJS_MODULE needs to be true or false."
-    sleep inf
-fi
-
-if ! echo "$NGINX_LOAD_GEOIP2_MODULE" | grep -q "^true$\|^false$"; then
-    echo "NGINX_LOAD_GEOIP2_MODULE needs to be true or false."
     sleep inf
 fi
 

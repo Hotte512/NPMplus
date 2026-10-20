@@ -25,7 +25,6 @@ ARG NJS_VER=72e6a980b9bf2a28ae2d568bbc3b6830a5d7c39e # 1.0.2
 ARG NAL_VER=241200eac8e4acae74d353291bd27f79e5ca3dc4 # master
 ARG VTS_VER=38b8612527ecb003ea15cefe934f302cf1a7c27e # v0.2.7
 ARG NNTLM_VER=3da77b0cb30e517dfee01d7e7f7d649144d24051 # master
-ARG NHG2M_VER=cbaa35461c62a99d2577e6bae3273492502d8769 # 3.4
 
 
 WORKDIR /src
@@ -109,8 +108,7 @@ RUN git-clone-commit.sh https://github.com/nginx/nginx "$NGINX_VER" /src/nginx &
     git-clone-commit.sh https://github.com/nginx/njs "$NJS_VER" /src/njs && \
     git-clone-commit.sh https://github.com/kvspb/nginx-auth-ldap "$NAL_VER" /src/nginx-auth-ldap && \
     git-clone-commit.sh https://github.com/vozlt/nginx-module-vts "$VTS_VER" /src/nginx-module-vts && \
-    git-clone-commit.sh https://github.com/gabihodoroaga/nginx-ntlm-module "$NNTLM_VER" /src/nginx-ntlm-module && \
-    git-clone-commit.sh https://github.com/leev/ngx_http_geoip2_module "$NHG2M_VER" /src/ngx_http_geoip2_module
+    git-clone-commit.sh https://github.com/gabihodoroaga/nginx-ntlm-module "$NNTLM_VER" /src/nginx-ntlm-module
 
 RUN cd /src/nginx && \
     /src/nginx/auto/configure \
@@ -131,6 +129,7 @@ RUN cd /src/nginx && \
     --with-stream_ssl_module \
     --with-stream_ssl_preread_module \
     --with-stream_realip_module \
+    --with-stream_geoip_module \
     --with-http_v2_module \
     --with-http_v3_module \
     --with-http_ssl_module \
@@ -139,6 +138,7 @@ RUN cd /src/nginx && \
     --with-http_gzip_static_module \
     --with-http_sub_module \
     --with-http_json_module \
+    --with-http_geoip_module \
     --with-http_addition_module \
     --with-http_stub_status_module \
     --with-http_auth_request_module \
@@ -154,7 +154,6 @@ RUN cd /src/nginx && \
     --add-dynamic-module=/src/nginx-auth-ldap \
     --add-dynamic-module=/src/nginx-module-vts \
     --add-dynamic-module=/src/nginx-ntlm-module \
-    --add-dynamic-module=/src/ngx_http_geoip2_module \
     --with-cc-opt="-DZSTD_STATIC_LINKING_ONLY" \
     --with-ld-opt="$LDFLAGS" && \
     \

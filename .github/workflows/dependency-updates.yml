@@ -75,9 +75,6 @@ jobs:
             repo: gabihodoroaga/nginx-ntlm-module
             bad: "v1.19.3-beta.1"
             fine: master
-          - name: ngx_http_geoip2_module
-            arg: NHG2M
-            repo: leev/ngx_http_geoip2_module
           - name: lua-resty-core
             arg: LRC
             repo: openresty/lua-resty-core
