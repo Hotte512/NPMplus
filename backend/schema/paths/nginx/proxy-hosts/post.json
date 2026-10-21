@@ -115,6 +115,31 @@
 									}
 								}
 							}
+						},
+						{
+							"if": {
+								"properties": {
+									"npmplus_mtls_certificate_id": {
+										"type": "integer",
+										"minimum": 1
+									},
+									"npmplus_mtls_verify_client_optional": {
+										"type": "boolean",
+										"const": false
+									}
+								},
+								"required": [
+									"npmplus_mtls_certificate_id"
+								]
+							},
+							"then": {
+								"properties": {
+									"ssl_forced": {
+										"type": "boolean",
+										"const": true
+									}
+								}
+							}
 						}
 					],
 					"required": [
