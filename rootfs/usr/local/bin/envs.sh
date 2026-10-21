@@ -382,7 +382,7 @@ if [ "$ACME_PROFILE" != "none" ] && [ "$(curl -sSL "$ACME_SERVER" | jq --arg p "
     if [ "$(curl -sSL "$ACME_SERVER" | jq -r ".newNonce")" != "null" ]; then
         echo "The ACME_PROFILE seems to be not supported by the ACME_SERVER."
         sleep inf
-	else
+    else
         echo "Cannot check if the ACME_PROFILE is supported by the ACME_SERVER since the ACME_SERVER is down."
     fi
 fi

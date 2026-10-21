@@ -421,6 +421,9 @@ const internalCertificate = {
 		await mkdir(dir, { recursive: true });
 		await writeFile(`${dir}/fullchain.pem`, certificate.certificate);
 		await writeFile(`${dir}/privkey.pem`, certificate.certificate_key);
+		const certs = certificate.certificate.match(/-----BEGIN CERTIFICATE-----.+?-----END CERTIFICATE-----\s*/gs);
+		await writeFile(`${dir}/cert.pem`, certs[0]);
+		await writeFile(`${dir}/chain.pem`, certs.slice(1).join(""));
 	},
 
 	/**
