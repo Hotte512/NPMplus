@@ -119,6 +119,7 @@ const ProxyHostModal = EasyModal.create(({ id, isClone, visible, remove }) => {
 						npmplusMtlsVerifyClientOptional: data?.npmplusMtlsVerifyClientOptional,
 						npmplusMtlsBypassAuthRequest: data?.npmplusMtlsBypassAuthRequest,
 						npmplusNoindex: data?.npmplusNoindex,
+						npmplusAcmePassthrough: data?.npmplusAcmePassthrough,
 						npmplusCrowdsecAppsec: data?.npmplusCrowdsecAppsec,
 						npmplusProxyResponseBuffering: data?.npmplusProxyResponseBuffering,
 						npmplusProxyRequestBuffering: data?.npmplusProxyRequestBuffering,
@@ -347,6 +348,43 @@ const ProxyHostModal = EasyModal.create(({ id, isClone, visible, remove }) => {
 																						"bg-lime": field.checked,
 																					})}
 																					type="checkbox"
+																				/>
+																			</span>
+																		)}
+																	</Field>
+																</span>
+															</label>
+														</div>
+														<div>
+															<label
+																className="row cursor-pointer"
+																htmlFor="npmplusAcmePassthrough"
+															>
+																<span className="col">
+																	<T id="host.flags.acme-passthrough" />
+																	<div className="text-secondary small">
+																		<T id="host.flags.acme-passthrough.help" />
+																	</div>
+																</span>
+																<span className="col-auto">
+																	<Field
+																		name="npmplusAcmePassthrough"
+																		type="checkbox"
+																	>
+																		{({ field, form }) => (
+																			<span className="form-check form-check-single form-switch">
+																				<input
+																					{...field}
+																					id="npmplusAcmePassthrough"
+																					className={cn("form-check-input", {
+																						"bg-lime": field.checked,
+																					})}
+																					type="checkbox"
+																					disabled={
+																						!["http", "https"].includes(
+																							form.values.forwardScheme,
+																						)
+																					}
 																				/>
 																			</span>
 																		)}

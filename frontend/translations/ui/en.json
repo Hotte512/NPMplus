@@ -152,6 +152,8 @@
 	"host.auth-request": "Auth Request",
 	"host.auth-request-upstream": "Auth Request Upstream",
 	"host.auth-request-upstream.placeholder": "keep empty to reuse env value",
+	"host.flags.acme-passthrough": "Pass ACME http-01 challenges to upstream",
+	"host.flags.acme-passthrough.help": "NPMplus still answers its own challenges, all others are forwarded to the upstream so it can request certificates itself. Access lists and authentication do not apply to this path.",
 	"host.flags.block-exploits": "Block Common Exploits",
 	"host.flags.cache-assets": "Cache Assets",
 	"host.flags.disable-crowdsec-appsec": "Disable Crowdsec Appsec",
