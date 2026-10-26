@@ -23,6 +23,7 @@ import {
 } from "src/components";
 import { TableLayout } from "src/components/Table/TableLayout";
 import { intl, T } from "src/locale";
+import { reverseDomain } from "src/modules/Domain";
 import { forwardSummary } from "src/modules/Forward";
 import { MANAGE, PROXY_HOSTS } from "src/modules/Permissions";
 
@@ -52,6 +53,7 @@ export default function Table({
 	showHeader,
 	groupBy,
 	renderGroupLabel,
+	onTagClick,
 }) {
 	const columnHelper = createColumnHelper();
 	const columns = useMemo(
@@ -71,17 +73,40 @@ export default function Table({
 					className: "w-1",
 				},
 			}),
-			columnHelper.accessor((row) => row.domainNames.join(", "), {
+			columnHelper.accessor((row) => reverseDomain(row.domainNames[0]), {
 				id: "domainNames",
 				header: intl.formatMessage({ id: "column.source" }),
+				sortFn: "text",
 				cell: (info) => {
 					const value = info.row.original;
-					return <DomainsFormatter domains={value.domainNames} createdOn={value.createdOn} />;
+					return (
+						<>
+							<DomainsFormatter domains={value.domainNames} createdOn={value.createdOn} />
+							{value.npmplusDescription ? (
+								<div className="small text-secondary mt-1">{value.npmplusDescription}</div>
+							) : null}
+							{value.npmplusTags?.length ? (
+								<div className="mt-1 d-flex flex-wrap gap-1">
+									{value.npmplusTags.map((tag) => (
+										<button
+											key={tag}
+											type="button"
+											className="badge bg-secondary-lt border-0 cursor-pointer"
+											onClick={() => onTagClick?.(tag)}
+										>
+											{tag}
+										</button>
+									))}
+								</div>
+							) : null}
+						</>
+					);
 				},
 			}),
 			columnHelper.accessor(forwardSummary, {
 				id: "forwardHost",
 				header: intl.formatMessage({ id: "column.destination" }),
+				sortFn: "text",
 				cell: (info) => {
 					if (info.row.original.forwardScheme === "path" || !info.getValue()) {
 						return info.getValue();
@@ -223,7 +248,7 @@ export default function Table({
 				},
 			}),
 		],
-		[columnHelper, onEdit, onClone, onDisableToggle, onDelete],
+		[columnHelper, onEdit, onClone, onDisableToggle, onDelete, onTagClick],
 	);
 
 	const tableInstance = useTable({
