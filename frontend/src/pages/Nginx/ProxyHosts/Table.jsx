@@ -1,4 +1,4 @@
-import { IconCopy, IconDotsVertical, IconEdit, IconPower, IconTrash } from "@tabler/icons-react";
+import { IconCopy, IconDotsVertical, IconEdit, IconFileText, IconPower, IconTrash } from "@tabler/icons-react";
 import {
 	createColumnHelper,
 	createPaginatedRowModel,
@@ -12,6 +12,7 @@ import {
 	useTable,
 } from "@tanstack/react-table";
 import { useMemo } from "react";
+import { Link } from "react-router";
 import {
 	AccessListFormatter,
 	CertificateFormatter,
@@ -25,7 +26,7 @@ import { TableLayout } from "src/components/Table/TableLayout";
 import { intl, T } from "src/locale";
 import { reverseDomain } from "src/modules/Domain";
 import { forwardSummary } from "src/modules/Forward";
-import { MANAGE, PROXY_HOSTS } from "src/modules/Permissions";
+import { ADMIN, MANAGE, PROXY_HOSTS, VIEW } from "src/modules/Permissions";
 
 const features = tableFeatures({
 	rowSortingFeature,
@@ -207,6 +208,12 @@ export default function Table({
 								<IconEdit size={16} />
 								<T id="action.edit" />
 							</button>
+							<HasPermission section={ADMIN} permission={VIEW} hideError>
+								<Link className="dropdown-item" to={`/logs?source=access&host=${info.row.original.id}`}>
+									<IconFileText size={16} />
+									<T id="logs" />
+								</Link>
+							</HasPermission>
 							<HasPermission section={PROXY_HOSTS} permission={MANAGE} hideError>
 								<button
 									type="button"

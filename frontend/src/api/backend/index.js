@@ -28,6 +28,7 @@ export * from "./getDeadHost";
 export * from "./getDeadHosts";
 export * from "./getHealth";
 export * from "./getHostsReport";
+export * from "./getLogs";
 export * from "./getProxyHost";
 export * from "./getProxyHosts";
 export * from "./getRedirectionHost";
