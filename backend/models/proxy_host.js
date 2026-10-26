@@ -28,6 +28,19 @@ const boolFields = [
 	"npmplus_mtls_bypass_auth_request",
 ];
 
+// some drivers return json columns as strings (or "" for rows added before the column had a default)
+const parseTags = (value) => {
+	let tags = value;
+	if (typeof tags === "string") {
+		try {
+			tags = JSON.parse(tags);
+		} catch {
+			return [];
+		}
+	}
+	return Array.isArray(tags) ? tags : [];
+};
+
 class ProxyHost extends Model {
 	$beforeInsert() {
 		this.created_on = now();
@@ -41,6 +54,8 @@ class ProxyHost extends Model {
 		this.advanced_config ??= "";
 		this.npmplus_location_config ??= "";
 		this.npmplus_nginx_err ??= "";
+		this.npmplus_description ??= "";
+		this.npmplus_tags ??= [];
 
 		// Default for access list type
 		this.npmplus_access_list_type ??= "public";
@@ -63,6 +78,7 @@ class ProxyHost extends Model {
 			locations,
 			...thisJson
 		} = super.$parseDatabaseJson(json);
+		if ("npmplus_tags" in thisJson) thisJson.npmplus_tags = parseTags(thisJson.npmplus_tags);
 		return convertIntFieldsToBool(thisJson, boolFields);
 	}
 
@@ -76,7 +92,7 @@ class ProxyHost extends Model {
 
 	static tableName = "proxy_host";
 
-	static jsonAttributes = ["domain_names", "meta"];
+	static jsonAttributes = ["domain_names", "meta", "npmplus_tags"];
 
 	static get relationMappings() {
 		return {

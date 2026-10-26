@@ -8,3 +8,4 @@ export * from "./LocationsFields";
 export * from "./NginxConfigField";
 export * from "./SSLCertificateField";
 export * from "./SSLOptionsFields";
+export * from "./TagsField";

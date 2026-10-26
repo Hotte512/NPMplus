@@ -16,12 +16,19 @@ import {
 	NginxConfigField,
 	SSLCertificateField,
 	SSLOptionsFields,
+	TagsField,
 } from "src/components";
 import { useDirectorySuggestions, useProxyHost, useProxyHosts, useSetProxyHost, useUser } from "src/hooks";
 import { intl, T } from "src/locale";
 import EasyModal from "src/modules/easyModal";
 import { hasPermission, MANAGE, PROXY_HOSTS } from "src/modules/Permissions";
-import { showTabOfInvalid, validateAdminTarget, validateNumber, validateUpstreamUrl } from "src/modules/Validations";
+import {
+	showTabOfInvalid,
+	validateAdminTarget,
+	validateNumber,
+	validateString,
+	validateUpstreamUrl,
+} from "src/modules/Validations";
 import { showObjectSuccess } from "src/notifications";
 
 const requestBufferingTitle = ({ npmplusDisableCrowdsecAppsec, forwardScheme }) => {
@@ -35,6 +42,13 @@ const ProxyHostModal = EasyModal.create(({ id, isClone, visible, remove, close, 
 	const { data, isPending, error } = useProxyHost(id);
 	const { data: allProxyHosts } = useProxyHosts();
 	const suggestions = useDirectorySuggestions(allProxyHosts);
+	const tagSuggestions = useMemo(
+		() =>
+			Array.from(new Set((allProxyHosts ?? []).flatMap((h) => h.npmplusTags ?? []))).sort((a, b) =>
+				a.localeCompare(b),
+			),
+		[allProxyHosts],
+	);
 	const { mutateAsync: setProxyHost } = useSetProxyHost();
 	const { data: currentUser } = useUser("me");
 	const canManage = hasPermission(PROXY_HOSTS, MANAGE, currentUser?.permissions, currentUser?.npmplusIsAdmin);
@@ -70,6 +84,8 @@ const ProxyHostModal = EasyModal.create(({ id, isClone, visible, remove, close, 
 			advancedConfig: stripAdminConfig ? "" : data?.advancedConfig,
 			npmplusLocationConfig: stripAdminConfig ? "" : data?.npmplusLocationConfig,
 			npmplusDirectory: data?.npmplusDirectory,
+			npmplusDescription: data?.npmplusDescription ?? "",
+			npmplusTags: data?.npmplusTags ?? [],
 			npmplusMtlsCertificateId: data?.npmplusMtlsCertificateId,
 			npmplusMtlsVerifyClientOptional: data?.npmplusMtlsVerifyClientOptional,
 			npmplusMtlsBypassAuthRequest: data?.npmplusMtlsBypassAuthRequest,
@@ -189,6 +205,41 @@ const ProxyHostModal = EasyModal.create(({ id, isClone, visible, remove, close, 
 													}
 													dnsProviderWildcardSupported
 													forCertificate={values.certificateId === "new"}
+												/>
+												<Field
+													name="npmplusDescription"
+													validate={(value) => validateString(value, 0, 255)}
+												>
+													{({ field, form }) => (
+														<div className="mb-3">
+															<label className="form-label" htmlFor="npmplusDescription">
+																<T id="proxy-host.description" />
+															</label>
+															<input
+																id="npmplusDescription"
+																type="text"
+																maxLength={255}
+																className={`form-control ${form.errors.npmplusDescription && form.touched.npmplusDescription ? "is-invalid" : ""}`}
+																placeholder={intl.formatMessage({
+																	id: "proxy-host.description.placeholder",
+																})}
+																{...field}
+															/>
+															{form.errors.npmplusDescription ? (
+																<div className="invalid-feedback">
+																	{form.touched.npmplusDescription
+																		? form.errors.npmplusDescription
+																		: null}
+																</div>
+															) : null}
+														</div>
+													)}
+												</Field>
+												<TagsField
+													labelId="proxy-host.tags"
+													placeholderId="proxy-host.tags.placeholder"
+													suggestions={tagSuggestions}
+													disabled={!canManage}
 												/>
 												<div className="row">
 													<div className="col-md-3">
