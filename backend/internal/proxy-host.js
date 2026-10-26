@@ -35,6 +35,9 @@ const replaceLocationsAndAccessLists = async (trx, proxyHostId, data) => {
 
 const cleanForwardOptions = (item) => {
 	const scheme = item.forward_scheme ?? "http";
+	if ("npmplus_acme_passthrough" in item && !["http", "https"].includes(scheme)) {
+		item.npmplus_acme_passthrough = false;
+	}
 	if (scheme !== "empty") {
 		if (!item.forward_host) throw new errs.ValidationError(`Forward host is required for the ${scheme} scheme`);
 		if (!["http", "https"].includes(scheme)) {
