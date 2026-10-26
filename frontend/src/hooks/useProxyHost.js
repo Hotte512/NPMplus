@@ -29,6 +29,7 @@ const fetchProxyHost = (id) => {
 			hstsEnabled: false,
 			hstsSubdomains: false,
 			npmplusNoindex: false,
+			npmplusAcmePassthrough: false,
 			npmplusCrowdsecAppsec: false,
 			npmplusProxyResponseBuffering: false,
 			npmplusProxyRequestBuffering: false,
