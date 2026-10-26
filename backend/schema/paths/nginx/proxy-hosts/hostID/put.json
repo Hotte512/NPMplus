@@ -109,6 +109,12 @@
 						"npmplus_directory": {
 							"$ref": "../../../../components/proxy-host-object.json#/properties/npmplus_directory"
 						},
+						"npmplus_description": {
+							"$ref": "../../../../components/proxy-host-object.json#/properties/npmplus_description"
+						},
+						"npmplus_tags": {
+							"$ref": "../../../../components/proxy-host-object.json#/properties/npmplus_tags"
+						},
 						"npmplus_mtls_certificate_id": {
 							"$ref": "../../../../components/proxy-host-object.json#/properties/npmplus_mtls_certificate_id"
 						},

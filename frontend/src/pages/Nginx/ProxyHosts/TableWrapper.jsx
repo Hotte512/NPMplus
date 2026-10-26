@@ -4,22 +4,44 @@ import Alert from "react-bootstrap/Alert";
 import { deleteProxyHost, toggleProxyHost } from "src/api/backend";
 import { Button, HasPermission, LoadingPage } from "src/components";
 import { getDirectory, useProxyHosts } from "src/hooks";
-import { T } from "src/locale";
+import { intl, T } from "src/locale";
 import { showDeleteConfirmModal, showProxyHostModal } from "src/modals";
+import { baseDomain } from "src/modules/Domain";
 import { forwardSummary } from "src/modules/Forward";
 import { MANAGE, PROXY_HOSTS } from "src/modules/Permissions";
 import { showError, showObjectSuccess } from "src/notifications";
 import Table from "./Table";
 
+const GROUP_STORAGE_KEY = "npmplus.proxyHosts.groupBy";
+const GROUP_MODES = ["directory", "domain", "destination", "tag", "none"];
+
+const loadGroupMode = () => {
+	try {
+		const v = localStorage.getItem(GROUP_STORAGE_KEY);
+		return GROUP_MODES.includes(v) ? v : "directory";
+	} catch {
+		return "directory";
+	}
+};
+
+const groupKeyFns = {
+	directory: getDirectory,
+	domain: (item) => baseDomain(item.domainNames?.[0]),
+	destination: (item) => (item.forwardHost ?? "").split("/")[0].toLowerCase(),
+	tag: (item) => item.npmplusTags?.[0] ?? "",
+};
+
 export default function TableWrapper() {
-	const [search, setSearch] = useState("");
+	const [searchText, setSearchText] = useState("");
+	const [groupMode, setGroupMode] = useState(loadGroupMode);
+	const search = searchText.toLowerCase().trim();
 	const [sorting, setSorting] = useState([{ id: "enabled", desc: false }]);
 	const { isFetching, isPending, isError, error, data } = useProxyHosts(["owner", "access_lists", "certificate"]);
 
 	useEffect(() => {
 		// this can happen if someone deletes the last item while searching
-		if (search !== "" && !data?.length) {
-			setSearch("");
+		if (searchText !== "" && !data?.length) {
+			setSearchText("");
 		}
 	});
 
@@ -47,16 +69,30 @@ export default function TableWrapper() {
 			return (
 				item.domainNames.some((domain) => domain.toLowerCase().includes(search)) ||
 				forwardSummary(item).toLowerCase().includes(search) ||
-				directory.includes(search)
+				directory.includes(search) ||
+				item.npmplusDescription?.toLowerCase().includes(search) ||
+				item.npmplusTags?.some((tag) => tag.toLowerCase().includes(search))
 			);
 		});
 	}
 
 	const displayedHosts = filtered ?? data ?? [];
-	const groupingActive = displayedHosts.some(getDirectory);
+	const groupBy = groupMode === "none" ? undefined : groupKeyFns[groupMode];
+	// the directory grouping only shows up once at least one host has a directory
+	const groupingActive = groupBy && (groupMode !== "directory" || displayedHosts.some(getDirectory));
+
+	const changeGroupMode = (mode) => {
+		setGroupMode(mode);
+		try {
+			localStorage.setItem(GROUP_STORAGE_KEY, mode);
+		} catch {
+			// storage unavailable, the choice just isn't remembered
+		}
+	};
 
 	const sharedTableProps = {
 		isFiltered: search,
+		onTagClick: (tag) => setSearchText(tag),
 		isFetching,
 		sorting,
 		onSortingChange: setSorting,
@@ -101,9 +137,26 @@ export default function TableWrapper() {
 											type="text"
 											className="form-control form-control-sm"
 											autoComplete="off"
-											onChange={(e) => setSearch(e.target.value.toLowerCase().trim())}
+											value={searchText}
+											onChange={(e) => setSearchText(e.target.value)}
 										/>
 									</div>
+								) : null}
+								{data?.length ? (
+									<select
+										className="form-select form-select-sm w-auto"
+										aria-label={intl.formatMessage({ id: "proxy-hosts.group-by" })}
+										title={intl.formatMessage({ id: "proxy-hosts.group-by" })}
+										value={groupMode}
+										onChange={(e) => changeGroupMode(e.target.value)}
+									>
+										{GROUP_MODES.map((mode) => (
+											<option key={mode} value={mode}>
+												{intl.formatMessage({ id: "proxy-hosts.group-by" })}:{" "}
+												{intl.formatMessage({ id: `proxy-hosts.group-by.${mode}` })}
+											</option>
+										))}
+									</select>
 								) : null}
 								<HasPermission section={PROXY_HOSTS} permission={MANAGE} hideError>
 									{data?.length ? (
@@ -122,8 +175,18 @@ export default function TableWrapper() {
 				</div>
 				<Table
 					data={displayedHosts}
-					groupBy={groupingActive ? getDirectory : undefined}
-					renderGroupLabel={(key) => (key === "" ? <T id="proxy-host.no-directory" /> : key)}
+					groupBy={groupingActive ? groupBy : undefined}
+					renderGroupLabel={(key) =>
+						key === "" ? (
+							<T
+								id={
+									groupMode === "directory" ? "proxy-host.no-directory" : "proxy-hosts.group-by.other"
+								}
+							/>
+						) : (
+							key
+						)
+					}
 					{...sharedTableProps}
 				/>
 			</div>
