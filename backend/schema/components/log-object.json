@@ -1,0 +1,68 @@
+{
+	"type": "object",
+	"description": "Log lines",
+	"additionalProperties": false,
+	"required": [
+		"source",
+		"available",
+		"lines",
+		"cursor"
+	],
+	"properties": {
+		"source": {
+			"type": "string",
+			"description": "Log source",
+			"enum": [
+				"access",
+				"error",
+				"stream",
+				"certbot",
+				"app"
+			],
+			"example": "access"
+		},
+		"available": {
+			"type": "boolean",
+			"description": "False if the log file does not exist or can not be read",
+			"example": true
+		},
+		"reason": {
+			"type": "string",
+			"description": "Why the log is not available",
+			"enum": [
+				"logging-disabled",
+				"not-found",
+				"permission-denied"
+			],
+			"example": "logging-disabled"
+		},
+		"reset": {
+			"type": "boolean",
+			"description": "True if the log was rotated or truncated since the cursor and was read from the beginning",
+			"example": false
+		},
+		"more": {
+			"type": "boolean",
+			"description": "True if more new lines are available than returned by this request",
+			"example": false
+		},
+		"lines": {
+			"type": "array",
+			"description": "Log lines, oldest first",
+			"items": {
+				"type": "string"
+			},
+			"example": [
+				"[26/Oct/2026:12:00:00 +0000] example.com 192.0.2.1 0.001 \"GET / HTTP/2.0\" 200 1234 \"-\" \"curl/8.0\" \"-\" \"text/html\" TLSv1.3 TLS_AES_256_GCM_SHA384 X25519MLKEM768 -"
+			]
+		},
+		"cursor": {
+			"type": [
+				"string",
+				"null"
+			],
+			"description": "Opaque cursor to pass to the since endpoint to get new lines",
+			"example": "1234567:8910"
+		}
+	}
+}

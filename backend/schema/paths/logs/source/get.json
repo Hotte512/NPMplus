@@ -1,0 +1,72 @@
+{
+	"operationId": "getLog",
+	"summary": "Get the last lines of a log",
+	"tags": [
+		"logs"
+	],
+	"security": [
+		{
+			"cookieAuth": []
+		}
+	],
+	"parameters": [
+		{
+			"in": "path",
+			"name": "source",
+			"description": "Log source",
+			"schema": {
+				"type": "string",
+				"enum": [
+					"access",
+					"error",
+					"stream",
+					"certbot",
+					"app"
+				]
+			},
+			"required": true,
+			"example": "access"
+		},
+		{
+			"in": "query",
+			"name": "lines",
+			"description": "Number of lines to return",
+			"schema": {
+				"type": "integer",
+				"minimum": 1,
+				"maximum": 5000,
+				"default": 500
+			}
+		},
+		{
+			"in": "query",
+			"name": "host_id",
+			"description": "Only return lines of this proxy host (access and error log only)",
+			"schema": {
+				"type": "integer",
+				"minimum": 1
+			}
+		},
+		{
+			"in": "query",
+			"name": "filter",
+			"description": "Only return lines containing this text (case-insensitive)",
+			"schema": {
+				"type": "string",
+				"maxLength": 255
+			}
+		}
+	],
+	"responses": {
+		"200": {
+			"description": "200 response",
+			"content": {
+				"application/json": {
+					"schema": {
+						"$ref": "../../../components/log-object.json"
+					}
+				}
+			}
+		}
+	}
+}

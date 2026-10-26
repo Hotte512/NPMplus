@@ -1,0 +1,72 @@
+{
+	"operationId": "getLogSince",
+	"summary": "Get the lines appended to a log after a cursor",
+	"tags": [
+		"logs"
+	],
+	"security": [
+		{
+			"cookieAuth": []
+		}
+	],
+	"parameters": [
+		{
+			"in": "path",
+			"name": "source",
+			"description": "Log source",
+			"schema": {
+				"type": "string",
+				"enum": [
+					"access",
+					"error",
+					"stream",
+					"certbot",
+					"app"
+				]
+			},
+			"required": true,
+			"example": "access"
+		},
+		{
+			"in": "query",
+			"name": "cursor",
+			"description": "Cursor returned by the previous request",
+			"schema": {
+				"type": "string",
+				"pattern": "^[0-9]{1,40}(:[0-9]{1,20})?$"
+			},
+			"required": true,
+			"example": "1234567:8910"
+		},
+		{
+			"in": "query",
+			"name": "host_id",
+			"description": "Only return lines of this proxy host (access and error log only)",
+			"schema": {
+				"type": "integer",
+				"minimum": 1
+			}
+		},
+		{
+			"in": "query",
+			"name": "filter",
+			"description": "Only return lines containing this text (case-insensitive)",
+			"schema": {
+				"type": "string",
+				"maxLength": 255
+			}
+		}
+	],
+	"responses": {
+		"200": {
+			"description": "200 response",
+			"content": {
+				"application/json": {
+					"schema": {
+						"$ref": "../../../../components/log-object.json"
+					}
+				}
+			}
+		}
+	}
+}
