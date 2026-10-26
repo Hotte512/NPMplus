@@ -19,6 +19,7 @@ const boolFields = [
 	"hsts_enabled",
 	"hsts_subdomains",
 	"npmplus_noindex",
+	"npmplus_acme_passthrough",
 	"npmplus_crowdsec_appsec",
 	"npmplus_proxy_request_buffering",
 	"npmplus_proxy_response_buffering",

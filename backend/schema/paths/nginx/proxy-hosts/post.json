@@ -66,6 +66,9 @@
 						"npmplus_noindex": {
 							"$ref": "../../../components/proxy-host-object.json#/properties/npmplus_noindex"
 						},
+						"npmplus_acme_passthrough": {
+							"$ref": "../../../components/proxy-host-object.json#/properties/npmplus_acme_passthrough"
+						},
 						"npmplus_crowdsec_appsec": {
 							"$ref": "../../../components/proxy-host-object.json#/properties/npmplus_crowdsec_appsec"
 						},
@@ -166,6 +169,7 @@
 								"certificate_id": 0,
 								"ssl_forced": false,
 								"npmplus_noindex": false,
+								"npmplus_acme_passthrough": false,
 								"npmplus_crowdsec_appsec": false,
 								"npmplus_proxy_request_buffering": false,
 								"npmplus_proxy_response_buffering": false,
