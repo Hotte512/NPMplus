@@ -29,6 +29,10 @@
 			"description": "Endpoints related to Audit Logs"
 		},
 		{
+			"name": "logs",
+			"description": "Endpoints for viewing nginx, certbot and application logs"
+		},
+		{
 			"name": "access-lists",
 			"description": "Endpoints related to Access Lists"
 		},
@@ -116,6 +120,16 @@
 		"/audit-log/{id}": {
 			"get": {
 				"$ref": "./paths/audit-log/id/get.json"
+			}
+		},
+		"/logs/{source}": {
+			"get": {
+				"$ref": "./paths/logs/source/get.json"
+			}
+		},
+		"/logs/{source}/since": {
+			"get": {
+				"$ref": "./paths/logs/source/since/get.json"
 			}
 		},
 		"/nginx/access-lists": {
