@@ -1,3 +1,4 @@
+import { useQueryClient } from "@tanstack/react-query";
 import cn from "clsx";
 import { Field, Form, Formik } from "formik";
 import { useState } from "react";
@@ -6,6 +7,7 @@ import { Button, Loading } from "src/components";
 import { useSetSetting, useSetting } from "src/hooks";
 import { intl, T } from "src/locale";
 import { showObjectSuccess } from "src/notifications";
+import UnifiDnsStatus from "./UnifiDnsStatus";
 
 const textField = (name, placeholder, help, props = {}) => (
 	<Field name={name}>
@@ -36,6 +38,7 @@ const textField = (name, placeholder, help, props = {}) => (
 export default function UnifiDns() {
 	const { data, isPending, error } = useSetting("unifi-dns");
 	const { mutate: setSetting } = useSetSetting();
+	const queryClient = useQueryClient();
 	const [errorMsg, setErrorMsg] = useState(null);
 	const [isSubmitting, setIsSubmitting] = useState(false);
 
@@ -55,6 +58,7 @@ export default function UnifiDns() {
 					siteId: values.siteId.trim(),
 					defaultTarget: values.defaultTarget.trim(),
 					verifyTls: values.verifyTls,
+					ttl: Number.parseInt(values.ttl, 10) || 0,
 				},
 			},
 			{
@@ -64,6 +68,8 @@ export default function UnifiDns() {
 					showObjectSuccess("setting", "saved");
 				},
 				onSettled: () => {
+					// saving syncs all hosts
+					void queryClient.invalidateQueries({ queryKey: ["unifi-dns-status"] });
 					setIsSubmitting(false);
 					setSubmitting(false);
 				},
@@ -98,6 +104,7 @@ export default function UnifiDns() {
 				siteId: data?.meta?.siteId ?? "",
 				defaultTarget: data?.meta?.defaultTarget ?? "",
 				verifyTls: data?.meta?.verifyTls ?? false,
+				ttl: data?.meta?.ttl || "",
 			}}
 			onSubmit={onSubmit}
 		>
@@ -138,6 +145,16 @@ export default function UnifiDns() {
 						)}
 						{textField("siteId", "default", "settings.unifi-dns.siteId.help")}
 						{textField("defaultTarget", "192.168.1.5", "settings.unifi-dns.defaultTarget.help")}
+						{textField(
+							"ttl",
+							intl.formatMessage({ id: "settings.unifi-dns.ttl.auto" }),
+							"settings.unifi-dns.ttl.help",
+							{
+								type: "number",
+								min: 0,
+								max: 86400,
+							},
+						)}
 						<Field name="verifyTls" type="checkbox">
 							{({ field }) => (
 								<label className="row cursor-pointer mb-3" htmlFor="verifyTls">
@@ -157,6 +174,7 @@ export default function UnifiDns() {
 								</label>
 							)}
 						</Field>
+						<UnifiDnsStatus />
 					</div>
 					<div className="card-footer bg-transparent mt-auto">
 						<div className="btn-list justify-content-end">

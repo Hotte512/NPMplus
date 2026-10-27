@@ -1,4 +1,5 @@
 import { IconSettings } from "@tabler/icons-react";
+import { useQueryClient } from "@tanstack/react-query";
 import cn from "clsx";
 import { ErrorMessage, Field, Form, Formik } from "formik";
 import { useMemo, useState } from "react";
@@ -17,8 +18,16 @@ import {
 	SSLCertificateField,
 	SSLOptionsFields,
 	TagsField,
+	UnifiDnsHostStatus,
 } from "src/components";
-import { useDirectorySuggestions, useProxyHost, useProxyHosts, useSetProxyHost, useUser } from "src/hooks";
+import {
+	refreshUnifiDnsStatusSoon,
+	useDirectorySuggestions,
+	useProxyHost,
+	useProxyHosts,
+	useSetProxyHost,
+	useUser,
+} from "src/hooks";
 import { intl, T } from "src/locale";
 import EasyModal from "src/modules/easyModal";
 import { hasPermission, MANAGE, PROXY_HOSTS } from "src/modules/Permissions";
@@ -50,6 +59,7 @@ const ProxyHostModal = EasyModal.create(({ id, isClone, visible, remove, close, 
 		[allProxyHosts],
 	);
 	const { mutateAsync: setProxyHost } = useSetProxyHost();
+	const queryClient = useQueryClient();
 	const { data: currentUser } = useUser("me");
 	const canManage = hasPermission(PROXY_HOSTS, MANAGE, currentUser?.permissions, currentUser?.npmplusIsAdmin);
 	const [errorMsg, setErrorMsg] = useState(null);
@@ -134,6 +144,7 @@ const ProxyHostModal = EasyModal.create(({ id, isClone, visible, remove, close, 
 
 		try {
 			await setProxyHost(payload);
+			refreshUnifiDnsStatusSoon(queryClient);
 			showObjectSuccess("proxy-host", "saved");
 			remove();
 		} catch (err) {
@@ -755,6 +766,11 @@ const ProxyHostModal = EasyModal.create(({ id, isClone, visible, remove, close, 
 																		</div>
 																	)}
 																</Field>
+															) : null}
+															{values?.npmplusUnifiDns !== "off" &&
+															id !== "new" &&
+															!isClone ? (
+																<UnifiDnsHostStatus hostId={id} />
 															) : null}
 														</div>
 														<div>

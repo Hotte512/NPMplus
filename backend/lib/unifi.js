@@ -1,8 +1,6 @@
 import { isIP } from "node:net";
 import { Agent, request } from "undici";
 
-// required by the api, short so changed targets apply quickly
-const TTL = 300;
 const TRAILING_SLASHES = /\/+$/u;
 const insecureAgent = new Agent({ connect: { rejectUnauthorized: false } });
 
@@ -11,16 +9,17 @@ const insecureAgent = new Agent({ connect: { rejectUnauthorized: false } });
  *
  * @param   {String} domain
  * @param   {String} target
+ * @param   {Number} [ttl]  seconds, 0 = auto
  * @returns {Object}
  */
-const policyFor = (domain, target) => {
+const policyFor = (domain, target, ttl = 0) => {
 	switch (isIP(target)) {
 		case 4:
-			return { type: "A_RECORD", enabled: true, domain, ttlSeconds: TTL, ipv4Address: target };
+			return { type: "A_RECORD", enabled: true, domain, ttlSeconds: ttl, ipv4Address: target };
 		case 6:
-			return { type: "AAAA_RECORD", enabled: true, domain, ttlSeconds: TTL, ipv6Address: target };
+			return { type: "AAAA_RECORD", enabled: true, domain, ttlSeconds: ttl, ipv6Address: target };
 		default:
-			return { type: "CNAME_RECORD", enabled: true, domain, ttlSeconds: TTL, targetDomain: target };
+			return { type: "CNAME_RECORD", enabled: true, domain, ttlSeconds: ttl, targetDomain: target };
 	}
 };
 
@@ -87,10 +86,10 @@ const createClient = (config) => {
 				if (!page?.data?.length || all.length >= (page.totalCount ?? 0)) return all;
 			}
 		},
-		create: async (domain, target) =>
-			(await call("POST", `/sites/${await site()}/dns/policies`, policyFor(domain, target))).id,
-		update: async (id, domain, target) =>
-			call("PUT", `/sites/${await site()}/dns/policies/${id}`, policyFor(domain, target)),
+		create: async (domain, target, ttl) =>
+			(await call("POST", `/sites/${await site()}/dns/policies`, policyFor(domain, target, ttl))).id,
+		update: async (id, domain, target, ttl) =>
+			call("PUT", `/sites/${await site()}/dns/policies/${id}`, policyFor(domain, target, ttl)),
 		remove: async (id) => call("DELETE", `/sites/${await site()}/dns/policies/${id}`),
 	};
 };

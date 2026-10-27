@@ -18,5 +18,6 @@ export * from "./useRedirectionHosts";
 export * from "./useSetting";
 export * from "./useStream";
 export * from "./useStreams";
+export * from "./useUnifiDnsStatus";
 export * from "./useUser";
 export * from "./useUsers";
