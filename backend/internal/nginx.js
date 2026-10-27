@@ -158,6 +158,22 @@ const internalNginx = {
 				host.forward_upstream_name = `upstream_${host.id}`;
 				renderedUpstreams += await utils.renderEngine.renderFile("_upstream.conf", host);
 			}
+
+			// acme http-01 challenges always use plain http, usually on another port than the proxied service
+			if (
+				host.npmplus_acme_passthrough &&
+				["http", "https"].includes(host.forward_scheme) &&
+				!host.forward_host?.startsWith("cu_") &&
+				!host.forward_host?.startsWith("/") &&
+				!host.forward_host?.startsWith("unix")
+			) {
+				host.acme_upstream_name = `upstream_${host.id}_acme`;
+				renderedUpstreams += await utils.renderEngine.renderFile("_upstream.conf", {
+					forward_upstream_name: host.acme_upstream_name,
+					forward_host: host.forward_host,
+					forward_port: host.npmplus_acme_passthrough_port,
+				});
+			}
 		}
 
 		for (const [idx, location] of (host.locations || []).entries()) {

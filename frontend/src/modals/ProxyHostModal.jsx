@@ -91,6 +91,7 @@ const ProxyHostModal = EasyModal.create(({ id, isClone, visible, remove, close, 
 			npmplusMtlsBypassAuthRequest: data?.npmplusMtlsBypassAuthRequest,
 			npmplusNoindex: data?.npmplusNoindex,
 			npmplusAcmePassthrough: data?.npmplusAcmePassthrough,
+			npmplusAcmePassthroughPort: data?.npmplusAcmePassthroughPort ?? 80,
 			npmplusDisableCrowdsecAppsec: data?.npmplusDisableCrowdsecAppsec,
 			npmplusProxyResponseBuffering: data?.npmplusProxyResponseBuffering,
 			npmplusDisableProxyRequestBuffering: data?.npmplusDisableProxyRequestBuffering,
@@ -117,6 +118,7 @@ const ProxyHostModal = EasyModal.create(({ id, isClone, visible, remove, close, 
 			id: id === "new" || isClone ? undefined : id,
 			...values,
 			npmplusAccessListIds: globalAclIds,
+			npmplusAcmePassthroughPort: Number(values.npmplusAcmePassthroughPort) || 80,
 			forwardPort: values.forwardPort || 0,
 			locations: values.locations
 				.filter((location) => location.path.trim())
@@ -453,6 +455,38 @@ const ProxyHostModal = EasyModal.create(({ id, isClone, visible, remove, close, 
 																	</Field>
 																</span>
 															</label>
+															{values?.npmplusAcmePassthrough &&
+															["http", "https"].includes(values?.forwardScheme) ? (
+																<Field
+																	name="npmplusAcmePassthroughPort"
+																	validate={(value) =>
+																		validateNumber(value, 1, 65535)
+																	}
+																>
+																	{({ field, form }) => (
+																		<div className="row align-items-center pb-2">
+																			<label
+																				className="col text-secondary small"
+																				htmlFor="npmplusAcmePassthroughPort"
+																			>
+																				<T id="host.flags.acme-passthrough-port" />
+																			</label>
+																			<span className="col-auto">
+																				<input
+																					id="npmplusAcmePassthroughPort"
+																					type="text"
+																					inputMode="numeric"
+																					pattern="[1-9][0-9]*"
+																					className={`form-control form-control-sm ${form.errors.npmplusAcmePassthroughPort ? "is-invalid" : ""}`}
+																					style={{ width: "6rem" }}
+																					placeholder="80"
+																					{...field}
+																				/>
+																			</span>
+																		</div>
+																	)}
+																</Field>
+															) : null}
 														</div>
 														<div>
 															<label
