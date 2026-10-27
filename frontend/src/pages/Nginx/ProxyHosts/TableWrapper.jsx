@@ -1,4 +1,4 @@
-import { IconSearch } from "@tabler/icons-react";
+import { IconColumns, IconSearch } from "@tabler/icons-react";
 import { useEffect, useState } from "react";
 import Alert from "react-bootstrap/Alert";
 import { deleteProxyHost, toggleProxyHost } from "src/api/backend";
@@ -10,7 +10,7 @@ import { baseDomain } from "src/modules/Domain";
 import { forwardSummary } from "src/modules/Forward";
 import { MANAGE, PROXY_HOSTS } from "src/modules/Permissions";
 import { showError, showObjectSuccess } from "src/notifications";
-import Table from "./Table";
+import Table, { TOGGLEABLE_COLUMNS } from "./Table";
 
 const GROUP_STORAGE_KEY = "npmplus.proxyHosts.groupBy";
 const GROUP_MODES = ["directory", "domain", "destination", "tag", "none"];
@@ -24,6 +24,25 @@ const loadGroupMode = () => {
 	}
 };
 
+const COLUMNS_STORAGE_KEY = "npmplus.proxyHosts.hiddenColumns";
+const COLUMN_LABELS = {
+	owner: "proxy-hosts.columns.owner",
+	forwardHost: "column.destination",
+	certificate: "column.ssl",
+	accessList: "column.access",
+	enabled: "column.status",
+	id: "ID",
+};
+
+const loadHiddenColumns = () => {
+	try {
+		const v = JSON.parse(localStorage.getItem(COLUMNS_STORAGE_KEY) ?? "[]");
+		return Array.isArray(v) ? v.filter((c) => TOGGLEABLE_COLUMNS.includes(c)) : [];
+	} catch {
+		return [];
+	}
+};
+
 const groupKeyFns = {
 	directory: getDirectory,
 	domain: (item) => baseDomain(item.domainNames?.[0]),
@@ -34,6 +53,7 @@ const groupKeyFns = {
 export default function TableWrapper() {
 	const [searchText, setSearchText] = useState("");
 	const [groupMode, setGroupMode] = useState(loadGroupMode);
+	const [hiddenColumns, setHiddenColumns] = useState(loadHiddenColumns);
 	const search = searchText.toLowerCase().trim();
 	const [sorting, setSorting] = useState([{ id: "enabled", desc: false }]);
 	const { isFetching, isPending, isError, error, data } = useProxyHosts(["owner", "access_lists", "certificate"]);
@@ -90,7 +110,20 @@ export default function TableWrapper() {
 		}
 	};
 
+	const toggleColumn = (column) => {
+		const next = hiddenColumns.includes(column)
+			? hiddenColumns.filter((c) => c !== column)
+			: [...hiddenColumns, column];
+		setHiddenColumns(next);
+		try {
+			localStorage.setItem(COLUMNS_STORAGE_KEY, JSON.stringify(next));
+		} catch {
+			// storage unavailable, the choice just isn't remembered
+		}
+	};
+
 	const sharedTableProps = {
+		hiddenColumns,
 		isFiltered: search,
 		onTagClick: (tag) => setSearchText(tag),
 		isFetching,
@@ -157,6 +190,35 @@ export default function TableWrapper() {
 											</option>
 										))}
 									</select>
+								) : null}
+								{data?.length ? (
+									<div className="dropdown">
+										<button
+											type="button"
+											className="btn btn-sm dropdown-toggle"
+											data-bs-toggle="dropdown"
+											data-bs-auto-close="outside"
+											title={intl.formatMessage({ id: "proxy-hosts.columns" })}
+										>
+											<IconColumns size={16} className="me-1" />
+											<T id="proxy-hosts.columns" />
+										</button>
+										<div className="dropdown-menu dropdown-menu-end">
+											{TOGGLEABLE_COLUMNS.map((column) => (
+												<label key={column} className="dropdown-item cursor-pointer">
+													<input
+														type="checkbox"
+														className="form-check-input m-0 me-2"
+														checked={!hiddenColumns.includes(column)}
+														onChange={() => toggleColumn(column)}
+													/>
+													{column === "id"
+														? "ID"
+														: intl.formatMessage({ id: COLUMN_LABELS[column] })}
+												</label>
+											))}
+										</div>
+									</div>
 								) : null}
 								<HasPermission section={PROXY_HOSTS} permission={MANAGE} hideError>
 									{data?.length ? (
