@@ -228,6 +228,21 @@
 			"default": 80,
 			"example": 80
 		},
+		"npmplus_unifi_dns": {
+			"description": "Local DNS record on the UniFi gateway: off, the NPMplus address from the settings, the forward host or a custom target",
+			"type": "string",
+			"enum": ["off", "npmplus", "forward", "custom"],
+			"default": "off",
+			"example": "npmplus"
+		},
+		"npmplus_unifi_dns_target": {
+			"description": "Target (IP or hostname) of the local DNS record if npmplus_unifi_dns is custom",
+			"type": "string",
+			"maxLength": 255,
+			"pattern": "^[a-zA-Z0-9.:-]*$",
+			"default": "",
+			"example": "192.168.1.10"
+		},
 		"npmplus_proxy_request_buffering": {
 			"description": "Disable Request Buffering",
 			"type": "boolean",

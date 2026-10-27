@@ -31,6 +31,8 @@ const fetchProxyHost = (id) => {
 			npmplusNoindex: false,
 			npmplusAcmePassthrough: false,
 			npmplusAcmePassthroughPort: 80,
+			npmplusUnifiDns: "off",
+			npmplusUnifiDnsTarget: "",
 			npmplusCrowdsecAppsec: false,
 			npmplusProxyResponseBuffering: false,
 			npmplusProxyRequestBuffering: false,

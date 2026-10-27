@@ -132,6 +132,8 @@ const ProxyHostModal = EasyModal.create(({ id, isClone, visible, remove }) => {
 						npmplusNoindex: data?.npmplusNoindex,
 						npmplusAcmePassthrough: data?.npmplusAcmePassthrough,
 						npmplusAcmePassthroughPort: data?.npmplusAcmePassthroughPort ?? 80,
+						npmplusUnifiDns: data?.npmplusUnifiDns ?? "off",
+						npmplusUnifiDnsTarget: data?.npmplusUnifiDnsTarget ?? "",
 						npmplusCrowdsecAppsec: data?.npmplusCrowdsecAppsec,
 						npmplusProxyResponseBuffering: data?.npmplusProxyResponseBuffering,
 						npmplusProxyRequestBuffering: data?.npmplusProxyRequestBuffering,
@@ -647,6 +649,82 @@ const ProxyHostModal = EasyModal.create(({ id, isClone, visible, remove }) => {
 																	</Field>
 																</span>
 															</label>
+														</div>
+														<div>
+															<label
+																className="row cursor-pointer"
+																htmlFor="npmplusUnifiDns"
+															>
+																<span className="col">
+																	<T id="host.unifi-dns" />
+																	<div className="text-secondary small">
+																		<T id="host.unifi-dns.help" />
+																	</div>
+																</span>
+																<span className="col-auto">
+																	<Field name="npmplusUnifiDns">
+																		{({ field }) => (
+																			<select
+																				id="npmplusUnifiDns"
+																				className="form-select"
+																				required
+																				{...field}
+																			>
+																				<option value="off">
+																					{intl.formatMessage({
+																						id: "host.unifi-dns.off",
+																					})}
+																				</option>
+																				<option value="npmplus">
+																					{intl.formatMessage({
+																						id: "host.unifi-dns.npmplus",
+																					})}
+																				</option>
+																				<option value="forward">
+																					{intl.formatMessage({
+																						id: "host.unifi-dns.forward",
+																					})}
+																				</option>
+																				<option value="custom">
+																					{intl.formatMessage({
+																						id: "host.unifi-dns.custom",
+																					})}
+																				</option>
+																			</select>
+																		)}
+																	</Field>
+																</span>
+															</label>
+															{values?.npmplusUnifiDns === "custom" ? (
+																<Field
+																	name="npmplusUnifiDnsTarget"
+																	validate={validateString(1, 255)}
+																>
+																	{({ field, form }) => (
+																		<div className="row align-items-center pb-2">
+																			<label
+																				className="col text-secondary small"
+																				htmlFor="npmplusUnifiDnsTarget"
+																			>
+																				<T id="host.unifi-dns.target" />
+																			</label>
+																			<span className="col-auto">
+																				<input
+																					id="npmplusUnifiDnsTarget"
+																					type="text"
+																					required
+																					pattern="[a-zA-Z0-9.:\-]+"
+																					autoComplete="off"
+																					className={`form-control form-control-sm ${form.errors.npmplusUnifiDnsTarget ? "is-invalid" : ""}`}
+																					style={{ width: "12rem" }}
+																					placeholder="192.168.1.10"
+																					{...field}
+																				/>
+																			</span>
+																		</div>
+																	)}
+																</Field>
+															) : null}
 														</div>
 														<div>
 															<label
