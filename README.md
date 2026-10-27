@@ -1,27 +1,42 @@
-# hotte-ci
+# NPMplus · Hotte
 
-Nightly build of NPMplus with own features on top of upstream.
+Eigene Variante von [NPMplus](https://github.com/ZoeyVid/NPMplus) mit zusätzlichen Funktionen, gebaut als
+Docker-Image `ghcr.io/hotte512/npmplus:hotte-main`.
 
-- `claude/hotte-features`: upstream `develop` at commit `FEATURES_BASE` plus own feature commits
-- `.github/workflows/hotte-sync.yml` (`BASE=pinned` in `hotte-sync.env`): every night (01:17 UTC) builds
-  `claude/hotte-features` exactly as it is and pushes `ghcr.io/hotte512/npmplus:hotte-main`. Unchanged sources are
-  not rebuilt, except on Sundays to pick up updated base packages. Upstream `develop` is rewritten often, so it is
-  rebased into `claude/hotte-features` on purpose (then update `FEATURES_BASE`), not automatically.
-- `BASE=release`: replays the feature commits onto the latest upstream release instead (for when releases are cut
-  from the new `develop`). If they do not apply an issue is opened and the last image stays.
-- This branch must be the default branch of the fork, scheduled workflows only run there.
+- **Funktionen und Bedienung:** [docs/features.md](docs/features.md)
+- **Build, Branches, Upstream-Updates:** [docs/development.md](docs/development.md)
+- **Änderungen:** [CHANGELOG.md](CHANGELOG.md)
 
-## LXC
+## Überblick der Erweiterungen
 
-`/opt/compose.yaml`:
+| Bereich | Funktion |
+| --- | --- |
+| Proxy-Hosts | Beschreibung, Tags, Gruppierung, kompakte Tabelle mit ein-/ausblendbaren Spalten |
+| Proxy-Hosts | ACME-http-01-Challenges an das Ziel weiterleiten (eigener Port) |
+| Proxy-Hosts | Lokaler DNS-Eintrag auf einem UniFi-Gateway (UniFi Network 9.4+) |
+| Zertifikate | DNS-Challenge über http.net, beschränkt auf erlaubte Zonen |
+| Logs | Log-Viewer für nginx-, Certbot- und NPMplus-Logs |
+| Oberfläche | Hotte-Logo im Header, damit die Variante sofort erkennbar ist |
+
+## Installation
+
+`compose.yaml` (Beispiel, Rest wie bei NPMplus):
 
 ```yaml
-image: ghcr.io/hotte512/npmplus:hotte-main
-pull_policy: always
+services:
+  npmplus:
+    image: ghcr.io/hotte512/npmplus:hotte-main
+    pull_policy: always
 ```
 
-Nightly update (`/etc/crontabs/root`, Alpine):
+Automatisches Update per Cron (Beispiel für Alpine, `/etc/crontabs/root`):
 
 ```
-30 4 * * * docker compose -f /opt/compose.yaml pull -q npmplus && docker compose -f /opt/compose.yaml up -d && docker image prune -f > /dev/null
+30 4 * * * docker compose -f /pfad/zu/compose.yaml pull -q npmplus && docker compose -f /pfad/zu/compose.yaml up -d && docker image prune -f > /dev/null
 ```
+
+`docker image prune -f` entfernt die alten, nicht mehr getaggten Images.
+
+## Hinweis
+
+Dieses Repository ist ein privates Projekt ohne Support. Lizenz wie NPMplus (AGPL-3.0, Teile MIT).
