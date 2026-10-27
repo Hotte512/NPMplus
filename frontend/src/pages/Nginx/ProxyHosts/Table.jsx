@@ -16,18 +16,21 @@ import { Link } from "react-router";
 import {
 	AccessListFormatter,
 	CertificateFormatter,
-	DomainsFormatter,
 	EmptyData,
-	GravatarFormatter,
 	HasPermission,
 	StatusFormatter,
 	UnifiDnsBadge,
 } from "src/components";
 import { TableLayout } from "src/components/Table/TableLayout";
-import { intl, T } from "src/locale";
+import { formatDateTime, intl, T } from "src/locale";
 import { reverseDomain } from "src/modules/Domain";
 import { forwardSummary } from "src/modules/Forward";
 import { ADMIN, MANAGE, PROXY_HOSTS, VIEW } from "src/modules/Permissions";
+
+// columns that can be hidden in the proxy host list, source and actions always stay
+export const TOGGLEABLE_COLUMNS = ["owner", "forwardHost", "certificate", "accessList", "enabled", "id"];
+
+const dateOnly = (value) => new Date(value).toLocaleDateString(undefined, { dateStyle: "medium" });
 
 const features = tableFeatures({
 	rowSortingFeature,
@@ -56,6 +59,7 @@ export default function Table({
 	groupBy,
 	renderGroupLabel,
 	onTagClick,
+	hiddenColumns,
 }) {
 	const columnHelper = createColumnHelper();
 	const columns = useMemo(
@@ -64,10 +68,12 @@ export default function Table({
 				id: "owner",
 				cell: (info) => {
 					const value = info.row.original.owner;
+					const name = value ? value.name : intl.formatMessage({ id: "user.deleted" });
 					return (
-						<GravatarFormatter
-							url={value ? value.avatar : ""}
-							name={value ? value.name : intl.formatMessage({ id: "user.deleted" })}
+						<span
+							title={name}
+							className="avatar avatar-sm avatar-square"
+							style={{ backgroundImage: `url(${value?.avatar || "/images/default-avatar.jpg"})` }}
 						/>
 					);
 				},
@@ -83,25 +89,35 @@ export default function Table({
 					const value = info.row.original;
 					return (
 						<>
-							<DomainsFormatter domains={value.domainNames} createdOn={value.createdOn} />
-							<UnifiDnsBadge host={value} />
-							{value.npmplusDescription ? (
-								<div className="small text-secondary mt-1">{value.npmplusDescription}</div>
-							) : null}
-							{value.npmplusTags?.length ? (
-								<div className="mt-1 d-flex flex-wrap gap-1">
-									{value.npmplusTags.map((tag) => (
-										<button
-											key={tag}
-											type="button"
-											className="badge bg-secondary-lt border-0 cursor-pointer"
-											onClick={() => onTagClick?.(tag)}
-										>
-											{tag}
-										</button>
-									))}
-								</div>
-							) : null}
+							<div className="d-flex flex-wrap align-items-center gap-1">
+								{value.domainNames.map((domain) => (
+									<a
+										key={domain}
+										href={`http://${domain}`}
+										target="_blank"
+										rel="noopener"
+										onClick={domain.includes("*") ? (e) => e.preventDefault() : undefined}
+										className="badge font-monospace"
+									>
+										{domain}
+									</a>
+								))}
+								<UnifiDnsBadge host={value} />
+								{value.npmplusTags?.map((tag) => (
+									<button
+										key={tag}
+										type="button"
+										className="badge bg-azure-lt border-0 cursor-pointer"
+										onClick={() => onTagClick?.(tag)}
+									>
+										{tag}
+									</button>
+								))}
+							</div>
+							<div className="small text-secondary mt-1">
+								{value.npmplusDescription ? <>{value.npmplusDescription} · </> : null}
+								<span title={formatDateTime(value.createdOn)}>{dateOnly(value.createdOn)}</span>
+							</div>
 						</>
 					);
 				},
@@ -259,10 +275,14 @@ export default function Table({
 		],
 		[columnHelper, onEdit, onClone, onDisableToggle, onDelete, onTagClick],
 	);
+	const visibleColumns = useMemo(
+		() => columns.filter((column) => !hiddenColumns?.includes(column.id)),
+		[columns, hiddenColumns],
+	);
 
 	const tableInstance = useTable({
 		features,
-		columns: columnHelper.columns(columns),
+		columns: columnHelper.columns(visibleColumns),
 		data,
 		getRowId: (row) => `${row.id}`,
 		meta: {
@@ -278,6 +298,7 @@ export default function Table({
 	return (
 		<TableLayout
 			tableInstance={tableInstance}
+			className="table-sm"
 			showHeader={showHeader}
 			groupBy={groupBy}
 			renderGroupLabel={renderGroupLabel}

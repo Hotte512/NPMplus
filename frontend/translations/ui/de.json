@@ -282,6 +282,8 @@
 	"proxy-host.tags": "Tags",
 	"proxy-host.tags.placeholder": "Tag eingeben und mit Enter bestätigen",
 	"proxy-hosts": "Proxy Hosts",
+	"proxy-hosts.columns": "Spalten",
+	"proxy-hosts.columns.owner": "Besitzer",
 	"proxy-hosts.count": "{count} {count, plural, one {Proxy Host} other {Proxy Hosts}}",
 	"proxy-hosts.group-by": "Gruppieren nach",
 	"proxy-hosts.group-by.destination": "Ziel",

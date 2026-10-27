@@ -28,7 +28,7 @@ function TableLayout(props) {
 		<>
 			{paginationProps ? <Pagination top {...paginationProps} /> : null}
 			<div className="table-responsive">
-				<table className="table table-vcenter table-selectable mb-0">
+				<table className={`table table-vcenter table-selectable mb-0 ${props.className ?? ""}`}>
 					{hasRows && showHeader ? <TableHeader tableInstance={props.tableInstance} /> : null}
 					<TableBody {...props} />
 				</table>
