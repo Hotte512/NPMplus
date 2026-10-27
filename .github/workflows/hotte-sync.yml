@@ -51,14 +51,16 @@ jobs:
           set -euo pipefail
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git remote add upstream "https://github.com/$UPSTREAM"
-          release="$(gh release view --repo "$UPSTREAM" --json tagName -q .tagName)"
-          git fetch -q --no-tags upstream develop "+refs/tags/$release:refs/tags/$release"
-          mapfile -t commits < <(git rev-list --reverse "$FEATURES_BASE..HEAD")
-          echo "replaying ${#commits[@]} commits from $FEATURES_BRANCH"
+          # weekly rebuild even without source changes, picks up updated alpine/node/python packages
+          if [ "$GITHUB_EVENT_NAME" = "schedule" ] && [ "$(date -u +%u)" = "7" ]; then FORCE=true; fi
 
-          replay() {
-            git checkout -q --detach "$1"
+          if [ "$BASE" = "release" ]; then
+            git remote add upstream "https://github.com/$UPSTREAM"
+            release="$(gh release view --repo "$UPSTREAM" --json tagName -q .tagName)"
+            git fetch -q --no-tags upstream "+refs/tags/$release:refs/tags/$release"
+            mapfile -t commits < <(git rev-list --reverse "$FEATURES_BASE..HEAD")
+            echo "replaying ${#commits[@]} commits from $FEATURES_BRANCH onto release $release"
+            git checkout -q --detach "refs/tags/$release"
             for c in "${commits[@]}"; do
               git cherry-pick "$c" > /dev/null 2>&1 && continue
               # already contained in the base: nothing staged and no conflicts
@@ -66,24 +68,21 @@ jobs:
                 git cherry-pick --skip
                 continue
               fi
-              echo "::warning::$(git log -1 --format='%h %s' "$c") does not apply on $2"
+              echo "::warning::$(git log -1 --format='%h %s' "$c") does not apply on release $release"
               git cherry-pick --abort
-              return 1
+              title="Hotte sync: features do not apply on $release"
+              if [ "$(gh issue list --repo "$GITHUB_REPOSITORY" --state open --search "\"Hotte sync\" in:title" --json number -q length)" = "0" ]; then
+                gh issue create --repo "$GITHUB_REPOSITORY" --title "$title" \
+                  --body "The build could not replay \`$FEATURES_BRANCH\` onto \`$release\` of $UPSTREAM. The last image stays in place. Rebase \`$FEATURES_BRANCH\` onto the release and update FEATURES_BASE in hotte-sync.env. Run: $GITHUB_SERVER_URL/$GITHUB_REPOSITORY/actions/runs/$GITHUB_RUN_ID" \
+                  || echo "::warning::could not open an issue (issues disabled?)"
+              fi
+              exit 1
             done
-          }
-
-          if replay "refs/tags/$release" "release $release"; then
             label="$release"
-          elif replay upstream/develop develop; then
-            label="develop-$(git rev-parse --short upstream/develop)"
           else
-            title="Hotte sync: features do not apply on $release or develop"
-            if [ "$(gh issue list --repo "$GITHUB_REPOSITORY" --state open --search "\"Hotte sync\" in:title" --json number -q length)" = "0" ]; then
-              gh issue create --repo "$GITHUB_REPOSITORY" --title "$title" \
-                --body "The nightly build could not replay \`$FEATURES_BRANCH\` onto \`$release\` or \`develop\` of $UPSTREAM. The last image stays in place. Rebase \`$FEATURES_BRANCH\` and update FEATURES_BASE in hotte-sync.env. Run: $GITHUB_SERVER_URL/$GITHUB_REPOSITORY/actions/runs/$GITHUB_RUN_ID" \
-                || echo "::warning::could not open an issue (issues disabled?)"
-            fi
-            exit 1
+            # pinned: build the feature branch exactly as it is, upstream updates are rebased into it on purpose
+            echo "building $FEATURES_BRANCH as is (upstream develop $(echo "$FEATURES_BASE" | cut -c1-8))"
+            label="develop-$(echo "$FEATURES_BASE" | cut -c1-8)"
           fi
 
           image="ghcr.io/$(echo "$OWNER" | tr '[:upper:]' '[:lower:]')/npmplus"
