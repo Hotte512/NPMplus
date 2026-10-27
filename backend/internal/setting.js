@@ -3,6 +3,7 @@ import errs from "../lib/error.js";
 import settingModel from "../models/setting.js";
 import internalAuditLog from "./audit-log.js";
 import internalNginx from "./nginx.js";
+import { afterSettingUpdate, prepareSettingUpdate, redactSetting } from "./unifi-dns-setting.js";
 
 const internalSetting = {
 	/**
@@ -43,6 +44,7 @@ const internalSetting = {
 			}
 		}
 
+		await prepareSettingUpdate(data);
 		await settingModel.query().where({ id: data.id }).patch(data);
 
 		const row = await internalSetting.get(access, {
@@ -54,6 +56,7 @@ const internalSetting = {
 			object_type: "setting",
 			meta: row,
 		});
+		await afterSettingUpdate(row);
 		return row;
 	},
 
@@ -71,7 +74,7 @@ const internalSetting = {
 			throw new errs.ItemNotFoundError(data.id);
 		}
 
-		return row;
+		return redactSetting(row);
 	},
 
 	/**
@@ -80,9 +83,9 @@ const internalSetting = {
 	 * @param   {Access}  access
 	 * @returns {Promise}
 	 */
-	getAll: (access) => {
+	getAll: async (access) => {
 		access.canAdmin();
-		return settingModel.query().orderBy("description", "ASC");
+		return (await settingModel.query().orderBy("description", "ASC")).map(redactSetting);
 	},
 };
 

@@ -31,6 +31,8 @@
 		"npmplus_noindex",
 		"npmplus_acme_passthrough",
 		"npmplus_acme_passthrough_port",
+		"npmplus_unifi_dns",
+		"npmplus_unifi_dns_target",
 		"npmplus_crowdsec_appsec",
 		"npmplus_proxy_request_buffering",
 		"npmplus_proxy_response_buffering",
@@ -91,6 +93,12 @@
 		},
 		"npmplus_acme_passthrough_port": {
 			"$ref": "../common.json#/properties/npmplus_acme_passthrough_port"
+		},
+		"npmplus_unifi_dns": {
+			"$ref": "../common.json#/properties/npmplus_unifi_dns"
+		},
+		"npmplus_unifi_dns_target": {
+			"$ref": "../common.json#/properties/npmplus_unifi_dns_target"
 		},
 		"npmplus_crowdsec_appsec": {
 			"$ref": "../common.json#/properties/npmplus_crowdsec_appsec"

@@ -72,6 +72,12 @@
 						"npmplus_acme_passthrough_port": {
 							"$ref": "../../../components/proxy-host-object.json#/properties/npmplus_acme_passthrough_port"
 						},
+						"npmplus_unifi_dns": {
+							"$ref": "../../../components/proxy-host-object.json#/properties/npmplus_unifi_dns"
+						},
+						"npmplus_unifi_dns_target": {
+							"$ref": "../../../components/proxy-host-object.json#/properties/npmplus_unifi_dns_target"
+						},
 						"npmplus_crowdsec_appsec": {
 							"$ref": "../../../components/proxy-host-object.json#/properties/npmplus_crowdsec_appsec"
 						},
@@ -174,6 +180,8 @@
 								"npmplus_noindex": false,
 								"npmplus_acme_passthrough": false,
 								"npmplus_acme_passthrough_port": 80,
+								"npmplus_unifi_dns": "off",
+								"npmplus_unifi_dns_target": "",
 								"npmplus_crowdsec_appsec": false,
 								"npmplus_proxy_request_buffering": false,
 								"npmplus_proxy_response_buffering": false,

@@ -15,7 +15,10 @@
 			"name": "setting_id",
 			"schema": {
 				"type": "string",
-				"const": "default-site"
+				"enum": [
+					"default-site",
+					"unifi-dns"
+				]
 			},
 			"required": true,
 			"description": "Setting ID",
@@ -94,7 +97,9 @@
 								"404",
 								"444",
 								"redirect",
-								"html"
+								"html",
+								"enabled",
+								"disabled"
 							],
 							"example": "html"
 						},
@@ -114,6 +119,31 @@
 									"type": "integer",
 									"minimum": 400,
 									"maximum": 599
+								},
+								"url": {
+									"type": "string",
+									"maxLength": 255,
+									"pattern": "^(https?://\\S+)?$"
+								},
+								"api_key": {
+									"type": "string",
+									"maxLength": 255
+								},
+								"api_key_set": {
+									"type": "boolean"
+								},
+								"site_id": {
+									"type": "string",
+									"maxLength": 64,
+									"pattern": "^[a-zA-Z0-9-]*$"
+								},
+								"default_target": {
+									"type": "string",
+									"maxLength": 255,
+									"pattern": "^[a-zA-Z0-9.:-]*$"
+								},
+								"verify_tls": {
+									"type": "boolean"
 								}
 							},
 							"example": {
