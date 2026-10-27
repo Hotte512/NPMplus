@@ -33,6 +33,10 @@
 			"description": "Endpoints for viewing nginx, certbot and application logs"
 		},
 		{
+			"name": "unifi-dns",
+			"description": "Endpoints for the local DNS records on a UniFi gateway"
+		},
+		{
 			"name": "access-lists",
 			"description": "Endpoints related to Access Lists"
 		},
@@ -130,6 +134,16 @@
 		"/logs/{source}/since": {
 			"get": {
 				"$ref": "./paths/logs/source/since/get.json"
+			}
+		},
+		"/unifi-dns/status": {
+			"get": {
+				"$ref": "./paths/unifi-dns/status/get.json"
+			}
+		},
+		"/unifi-dns/sync": {
+			"post": {
+				"$ref": "./paths/unifi-dns/sync/post.json"
 			}
 		},
 		"/nginx/access-lists": {

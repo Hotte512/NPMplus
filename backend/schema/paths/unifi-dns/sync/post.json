@@ -1,0 +1,42 @@
+{
+	"operationId": "syncUnifiDns",
+	"summary": "Sync the local DNS records of all proxy hosts with the UniFi gateway now",
+	"tags": [
+		"unifi-dns"
+	],
+	"security": [
+		{
+			"cookieAuth": []
+		}
+	],
+	"responses": {
+		"200": {
+			"description": "200 response",
+			"content": {
+				"application/json": {
+					"examples": {
+						"default": {
+							"value": {
+								"errors": []
+							}
+						}
+					},
+					"schema": {
+						"type": "object",
+						"required": [
+							"errors"
+						],
+						"properties": {
+							"errors": {
+								"type": "array",
+								"items": {
+									"type": "string"
+								}
+							}
+						}
+					}
+				}
+			}
+		}
+	}
+}

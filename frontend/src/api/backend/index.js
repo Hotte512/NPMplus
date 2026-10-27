@@ -52,6 +52,7 @@ export * from "./toggleRedirectionHost";
 export * from "./toggleStream";
 export * from "./toggleUser";
 export * from "./totp";
+export * from "./unifiDns";
 export * from "./updateAccessList";
 export * from "./updateAuth";
 export * from "./updateDeadHost";

@@ -1,0 +1,78 @@
+{
+	"operationId": "getUnifiDnsStatus",
+	"summary": "Local DNS records on the UniFi gateway and the last sync result of the visible proxy hosts",
+	"tags": [
+		"unifi-dns"
+	],
+	"security": [
+		{
+			"cookieAuth": []
+		}
+	],
+	"responses": {
+		"200": {
+			"description": "200 response",
+			"content": {
+				"application/json": {
+					"examples": {
+						"default": {
+							"value": {
+								"enabled": true,
+								"ttl": 0,
+								"last_error": null,
+								"records": [
+									{
+										"proxy_host_id": 1,
+										"domain": "nas.example.com",
+										"type": "A_RECORD",
+										"value": "192.168.1.5",
+										"ttl": 0
+									}
+								],
+								"hosts": {
+									"1": {
+										"errors": [],
+										"synced_on": "2026-10-27T12:00:00.000Z"
+									}
+								}
+							}
+						}
+					},
+					"schema": {
+						"type": "object",
+						"required": [
+							"enabled",
+							"ttl",
+							"last_error",
+							"records",
+							"hosts"
+						],
+						"properties": {
+							"enabled": {
+								"type": "boolean"
+							},
+							"ttl": {
+								"type": "integer"
+							},
+							"last_error": {
+								"type": [
+									"object",
+									"null"
+								]
+							},
+							"records": {
+								"type": "array",
+								"items": {
+									"type": "object"
+								}
+							},
+							"hosts": {
+								"type": "object"
+							}
+						}
+					}
+				}
+			}
+		}
+	}
+}

@@ -16,6 +16,7 @@ import reportsRoutes from "./reports.js";
 import schemaRoutes from "./schema.js";
 import settingsRoutes from "./settings.js";
 import tokensRoutes from "./tokens.js";
+import unifiDnsRoutes from "./unifi-dns.js";
 import usersRoutes from "./users.js";
 import versionRoutes from "./version.js";
 
@@ -71,6 +72,7 @@ router.use("/api/audit-log", auditLogRoutes);
 router.use("/api/logs", logsRoutes);
 router.use("/api/reports", reportsRoutes);
 router.use("/api/settings", settingsRoutes);
+router.use("/api/unifi-dns", unifiDnsRoutes);
 router.use("/api/version", versionRoutes);
 router.use("/api/nginx/proxy-hosts", proxyHostsRoutes);
 router.use("/api/nginx/redirection-hosts", redirectionHostsRoutes);

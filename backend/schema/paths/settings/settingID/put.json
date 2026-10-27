@@ -145,6 +145,11 @@
 								},
 								"verify_tls": {
 									"type": "boolean"
+								},
+								"ttl": {
+									"type": "integer",
+									"minimum": 0,
+									"maximum": 86400
 								}
 							},
 							"example": {

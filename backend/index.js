@@ -6,6 +6,7 @@ import db from "./db.js";
 import internalCertificate from "./internal/certificate.js";
 import internalIpRanges from "./internal/ip_ranges.js";
 import internalNginx from "./internal/nginx.js";
+import internalUnifiDns from "./internal/unifi-dns.js";
 import { global as logger } from "./logger.js";
 import { migrateUp } from "./migrate.js";
 import { getCompiledSchema } from "./schema/index.js";
@@ -26,6 +27,8 @@ async function appStart() {
 			await internalIpRanges.fetch();
 		}
 		internalCertificate.initTimer();
+		// rebuilds the sync status shown in the ui, runs in the background
+		void internalUnifiDns.syncAll();
 		await internalNginx.reload();
 
 		await rm("/run/npmplus.sock", { force: true });

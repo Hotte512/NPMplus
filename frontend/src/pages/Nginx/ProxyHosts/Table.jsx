@@ -21,6 +21,7 @@ import {
 	GravatarFormatter,
 	HasPermission,
 	StatusFormatter,
+	UnifiDnsBadge,
 } from "src/components";
 import { TableLayout } from "src/components/Table/TableLayout";
 import { intl, T } from "src/locale";
@@ -83,6 +84,7 @@ export default function Table({
 					return (
 						<>
 							<DomainsFormatter domains={value.domainNames} createdOn={value.createdOn} />
+							<UnifiDnsBadge host={value} />
 							{value.npmplusDescription ? (
 								<div className="small text-secondary mt-1">{value.npmplusDescription}</div>
 							) : null}
