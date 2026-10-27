@@ -1,6 +1,8 @@
 import { isIP } from "node:net";
 import { Agent, request } from "undici";
 
+// required by the api, short so changed targets apply quickly
+const TTL = 300;
 const TRAILING_SLASHES = /\/+$/u;
 const insecureAgent = new Agent({ connect: { rejectUnauthorized: false } });
 
@@ -14,11 +16,11 @@ const insecureAgent = new Agent({ connect: { rejectUnauthorized: false } });
 const policyFor = (domain, target) => {
 	switch (isIP(target)) {
 		case 4:
-			return { type: "A_RECORD", enabled: true, domain, ipv4Address: target };
+			return { type: "A_RECORD", enabled: true, domain, ttlSeconds: TTL, ipv4Address: target };
 		case 6:
-			return { type: "AAAA_RECORD", enabled: true, domain, ipv6Address: target };
+			return { type: "AAAA_RECORD", enabled: true, domain, ttlSeconds: TTL, ipv6Address: target };
 		default:
-			return { type: "CNAME_RECORD", enabled: true, domain, targetDomain: target };
+			return { type: "CNAME_RECORD", enabled: true, domain, ttlSeconds: TTL, targetDomain: target };
 	}
 };
 
