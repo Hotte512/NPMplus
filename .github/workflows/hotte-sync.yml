@@ -1,5 +1,8 @@
 name: Hotte Sync Build
 on:
+  push:
+    branches:
+      - claude/hotte-ci
   schedule:
     - cron: "17 1 * * *"
   workflow_dispatch:
