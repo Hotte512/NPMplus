@@ -27,6 +27,7 @@ const NEWLINE = 0x0a;
 const PORT_SUFFIX = /:\d+$/u;
 const ERROR_LOG_HOST = /, host: "(?<host>[^"]+)"/u;
 const ERROR_LOG_SERVER = /, server: (?<server>[^,\s]+)/u;
+const OWN_REQUEST = " /api/logs/";
 
 const getSource = (name) => {
 	if (!Object.hasOwn(sources, name)) throw new errs.ValidationError(`Unknown log source: ${name}`);
@@ -98,7 +99,14 @@ const buildMatcher = (source, { domains, filter }) => {
 	}
 
 	if (!(needle || hostMatcher)) return null;
-	return (line) => (!needle || line.toLowerCase().includes(needle)) && (!hostMatcher || hostMatcher(line));
+	return (line) => {
+		if (needle) {
+			const lower = line.toLowerCase();
+			// the polls of the log viewer carry the filter in their url and would match themselves
+			if (!lower.includes(needle) || lower.includes(OWN_REQUEST)) return false;
+		}
+		return !hostMatcher || hostMatcher(line);
+	};
 };
 
 /**
