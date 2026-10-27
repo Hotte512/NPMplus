@@ -28,6 +28,7 @@
 		"hsts_subdomains",
 		"npmplus_noindex",
 		"npmplus_acme_passthrough",
+		"npmplus_acme_passthrough_port",
 		"npmplus_crowdsec_appsec",
 		"npmplus_proxy_request_buffering",
 		"npmplus_proxy_response_buffering",
@@ -85,6 +86,9 @@
 		},
 		"npmplus_acme_passthrough": {
 			"$ref": "../common.json#/properties/npmplus_acme_passthrough"
+		},
+		"npmplus_acme_passthrough_port": {
+			"$ref": "../common.json#/properties/npmplus_acme_passthrough_port"
 		},
 		"npmplus_crowdsec_appsec": {
 			"$ref": "../common.json#/properties/npmplus_crowdsec_appsec"

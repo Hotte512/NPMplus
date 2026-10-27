@@ -69,6 +69,9 @@
 						"npmplus_acme_passthrough": {
 							"$ref": "../../../components/proxy-host-object.json#/properties/npmplus_acme_passthrough"
 						},
+						"npmplus_acme_passthrough_port": {
+							"$ref": "../../../components/proxy-host-object.json#/properties/npmplus_acme_passthrough_port"
+						},
 						"npmplus_crowdsec_appsec": {
 							"$ref": "../../../components/proxy-host-object.json#/properties/npmplus_crowdsec_appsec"
 						},
@@ -164,6 +167,7 @@
 								"ssl_forced": false,
 								"npmplus_noindex": false,
 								"npmplus_acme_passthrough": false,
+								"npmplus_acme_passthrough_port": 80,
 								"npmplus_crowdsec_appsec": false,
 								"npmplus_proxy_request_buffering": false,
 								"npmplus_proxy_response_buffering": false,

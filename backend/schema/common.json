@@ -200,6 +200,14 @@
 			"default": false,
 			"example": false
 		},
+		"npmplus_acme_passthrough_port": {
+			"description": "Port of the forward host ACME http-01 challenges are passed to (always plain http)",
+			"type": "integer",
+			"minimum": 1,
+			"maximum": 65535,
+			"default": 80,
+			"example": 80
+		},
 		"npmplus_proxy_request_buffering": {
 			"description": "Disable Request Buffering",
 			"type": "boolean",
