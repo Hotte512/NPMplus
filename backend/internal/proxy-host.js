@@ -7,6 +7,7 @@ import internalCertificate from "./certificate.js";
 import internalHost from "./host.js";
 import internalNginx from "./nginx.js";
 import internalProxyHostAccessList from "./proxy-host-access-list.js";
+import internalUnifiDns from "./unifi-dns.js";
 
 const authProvider = (authRequest) => authRequest?.replace("-send-basic-auth", "");
 
@@ -164,6 +165,8 @@ const internalProxyHost = {
 			meta: savedRow,
 		});
 
+		// runs in the background, errors end up in the app log
+		void internalUnifiDns.syncHost(savedRow);
 		return savedRow;
 	},
 
@@ -274,6 +277,8 @@ const internalProxyHost = {
 			meta: savedRow,
 		});
 
+		// runs in the background, errors end up in the app log
+		void internalUnifiDns.syncHost(savedRow);
 		return savedRow;
 	},
 
@@ -342,6 +347,8 @@ const internalProxyHost = {
 			});
 		}
 
+		// runs in the background, errors end up in the app log
+		void internalUnifiDns.syncHost({ id: row.id });
 		return row;
 	},
 
@@ -391,6 +398,8 @@ const internalProxyHost = {
 			});
 		}
 
+		// runs in the background, errors end up in the app log
+		void internalUnifiDns.syncHost(savedRow);
 		return savedRow;
 	},
 
@@ -430,6 +439,8 @@ const internalProxyHost = {
 			});
 		}
 
+		// runs in the background, errors end up in the app log
+		void internalUnifiDns.syncHost(savedRow);
 		return savedRow;
 	},
 
