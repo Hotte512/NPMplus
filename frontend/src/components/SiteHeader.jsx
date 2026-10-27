@@ -36,6 +36,7 @@ export function SiteHeader() {
 							alt="Logo"
 						/>
 						NPMplus
+						<img src="/images/hotte-logo.svg" height={24} className="ms-2" alt="Hotte" />
 					</NavLink>
 				</div>
 				<div className="navbar-nav flex-row order-md-last">
