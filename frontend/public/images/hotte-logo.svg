@@ -1,18 +1,14 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<svg width="112" height="32" version="1.1" viewBox="0 0 112 32" xmlns="http://www.w3.org/2000/svg">
- <title>Hotte</title>
- <defs>
-  <linearGradient id="hotte-bg" x1="0" y1="0" x2="1" y2="1">
-   <stop offset="0" stop-color="#faa42f"/>
-   <stop offset="1" stop-color="#e22574"/>
-  </linearGradient>
- </defs>
- <rect width="112" height="32" rx="8" fill="url(#hotte-bg)"/>
- <g fill="#fff">
-  <!-- range hood: chimney, canopy, light strip -->
-  <rect x="13" y="5" width="6" height="8" rx="1"/>
-  <path d="m11 13h10l6 9h-22z"/>
-  <rect x="5" y="23" width="22" height="3" rx="1.5"/>
- </g>
- <text x="70" y="22.5" fill="#fff" font-family="Inter, -apple-system, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif" font-size="18" font-weight="800" letter-spacing=".5" text-anchor="middle">Hotte</text>
+<!-- Hotte: H monogram in a hexagon, wordmark outlined from Inter Display Bold (SIL OFL) -->
+<svg xmlns="http://www.w3.org/2000/svg" width="94" height="32" viewBox="0 0 94 32">
+<title>Hotte</title>
+<defs>
+<linearGradient id="g" x1="0" y1="0" x2="1" y2="1">
+<stop offset="0" stop-color="#0e7490"/>
+<stop offset="1" stop-color="#14b8a6"/>
+</linearGradient>
+</defs>
+<path d="M16.00 0.50 L29.42 8.25 L29.42 23.75 L16.00 31.50 L2.58 23.75 L2.58 8.25 Z" fill="url(#g)"/>
+<path d="M10 8.5h3.4v5.6h5.2V8.5H22v15h-3.4v-6.1h-5.2v6.1H10z" fill="#fff"/>
+<path d="M41.08 23.5H44.09V17.37H50.27V23.5H53.27V8.95H50.27V14.79H44.09V8.95H41.08ZM60.37 23.73C63.5 23.73 65.61 21.59 65.61 18.35C65.61 15.12 63.5 12.95 60.37 12.95C57.24 12.95 55.13 15.12 55.13 18.35C55.13 21.59 57.24 23.73 60.37 23.73ZM60.37 21.4C58.97 21.4 58.03 20.27 58.03 18.35C58.03 16.43 58.98 15.29 60.37 15.29C61.76 15.29 62.71 16.43 62.71 18.35C62.71 20.27 61.77 21.4 60.37 21.4ZM73.32 13.19H71.21V10.38H68.33V13.19H66.55V15.44H68.33V20.77C68.33 22.64 69.37 23.5 71.64 23.5H73.32V21.24H72.22C71.44 21.24 71.21 21.02 71.21 20.32V15.44H73.32ZM80.89 13.19H78.78V10.38H75.9V13.19H74.13V15.44H75.9V20.77C75.9 22.64 76.95 23.5 79.21 23.5H80.89V21.24H79.79C79.01 21.24 78.78 21.02 78.78 20.32V15.44H80.89ZM87.25 23.73C89.75 23.73 91.74 22.31 92.12 20.26H89.49C89.23 21.06 88.46 21.58 87.33 21.58C85.82 21.58 84.94 20.59 84.89 19.07H92.23V18.29C92.23 15.15 90.18 12.95 87.15 12.95C84.19 12.95 82.09 15.21 82.09 18.35C82.09 21.49 84.12 23.73 87.25 23.73ZM84.91 17.23C85.07 15.94 85.92 15.14 87.21 15.14C88.51 15.14 89.36 15.94 89.51 17.23Z" fill="#0d9488"/>
 </svg>
