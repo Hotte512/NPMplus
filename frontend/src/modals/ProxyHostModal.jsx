@@ -63,6 +63,7 @@ const ProxyHostModal = EasyModal.create(({ id, isClone, visible, remove, close, 
 			...values,
 			npmplusAccessListIds: globalAclIds,
 			forwardPort: values.forwardPort || 0,
+			npmplusAcmePassthroughPort: Number(values.npmplusAcmePassthroughPort) || 80,
 			locations: values.locations.map((location) => ({
 				...location,
 				forwardPort: location.forwardPort || 0,
@@ -130,6 +131,7 @@ const ProxyHostModal = EasyModal.create(({ id, isClone, visible, remove, close, 
 						npmplusMtlsBypassAuthRequest: data?.npmplusMtlsBypassAuthRequest,
 						npmplusNoindex: data?.npmplusNoindex,
 						npmplusAcmePassthrough: data?.npmplusAcmePassthrough,
+						npmplusAcmePassthroughPort: data?.npmplusAcmePassthroughPort ?? 80,
 						npmplusCrowdsecAppsec: data?.npmplusCrowdsecAppsec,
 						npmplusProxyResponseBuffering: data?.npmplusProxyResponseBuffering,
 						npmplusProxyRequestBuffering: data?.npmplusProxyRequestBuffering,
@@ -439,6 +441,36 @@ const ProxyHostModal = EasyModal.create(({ id, isClone, visible, remove, close, 
 																	</Field>
 																</span>
 															</label>
+															{values?.npmplusAcmePassthrough &&
+															["http", "https"].includes(values?.forwardScheme) ? (
+																<Field
+																	name="npmplusAcmePassthroughPort"
+																	validate={validateNumber(1, 65535)}
+																>
+																	{({ field, form }) => (
+																		<div className="row align-items-center pb-2">
+																			<label
+																				className="col text-secondary small"
+																				htmlFor="npmplusAcmePassthroughPort"
+																			>
+																				<T id="host.flags.acme-passthrough-port" />
+																			</label>
+																			<span className="col-auto">
+																				<input
+																					id="npmplusAcmePassthroughPort"
+																					type="text"
+																					inputMode="numeric"
+																					pattern="[1-9][0-9]*"
+																					className={`form-control form-control-sm ${form.errors.npmplusAcmePassthroughPort ? "is-invalid" : ""}`}
+																					style={{ width: "6rem" }}
+																					placeholder="80"
+																					{...field}
+																				/>
+																			</span>
+																		</div>
+																	)}
+																</Field>
+															) : null}
 														</div>
 														<div>
 															<label
