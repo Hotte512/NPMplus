@@ -281,6 +281,12 @@
     "name": "Hover",
     "package_name": "certbot-dns-hover"
   },
+  "httpnet": {
+    "credentials": "dns_httpnet_api_token = YOUR_HTTP_NET_API_KEY\n# only these zones (and their subdomains) may be changed, required\ndns_httpnet_allowed_zones = example.com, example.org",
+    "full_plugin_name": "dns-httpnet",
+    "name": "http.net",
+    "package_name": "/app/certbot/plugins/certbot-dns-httpnet"
+  },
   "infomaniak": {
     "credentials": "dns_infomaniak_token = XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX",
     "full_plugin_name": "dns-infomaniak",

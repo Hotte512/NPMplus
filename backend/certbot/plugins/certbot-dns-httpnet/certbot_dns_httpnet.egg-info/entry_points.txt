@@ -1,0 +1,2 @@
+[certbot.plugins]
+dns-httpnet = certbot_dns_httpnet.dns_httpnet:Authenticator

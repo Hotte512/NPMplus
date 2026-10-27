@@ -1,0 +1,16 @@
+[build-system]
+requires = ["setuptools>=61"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "certbot-dns-httpnet"
+version = "1.0.0"
+description = "http.net DNS Authenticator plugin for Certbot, restricted to an allowlist of zones"
+requires-python = ">=3.10"
+dependencies = ["certbot", "requests"]
+
+[project.entry-points."certbot.plugins"]
+dns-httpnet = "certbot_dns_httpnet.dns_httpnet:Authenticator"
+
+[tool.setuptools]
+packages = ["certbot_dns_httpnet"]

@@ -1,0 +1,9 @@
+pyproject.toml
+certbot_dns_httpnet/__init__.py
+certbot_dns_httpnet/dns_httpnet.py
+certbot_dns_httpnet.egg-info/PKG-INFO
+certbot_dns_httpnet.egg-info/SOURCES.txt
+certbot_dns_httpnet.egg-info/dependency_links.txt
+certbot_dns_httpnet.egg-info/entry_points.txt
+certbot_dns_httpnet.egg-info/requires.txt
+certbot_dns_httpnet.egg-info/top_level.txt

@@ -1,0 +1,7 @@
+Metadata-Version: 2.4
+Name: certbot-dns-httpnet
+Version: 1.0.0
+Summary: http.net DNS Authenticator plugin for Certbot, restricted to an allowlist of zones
+Requires-Python: >=3.10
+Requires-Dist: certbot
+Requires-Dist: requests
