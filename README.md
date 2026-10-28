@@ -69,6 +69,8 @@ Läuft der Guard auf demselben Host, ist er nur lokal erreichbar (`http://127.0.
 [Anleitung des Guards](https://github.com/Hotte512/unifi-api-guard/blob/main/docs/anleitung.md).
 Den Key legt man im Guard mit der Vorlage „Lokale DNS-Einträge“ an, die Regeln setzt sie automatisch. Ab Guard v1.1.0
 lassen sich Regeln später im Formular auf der Key-Seite ändern, ohne JSON. Die Version zeigt die Fußzeile des Guards.
+Empfohlen ist **Guard v1.2.0 oder neuer**: Die Version enthält Sicherheitsfixes, und erst ab ihr erkennt NPMplus den Guard und
+verlinkt seine Verwaltung. Mit dem Image-Tag `latest` (Vorgabe des Installers) holt `install.sh --update` sie automatisch.
 
 ## Build-Stand
 

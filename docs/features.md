@@ -42,7 +42,7 @@ automatisch; ab Guard v1.1.0 lassen sie sich im Formular auf der Key-Seite anpas
 Läuft der Guard auf demselben Host (Installer bzw. Block aus `deploy/compose.yaml`), lautet die Gateway-URL `http://127.0.0.1:8090` – nicht 8080, das ist der Port des allgemeinen Guard-Beispiels bzw.
 der CrowdSec-LAPI. „TLS prüfen“ bleibt dann aus.
 
-Erkennt NPMplus hinter der Gateway-URL einen UniFi API Guard, zeigt die Einstellungsseite dessen Version und den
+Erkennt NPMplus hinter der Gateway-URL einen UniFi API Guard (ab Guard v1.2.0), zeigt die Einstellungsseite dessen Version und den
 Button **„Guard-Verwaltung öffnen“**. Die Adresse ergibt sich automatisch (bei `127.0.0.1` der Rechner, über den
 NPMplus gerade aufgerufen wird, plus Admin-Port); hinter einem Reverse-Proxy setzt man im Guard `GUARD_ADMIN_URL`.
 

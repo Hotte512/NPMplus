@@ -158,7 +158,8 @@ wird nur installiert, wenn es fehlt.
   2. UniFi-Gateway eintragen (z. B. `https://192.168.1.1` und UniFi-API-Key), Fingerprint prüfen, Verbindung testen.
   3. Key anlegen: Vorlage **„Lokale DNS-Einträge“**, Domains z. B. `*.example.com`, erlaubte IP **`127.0.0.1`**.
      Die Vorlage setzt die Regeln automatisch. Ab Guard v1.1.0 lassen sie sich auf der Key-Seite im Formular
-     ändern, ohne JSON (Version steht in der Fußzeile des Guards).
+     ändern, ohne JSON (Version steht in der Fußzeile des Guards). Empfohlen ist v1.2.0 oder neuer (Sicherheitsfixes,
+     Erkennung durch NPMplus); `install.sh --update` holt die aktuelle Version.
   4. In NPMplus › *Einstellungen › UniFi Local DNS*: Gateway-URL `http://127.0.0.1:8090`, API-Key = Guard-Key.
 - **CrowdSec:** Acquis-Datei, `LOGROTATE=true` und Bouncer (`cscli bouncers add npmplus`, Key landet ohne Ausgabe in
   `/opt/npmplus/crowdsec/crowdsec.conf`) richtet das Skript ein, dazu den Machine-Login `npmplus-gui` für die

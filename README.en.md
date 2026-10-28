@@ -69,6 +69,9 @@ If the Guard runs on the same host, it is reachable locally only (`http://127.0.
 Create the key in the Guard using the template "Lokale DNS-Einträge" ("Local DNS records"), which sets the rules
 automatically. As of Guard v1.1.0, rules can later be changed in the form on the key page, without JSON. The
 version is shown in the Guard's footer.
+Guard **v1.2.0 or newer** is recommended: it contains security fixes, and only from this version on does NPMplus
+detect the Guard and link to its administration. With the image tag `latest` (the installer default),
+`install.sh --update` fetches it automatically.
 
 ## Build status
 

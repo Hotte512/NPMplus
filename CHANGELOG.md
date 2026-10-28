@@ -30,6 +30,8 @@ Einträge nach Datum. Upstream-Änderungen stehen im [NPMplus-Repository](https:
 - **Zugriffslisten:** Feld „Beschreibung“, angezeigt unter dem Namen und durchsuchbar.
 
 ### Geändert
+- Doku: UniFi API Guard v1.2.0 empfohlen (Sicherheitsfixes, nötig für die Erkennung und den Link zur
+  Guard-Verwaltung).
 - Installer: ein erneuter Lauf übernimmt die bisherigen Antworten und zusätzliche Einträge der `compose.yaml`.
 - README: Haftungsausschluss und Hinweis auf die Entwicklung mit KI-Unterstützung (deutsch und englisch).
 - Doku UniFi Local DNS: richtige Gateway-URL mit Guard auf demselben Host (`http://127.0.0.1:8090`).
