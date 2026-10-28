@@ -3,6 +3,13 @@
 Alle Änderungen an NPMplus · Hotte. Format angelehnt an [Keep a Changelog](https://keepachangelog.com/de/1.1.0/),
 Einträge nach Datum. Upstream-Änderungen stehen im [NPMplus-Repository](https://github.com/ZoeyVid/NPMplus).
 
+## 2026-10-28
+
+### Behoben
+- **Sicherheit:** Der UniFi-API-Key konnte im Log (Konsole und Log-Viewer) erscheinen, wenn das Speichern der
+  Einstellung an einem Datenbankfehler scheiterte. API-Keys werden jetzt in allen Logzeilen maskiert. Wer den Key
+  im Log gesehen hat, sollte ihn im UniFi-Gateway neu erzeugen.
+
 ## 2026-10-27
 
 ### Neu
