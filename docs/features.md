@@ -37,7 +37,9 @@ Clients im LAN das Ziel direkt bzw. über die LAN-IP von NPMplus erreichen.
 UniFi-API-Keys haben keine Berechtigungsstufen. Den Key daher mit einem eigenen lokalen Admin erzeugen, der nur die
 Network-Rolle „Site Admin“ hat. Wer die Rechte enger fassen will (z. B. nur DNS-Einträge bestimmter Domains),
 setzt einen Rechte-Proxy wie [UniFi API Guard](https://github.com/Hotte512/unifi-api-guard) dazwischen und trägt
-dessen URL und Key hier ein.
+dessen URL und Key hier ein. Läuft der Guard auf demselben Host (Installer bzw. Block aus `deploy/compose.yaml`),
+lautet die Gateway-URL `http://127.0.0.1:8090` – nicht 8080, das ist der Port des allgemeinen Guard-Beispiels bzw.
+der CrowdSec-LAPI. „TLS prüfen“ bleibt dann aus.
 
 Der Key wird in Logs (Konsole, Log-Viewer) maskiert.
 
