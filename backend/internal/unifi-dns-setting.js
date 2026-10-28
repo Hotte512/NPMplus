@@ -1,4 +1,5 @@
 import errs from "../lib/error.js";
+import { registerSecret } from "../logger.js";
 import settingModel from "../models/setting.js";
 import internalUnifiDns from "./unifi-dns.js";
 
@@ -24,6 +25,8 @@ const prepareSettingUpdate = async (data) => {
 	if (data.id !== "unifi-dns" || !data.meta) return;
 	const stored = (await settingModel.query().where({ id: data.id }).first())?.meta ?? {};
 	const { api_key_set, ...meta } = data.meta;
+	// before saving: a failed sql query would log the new key
+	registerSecret(meta.api_key);
 	data.meta = { ...stored, ...meta, api_key: meta.api_key || stored.api_key || "" };
 };
 
