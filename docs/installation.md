@@ -65,6 +65,7 @@ Fragen (Dialog per `whiptail`, Vorgabe in Klammern):
 | `INSTALL_DIR` | Ort der `compose.yaml` (`/opt/npmplus-hotte`) |
 | `TAKEOVER` | nur wenn eine andere Installation gefunden wird: übernehmen (`no` = Abbruch ohne Änderung) |
 | `OLD_COMPOSE` | optional: Pfad einer fremden `compose.yaml`, die übernommen werden soll (sonst automatische Suche) |
+| `IMPORT_FROM` | optional: weitere Dienste aus einer anderen compose-Datei in die vorhandene Installation holen (siehe unten) |
 
 ### Ohne Rückfragen
 
@@ -80,7 +81,9 @@ Für `proxmox.sh` gilt dasselbe, zusätzlich `CT_OS`, `CTID`, `CT_HOSTNAME`, `TE
 `DISK_GB`, `CORES`, `RAM_MB`, `SWAP_MB`, `BRIDGE`, `VLAN`, `IP`, `GATEWAY`, `UNPRIVILEGED`, `ONBOOT`.
 
 `DRY_RUN=1 bash install.sh` zeigt nur die erzeugte `compose.yaml` und die geplanten Schritte, ohne etwas zu ändern
-(auch die einer Übernahme).
+(auch die einer Übernahme). Werte übernommener Variablen erscheinen dabei als `***` (`SHOW_VALUES=1` zeigt sie).
+Einzige Ausnahme vom „nichts ändern“: Wird eine vorhandene `compose.yaml` gelesen und fehlt `jq`, installiert auch
+der Probelauf `jq` (nur zum Lesen).
 
 ## Vorhandene Installation übernehmen (z. B. community-scripts)
 
@@ -100,10 +103,16 @@ dieselben Daten weiterverwendet werden.
      bleibt erhalten;
    - zusätzliche Bind-Mounts (z. B. `/var/www`), `dns:` und zusätzliche Capabilities;
    - einen vorhandenen Dienst `unifi-api-guard` (Vorgabe „Guard installieren“ = ja, Datenpfad bleibt) bzw.
-     `crowdsec` (Vorgabe ja).
+     `crowdsec` (Vorgabe ja);
+   - **alle weiteren Dienste** der alten Datei unverändert, z. B. `geoipupdate` (für `GOA=true`), samt der von
+     ihnen benutzten benannten Volumes und Netze. Angezeigt werden nur die Dienstnamen. Ein Dienst, dessen Name
+     oder `container_name` mit einem Dienst des Installers kollidiert, wird mit Warnung ausgelassen.
    - **nicht** übernommen: `INITIAL_ADMIN_EMAIL`/`INITIAL_ADMIN_PASSWORD` (nur für den ersten Start, bei
      community-scripts mit einem öffentlich bekannten Standardpasswort – falls das Admin-Konto noch dieses
-     Passwort hat, in NPMplus ändern) sowie andere Dienste der alten Datei (werden gestoppt und aufgelistet).
+     Passwort hat, in NPMplus ändern).
+
+   Vor jeder Änderung prüft der Installer die neue `compose.yaml` mit `docker compose config` und lädt die neuen
+   Images; schlägt das fehl, bleibt die alte Installation unverändert.
 4. Nach dem „Ja“ (ohne Rückfragen: `TAKEOVER=yes`): neue Images laden, alte Datei in
    `compose.yaml.disabled-by-npmplus-hotte-<Zeit>` umbenennen, `docker compose … down` für das alte Projekt
    (ohne `-v`, die Daten liegen ohnehin in `/opt/…`), alte Update-Cronjobs entfernen, die die alte Datei aufrufen
@@ -156,13 +165,32 @@ wird nur installiert, wenn es fehlt.
   Docker-Bridge-IP (z. B. `172.17.0.1`), das ist richtig.
   Weitere Collections, AppSec-CRS und Bot-Erkennung: NPMplus-README, Abschnitt „Crowdsec“.
 
+### Weitere Dienste nachträglich holen (`IMPORT_FROM`)
+
+Ältere Versionen des Installers haben bei der Übernahme weitere Dienste der alten Datei (z. B. `geoipupdate`)
+gestoppt, aber nicht übernommen. Die alte Datei liegt noch als `*.disabled-by-npmplus-hotte-<Zeit>` daneben; daraus
+lassen sich die Dienste in die vorhandene Installation holen (NPMplus, Guard und CrowdSec der alten Datei werden
+dabei ignoriert, schon vorhandene Dienste bleiben, wie sie sind):
+
+```bash
+ls /opt/compose.yaml.disabled-by-npmplus-hotte-*
+# erst ansehen (Werte als ***), dann ausführen:
+DRY_RUN=1 IMPORT_FROM=/opt/compose.yaml.disabled-by-npmplus-hotte-<Zeit> \
+  bash -c "$(curl -fsSL https://raw.githubusercontent.com/Hotte512/NPMplus/claude/hotte-ci/install/install.sh)"
+IMPORT_FROM=/opt/compose.yaml.disabled-by-npmplus-hotte-<Zeit> \
+  bash -c "$(curl -fsSL https://raw.githubusercontent.com/Hotte512/NPMplus/claude/hotte-ci/install/install.sh)"
+```
+
+Danach läuft der normale Ablauf: Fragen mit den bisherigen Antworten als Vorgabe, `compose.yaml` neu schreiben
+(alte Fassung als `.bak-<Zeit>`), Container starten. Die Zusammenfassung nennt die importierten Dienste.
+
 ## Erneut ausführen, Updates, Deinstallation
 
 - **Erneut ausführen** ist gefahrlos, z. B. um CrowdSec oder den Guard nachträglich zu aktivieren. Die bisherige
   `compose.yaml` liefert die Vorgaben (Zeitzone, ACME-E-Mail, Guard, CrowdSec); zusätzliche Einträge des
   NPMplus-Dienstes – übernommen oder von Hand ergänzt: Umgebungsvariablen, Bind-Mounts, `dns:`, `cap_add` – bleiben
-  erhalten. Weitere, von Hand ergänzte Dienste nicht (das Skript warnt). Eine geänderte `compose.yaml` wird vorher
-  als `compose.yaml.bak-<Datum>` gesichert, Daten bleiben. Abgewählte Dienste werden gestoppt und entfernt, ihre
+  erhalten, ebenso weitere Dienste (z. B. `geoipupdate`) samt ihrer Volumes und Netze. Eine geänderte
+  `compose.yaml` wird vorher als `compose.yaml.bak-<Datum>` gesichert, Daten bleiben. Abgewählte Dienste werden gestoppt und entfernt, ihre
   Daten unter `/opt/…` bleiben.
 - **Automatische Updates** (`AUTO_UPDATE=yes`) aktualisieren nur die **Container** (neue Images, Neustart, alte
   Images löschen). Das Betriebssystem bleibt unverändert, außer mit `AUTO_OS_UPDATE=yes`: dann läuft vorher

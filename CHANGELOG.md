@@ -33,6 +33,10 @@ Einträge nach Datum. Upstream-Änderungen stehen im [NPMplus-Repository](https:
   später Release), kurze englische Zusammenfassung.
 
 ### Behoben
+- Installer: Zusatzdienste der alten Installation (z. B. `geoipupdate` für GeoIP) werden bei der Übernahme
+  mitgenommen und bei jedem weiteren Lauf behalten; mit `IMPORT_FROM` lassen sie sich nachträglich holen.
+- Installer: Der Probelauf (`DRY_RUN`) bricht nicht mehr ab, wenn `jq` fehlt, und zeigt übernommene Werte nur als `***`.
+- Installer: Ein vorübergehender Fehler beim Laden der Images lässt eine Übernahme nicht mehr halb fertig zurück.
 - Installer: liest das Einrichtungs-Token des Guards aus der neuen Datei `setup-token`; bei fehlendem Token
   nennt er den `chown`-Befehl für das Datenverzeichnis.
 - Installer: `install.sh` bricht auf einem Proxmox-VE-Host ab und verweist auf `proxmox.sh` (Docker auf dem Host

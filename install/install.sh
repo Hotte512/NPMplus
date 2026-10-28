@@ -8,7 +8,9 @@
 # Alle Fragen lassen sich per Umgebungsvariable beantworten (NONINTERACTIVE=1 fragt gar nicht):
 #   TZ=Europe/Berlin ACME_EMAIL= UNIFI_GUARD=yes|no CROWDSEC=yes|no AUTO_UPDATE=yes|no AUTO_OS_UPDATE=yes|no
 #   INSTALL_DIR=/opt/npmplus-hotte TAKEOVER=yes|no OLD_COMPOSE=/pfad/zur/alten/compose.yaml
-# DRY_RUN=1 zeigt nur die erzeugte compose.yaml und die geplanten Schritte, ohne etwas zu verändern.
+#   IMPORT_FROM=/pfad/zu/anderer/compose.yaml (weitere Dienste daraus in die vorhandene Installation holen)
+# DRY_RUN=1 zeigt nur die erzeugte compose.yaml und die geplanten Schritte, ohne etwas zu verändern (übernommene Werte
+# als ***, SHOW_VALUES=1 zeigt sie; fehlt jq zum Lesen einer vorhandenen compose.yaml, wird es trotzdem installiert).
 #
 # Erneutes Ausführen ist gefahrlos: vorhandene Daten bleiben, eine geänderte compose.yaml wird vorher gesichert.
 # Eine vorhandene Installation mit eigener compose.yaml (z. B. von community-scripts) wird erkannt und auf Wunsch
@@ -62,6 +64,11 @@ TAKEOVER_ACTIVE=0
 OLD_DISABLED=""
 ROLLBACK_HINT=""
 EXTRA_ENV=() EXTRA_ENV_NAMES=() EXTRA_VOLUMES=() EXTRA_DNS=() EXTRA_CAPS=() NOT_CARRIED=() REMOVED_CRON=()
+# weitere Dienste (z. B. geoipupdate) samt benutzter Volumes/Netze als JSON {services, volumes, networks, …}
+EXTRA_JSON="" EXTRA_SVC_NAMES=() IMPORTED_SVCS=()
+IMPORT_FROM="${IMPORT_FROM:-}"
+SHOW_VALUES="${SHOW_VALUES:-0}"
+COMPOSE_MASK=0 # 1 = Werte übernommener Variablen als *** anzeigen (Probelauf)
 
 # ---------------------------------------------------------------------------------------------------------------
 # Ausgabe
@@ -278,7 +285,12 @@ EOF
     fi
     if ((${#EXTRA_ENV[@]})); then
         printf '      # übernommen bzw. ergänzt\n'
-        print_list "      " "${EXTRA_ENV[@]}"
+        if [[ "$COMPOSE_MASK" == 1 ]]; then
+            local n
+            for n in "${EXTRA_ENV_NAMES[@]}"; do printf '      - "%s=***"\n' "$n"; done
+        else
+            print_list "      " "${EXTRA_ENV[@]}"
+        fi
     fi
 
     if [[ "$UNIFI_GUARD" == yes ]]; then
@@ -330,6 +342,43 @@ EOF
       - "$CROWDSEC_DATA/data:/var/lib/crowdsec/data"
       - "$NPMPLUS_DATA/nginx/logs:$NPMPLUS_DATA/nginx/logs:ro"
 EOF
+    fi
+    print_extra_services
+}
+
+# Weitere Dienste als JSON-Flow-Mappings (gültiges YAML); Werte unverändert aus „docker compose config“ ($ als $$).
+# Im Probelauf (COMPOSE_MASK=1) werden ihre Umgebungsvariablen als *** angezeigt.
+print_extra_services() {
+    [[ -n "$EXTRA_JSON" ]] || return 0
+    printf '\n  # Weitere Dienste (übernommen bzw. ergänzt, bleiben bei erneutem Lauf erhalten)\n'
+    jq -r --arg mask "$COMPOSE_MASK" '
+        def mask: if (.environment | type) == "object" then .environment |= map_values(if . == null then null else "***" end)
+            elif (.environment | type) == "array" then .environment |= map(sub("=.*"; "=***")) else . end;
+        .services | to_entries[] | "  \(.key | tojson): \(.value | if $mask == "1" then mask else . end | tojson)"' <<< "$EXTRA_JSON"
+    local k
+    for k in volumes networks secrets configs; do
+        if jq -e --arg k "$k" '.[$k] | length > 0' <<< "$EXTRA_JSON" > /dev/null 2>&1; then
+            printf '\n%s:\n' "$k"
+            jq -r --arg k "$k" '.[$k] | to_entries[] | "  \(.key | tojson): \(.value | tojson)"' <<< "$EXTRA_JSON"
+        fi
+    done
+}
+
+# Prüft die erzeugte compose.yaml mit „docker compose config“, bevor irgendetwas geändert wird.
+validate_compose() {
+    if ! have docker || ! docker compose version > /dev/null 2>&1; then
+        return 0
+    fi
+    local tmp err
+    tmp=$(mktemp) err=$(mktemp)
+    COMPOSE_MASK=0 generate_compose > "$tmp"
+    if docker compose -f "$tmp" --project-directory "$INSTALL_DIR" config -q 2> "$err"; then
+        ok "Erzeugte compose.yaml ist gültig (docker compose config)."
+        rm -f "$tmp" "$err"
+    else
+        sed 's/^/    /' "$err" >&2
+        rm -f "$tmp" "$err"
+        die "Die erzeugte compose.yaml ist ungültig (Meldung oben) – nichts verändert."
     fi
 }
 
@@ -646,20 +695,131 @@ remove_disabled() {
 # ---------------------------------------------------------------------------------------------------------------
 is_ours() { [[ -f "$1" ]] && head -n3 "$1" | grep -q "$OURS_MARKER"; }
 
-# Liest die normalisierte Konfiguration (docker compose config, ohne Docker-Dienst möglich) nach OLD_JSON.
-load_old_json() {
+# jq wird zum Lesen vorhandener compose-Dateien gebraucht – auch im Probelauf wirklich installieren (ändert sonst nichts).
+ensure_jq() {
+    have jq && return 0
+    if [[ "$DRY_RUN" == 1 ]]; then
+        [[ $EUID -eq 0 ]] || die "jq fehlt; für den Probelauf mit vorhandener Installation jq installieren oder als root ausführen."
+        info "Installiere jq auch im Probelauf (nur zum Lesen der vorhandenen compose.yaml)" >&2
+        local DRY_RUN=0 # gilt nur für diesen Aufruf (dynamischer Gültigkeitsbereich)
+        pkg_install jq >&2
+    else
+        pkg_install jq >&2
+    fi
+    have jq || die "jq fehlt (wird zum Auslesen der vorhandenen compose.yaml gebraucht)."
+}
+
+# compose_json Datei – normalisierte Konfiguration (docker compose config, ohne Docker-Dienst möglich) als JSON
+compose_json() {
     local file=$1 err
     if ! have docker || ! docker compose version > /dev/null 2>&1; then
-        die "Alte Installation $file gefunden, aber „docker compose“ fehlt – damit lässt sie sich nicht auslesen."
+        die "$file kann ohne „docker compose“ nicht ausgelesen werden."
     fi
-    have jq || die "jq fehlt (wird zum Auslesen der alten compose.yaml gebraucht)."
+    ensure_jq
     err=$(mktemp)
-    if ! OLD_JSON=$(docker compose -f "$file" --project-directory "$(dirname "$file")" config --format json 2> "$err"); then
+    if ! docker compose -f "$file" --project-directory "$(dirname "$file")" config --format json 2> "$err"; then
         cat "$err" >&2
         rm -f "$err"
         die "docker compose config für $file ist fehlgeschlagen (Meldung oben)."
     fi
     rm -f "$err"
+}
+
+# Liest eine vorhandene compose-Datei nach OLD_JSON.
+load_old_json() {
+    ensure_jq
+    OLD_JSON=$(compose_json "$1")
+    jq -e 'type == "object"' <<< "$OLD_JSON" > /dev/null 2>&1 || die "docker compose config für $1 lieferte kein JSON."
+}
+
+# Weitere Dienste einer compose-Konfiguration (alles außer NPMplus, Guard, CrowdSec) unverändert, dazu die von ihnen
+# benutzten Volumes/Netze/Secrets/Configs. „default“-Netz nur, wenn es mehr als Name/leere Felder festlegt (sonst
+# entsteht es ohnehin, als npmplus_default). Ergebnis: {services, volumes, networks, secrets, configs}, leere Teile weggelassen.
+# shellcheck disable=SC2016 # jq-Variablen
+readonly EXTRAS_JQ='
+def pick($m; $names): ($m // {}) | with_entries(select(.key as $k | $names | index($k)));
+. as $root
+| ([.services | to_entries[] | select(.value.container_name == "npmplus") | .key][0]
+    // (if .services.npmplus then "npmplus" else null end)) as $s
+| ([.services | to_entries[] | select(.value.container_name == "unifi-api-guard" or .key == "unifi-api-guard") | .key][0]) as $g
+| ([.services | to_entries[] | select(.value.container_name == "crowdsec" or .key == "crowdsec"
+    or ((.value.image // "") | test("crowdsecurity/crowdsec"))) | .key][0]) as $c
+| (.services | with_entries(select(.key != $s and .key != $g and .key != $c))
+    | map_values(with_entries(select(.value != null)))) as $svcs
+| ([$svcs[] | (.volumes // [])[] | select(.type == "volume" and .source != null) | .source] | unique) as $vols
+| ([$svcs[] | (.networks // {}) | keys[]] | unique) as $nets
+| ([$svcs[] | (.secrets // [])[] | .source] | unique) as $secs
+| ([$svcs[] | (.configs // [])[] | .source] | unique) as $cfgs
+| {services: $svcs,
+   volumes: pick($root.volumes; $vols),
+   networks: (pick($root.networks; $nets) | with_entries(select(.key != "default"
+       or (.value | del(.name) | with_entries(select(.value != null and .value != {} and .value != [])) | length > 0)))),
+   secrets: pick($root.secrets; $secs),
+   configs: pick($root.configs; $cfgs)}
+| with_entries(select(.value | length > 0))'
+
+# extras_from_json JSON – gibt EXTRAS_JQ-Ergebnis kompakt aus (leer, wenn keine weiteren Dienste)
+extras_from_json() {
+    jq -c "$EXTRAS_JQ"' | select(.services)' <<< "$1"
+}
+
+# merge_extras A B – B ergänzt A; bei gleichem Namen bleibt der Eintrag aus A
+merge_extras() {
+    local a=${1:-} b=${2:-}
+    [[ -n "$a" ]] || a='{}'
+    [[ -n "$b" ]] || b='{}'
+    jq -cn --argjson a "$a" --argjson b "$b" '
+        reduce ("services", "volumes", "networks", "secrets", "configs") as $k ({};
+            .[$k] = (($b[$k] // {}) + ($a[$k] // {})))
+        | with_entries(select(.value | length > 0))'
+}
+
+set_extra_names() {
+    local out=""
+    [[ -n "$EXTRA_JSON" ]] && out=$(jq -r '.services // {} | keys[]' <<< "$EXTRA_JSON")
+    if [[ -n "$out" ]]; then mapfile -t EXTRA_SVC_NAMES <<< "$out"; else EXTRA_SVC_NAMES=(); fi
+}
+
+# Entfernt weitere Dienste, deren Name oder container_name mit einem erzeugten Dienst kollidiert (nach den Fragen).
+filter_extra_services() {
+    [[ -n "$EXTRA_JSON" ]] || return 0
+    local ours='["npmplus"' clash n
+    [[ "$UNIFI_GUARD" == yes ]] && ours+=', "unifi-api-guard"'
+    [[ "$CROWDSEC" == yes ]] && ours+=', "crowdsec"'
+    ours+=']'
+    clash=$(jq -r --argjson o "$ours" '.services | to_entries[]
+        | select((.key as $k | $o | index($k)) or ((.value.container_name // "") as $c | $o | index($c))) | .key' <<< "$EXTRA_JSON")
+    for n in $clash; do
+        warn "Dienst „$n“ kollidiert mit einem Dienst dieses Installers und wird nicht übernommen."
+    done
+    if [[ -n "$clash" ]]; then
+        EXTRA_JSON=$(jq -c --argjson o "$ours" '.services |= with_entries(select((.key as $k | $o | index($k) | not)
+            and ((.value.container_name // "") as $c | $o | index($c) | not)))' <<< "$EXTRA_JSON")
+        [[ "$(jq -r '.services | length' <<< "$EXTRA_JSON")" != 0 ]] || EXTRA_JSON=""
+    fi
+    set_extra_names
+}
+
+# IMPORT_FROM=<Datei>: weitere Dienste aus einer anderen compose-Datei in die vorhandene Installation holen
+import_services() {
+    local file=$1 json imp names n
+    [[ -f "$file" ]] || die "IMPORT_FROM=$file: Datei nicht gefunden."
+    ensure_jq
+    json=$(compose_json "$file")
+    jq -e 'type == "object"' <<< "$json" > /dev/null 2>&1 || die "docker compose config für $file lieferte kein JSON."
+    imp=$(extras_from_json "$json")
+    [[ -n "$imp" ]] || die "IMPORT_FROM=$file enthält keine weiteren Dienste (außer NPMplus, Guard, CrowdSec)."
+    names=$(jq -r '.services | keys[]' <<< "$imp")
+    for n in $names; do
+        if [[ -n "$EXTRA_JSON" ]] && jq -e --arg n "$n" '.services | has($n)' <<< "$EXTRA_JSON" > /dev/null; then
+            warn "Dienst „$n“ ist schon vorhanden, bleibt wie er ist."
+        else
+            IMPORTED_SVCS+=("$n")
+        fi
+    done
+    EXTRA_JSON=$(merge_extras "$EXTRA_JSON" "$imp")
+    set_extra_names
+    info "Importiere Dienste aus $file: ${IMPORTED_SVCS[*]:-keine neuen}"
 }
 
 # jq_old Filter [jq-Optionen] – Filter auf OLD_JSON
@@ -730,8 +890,8 @@ analyze_old_json() {
     if [[ -n "$OLD_CROWDSEC_SVC" ]]; then
         OLD_CROWDSEC_PATHS=$(jq_old '[.services[$c].volumes // [] | .[] | select(.target == "/etc/crowdsec" or .target == "/var/lib/crowdsec/data") | "\(.source):\(.target)"] | join(" ")' --arg c "$OLD_CROWDSEC_SVC")
     fi
-    jq_array OLD_OTHER_SVCS '.services | keys[] | select(. != $s and . != $g and . != $c)' \
-        --arg s "$s" --arg g "$OLD_GUARD_SVC" --arg c "$OLD_CROWDSEC_SVC"
+    EXTRA_JSON=$(extras_from_json "$OLD_JSON")
+    set_extra_names
     return 0
 }
 
@@ -739,8 +899,8 @@ analyze_old_json() {
 # übernommenen bzw. von Hand ergänzten Einträge (Variablen, Bind-Mounts, dns, cap_add) bleiben erhalten.
 load_previous() {
     local file=$1 n
-    if ! have docker || ! docker compose version > /dev/null 2>&1 || ! have jq; then
-        warn "Bisherige $file kann nicht ausgelesen werden (docker compose/jq fehlt) – zusätzliche Einträge gehen verloren."
+    if ! have docker || ! docker compose version > /dev/null 2>&1; then
+        warn "Bisherige $file kann nicht ausgelesen werden (docker compose fehlt) – zusätzliche Einträge gehen verloren."
         return 0
     fi
     load_old_json "$file"
@@ -759,8 +919,7 @@ load_previous() {
     for n in "${NOT_CARRIED[@]}"; do
         warn "Nicht übernommen aus $file: $n"
     done
-    ((${#OLD_OTHER_SVCS[@]})) &&
-        warn "Weitere Dienste in $file werden nicht übernommen (Sicherung als .bak-<Zeit>): ${OLD_OTHER_SVCS[*]}"
+    ((${#EXTRA_SVC_NAMES[@]})) && info "Weitere Dienste bleiben: ${EXTRA_SVC_NAMES[*]}"
     return 0
 }
 
@@ -809,8 +968,13 @@ detect_existing() {
     fi
     if ! ((${#cands[@]})); then
         [[ -n "$own" ]] && load_previous "$own"
+        if [[ -n "$IMPORT_FROM" ]]; then
+            [[ -n "$own" ]] || die "IMPORT_FROM braucht eine vorhandene Installation von NPMplus · Hotte (compose.yaml nicht gefunden)."
+            import_services "$IMPORT_FROM"
+        fi
         return 0
     fi
+    [[ -z "$IMPORT_FROM" ]] || die "IMPORT_FROM geht nicht zusammen mit einer Übernahme – erst übernehmen, dann importieren."
 
     load_old_json "${cands[0]}"
     OLD_COMPOSE=${cands[0]}
@@ -821,7 +985,7 @@ detect_existing() {
         warn "$OLD_COMPOSE enthält keinen NPMplus-Dienst, wird ignoriert."
         OLD_COMPOSE="" OLD_JSON=""
         EXTRA_ENV=() EXTRA_ENV_NAMES=() EXTRA_VOLUMES=() EXTRA_DNS=() EXTRA_CAPS=() NOT_CARRIED=()
-        OLD_TZ="" OLD_ACME_EMAIL="" OLD_LOGROTATE="" OLD_GUARD_SVC="" OLD_CROWDSEC_SVC=""
+        OLD_TZ="" OLD_ACME_EMAIL="" OLD_LOGROTATE="" OLD_GUARD_SVC="" OLD_CROWDSEC_SVC="" EXTRA_JSON="" EXTRA_SVC_NAMES=()
         return 0
     fi
     confirm_takeover
@@ -851,8 +1015,8 @@ confirm_takeover() {
   Guard:         Dienst „$OLD_GUARD_SVC“, Daten ${OLD_GUARD_DATA:-?}"
     [[ -n "$OLD_CROWDSEC_SVC" ]] && msg+="
   CrowdSec:      Dienst „$OLD_CROWDSEC_SVC“ (${OLD_CROWDSEC_PATHS:-keine Pfade})"
-    ((${#OLD_OTHER_SVCS[@]})) && msg+="
-  Wird gestoppt, NICHT übernommen: Dienst(e) ${OLD_OTHER_SVCS[*]}"
+    ((${#EXTRA_SVC_NAMES[@]})) && msg+="
+  Weitere Dienste (unverändert übernommen): ${EXTRA_SVC_NAMES[*]}"
     local n free_mb
     for n in "${NOT_CARRIED[@]}"; do
         msg+="
@@ -902,9 +1066,20 @@ takeover_pull_images() {
     local img imgs=("$NPMPLUS_IMAGE")
     [[ "$UNIFI_GUARD" == yes ]] && imgs+=("$GUARD_IMAGE")
     [[ "$CROWDSEC" == yes ]] && imgs+=("$CROWDSEC_IMAGE")
+    if [[ -n "$EXTRA_JSON" ]]; then
+        local extra
+        extra=$(jq -r '.services[].image // empty' <<< "$EXTRA_JSON")
+        for img in $extra; do imgs+=("$img"); done
+    fi
     info "Lade die neuen Images (alte Installation läuft solange weiter)"
     for img in "${imgs[@]}"; do
-        run_quiet docker pull -q "$img"
+        if [[ "$img" == "$NPMPLUS_IMAGE" || "$img" == "$GUARD_IMAGE" || "$img" == "$CROWDSEC_IMAGE" ]]; then
+            run_quiet docker pull -q "$img" # Fehler hier: Abbruch, bevor etwas verändert wurde
+        elif [[ "$DRY_RUN" == 1 ]]; then
+            printf '   [dry-run] docker pull -q %s\n' "$img"
+        elif ! docker pull -q "$img" > /dev/null; then
+            warn "Image $img ließ sich nicht laden – vorhandenes wird verwendet bzw. beim Start erneut versucht."
+        fi
     done
 }
 
@@ -1251,6 +1426,9 @@ EOF
         printf '   Übernahme von:         %s (Projekt „%s“)\n' "$OLD_COMPOSE" "${OLD_PROJECT:-?}"
         printf '   Übernommene Variablen: %s\n' "${EXTRA_ENV_NAMES[*]:-keine}"
     fi
+    if ((${#EXTRA_SVC_NAMES[@]})); then
+        printf '   Weitere Dienste:       %s\n' "${EXTRA_SVC_NAMES[*]}"
+    fi
 }
 
 print_summary() {
@@ -1271,6 +1449,12 @@ NPMplus
 EOF
     fi
     printf '  compose.yaml: %s   Daten: %s\n' "$COMPOSE_FILE" "$NPMPLUS_DATA"
+    if ((${#IMPORTED_SVCS[@]})); then
+        printf '  Importiert:   %s (aus %s)\n' "${IMPORTED_SVCS[*]}" "$IMPORT_FROM"
+    fi
+    if [[ "$TAKEOVER_ACTIVE" != 1 ]] && ((${#EXTRA_SVC_NAMES[@]})); then
+        printf '  Weitere Dienste: %s\n' "${EXTRA_SVC_NAMES[*]}"
+    fi
     if [[ "$TAKEOVER_ACTIVE" == 1 ]]; then
         cat << EOF
 
@@ -1289,7 +1473,7 @@ EOF
         fi
         local n
         for n in "${NOT_CARRIED[@]}"; do printf '  Nicht übernommen: %s\n' "$n"; done
-        ((${#OLD_OTHER_SVCS[@]})) && printf '  Gestoppt, nicht übernommen: %s\n' "${OLD_OTHER_SVCS[*]}"
+        ((${#EXTRA_SVC_NAMES[@]})) && printf '  Weitere Dienste: %s (unverändert übernommen)\n' "${EXTRA_SVC_NAMES[*]}"
         for n in "${REMOVED_CRON[@]}"; do printf '  Cron entfernt: %s\n' "$n"; done
         printf '\n'
         while IFS= read -r n; do printf '  %s\n' "$n"; done <<< "$ROLLBACK_HINT"
@@ -1372,11 +1556,16 @@ main() {
     fi
     detect_existing
     collect_options
+    filter_extra_services
     print_plan
 
     if [[ "$DRY_RUN" == 1 ]]; then
-        info "Erzeugte $COMPOSE_FILE"
-        generate_compose
+        if [[ "$SHOW_VALUES" == 1 ]]; then
+            info "Erzeugte $COMPOSE_FILE"
+        else
+            info "Erzeugte $COMPOSE_FILE (übernommene Werte als *** – anzeigen mit SHOW_VALUES=1)"
+        fi
+        COMPOSE_MASK=$([[ "$SHOW_VALUES" == 1 ]] && echo 0 || echo 1) generate_compose
         if [[ "$CROWDSEC" == yes ]]; then
             info "Erzeugte $CROWDSEC_DATA/conf/acquis.d/npmplus.yaml"
             crowdsec_acquis
@@ -1385,6 +1574,7 @@ main() {
     fi
 
     install_docker
+    validate_compose
     run mkdir -p "$INSTALL_DIR" "$NPMPLUS_DATA"
     [[ "$UNIFI_GUARD" == yes ]] && prepare_guard
     [[ "$CROWDSEC" == yes ]] && prepare_crowdsec
@@ -1412,7 +1602,7 @@ main() {
     fi
 
     info "Lade Images und starte Container"
-    compose pull -q
+    compose pull -q || warn "Nicht alle Images ließen sich laden – vorhandene werden verwendet, „up“ versucht es erneut."
     compose up -d
     remove_disabled
     if [[ "$TAKEOVER_ACTIVE" == 1 && "$OLD_IMAGE" != "$NPMPLUS_IMAGE" && "$OLD_IMAGE" != "?" ]] &&
