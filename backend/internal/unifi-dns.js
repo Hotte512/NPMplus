@@ -1,6 +1,6 @@
 import db from "../db.js";
 import { createClient, policyFor, policyValue } from "../lib/unifi.js";
-import { global as logger } from "../logger.js";
+import { global as logger, registerSecret } from "../logger.js";
 
 const TABLE = "npmplus_unifi_dns_record";
 // wildcards and regex server names can not be local dns records
@@ -22,6 +22,7 @@ const getConfig = async () => {
 	const row = await db()("setting").where({ id: "unifi-dns" }).first();
 	if (!row) return null;
 	const meta = typeof row.meta === "string" ? JSON.parse(row.meta) : (row.meta ?? {});
+	registerSecret(meta.api_key);
 	return { enabled: row.value === "enabled" && Boolean(meta.url) && Boolean(meta.api_key), ...meta };
 };
 
