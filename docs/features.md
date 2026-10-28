@@ -95,6 +95,29 @@ Hostname). IPs werden A/AAAA-Einträge, Hostnamen CNAME-Einträge. Wildcard-Doma
 - Empfehlung: eigener API-Key bei http.net nur mit den Rechten `zoneConfigsFind`, `recordsFind`, `recordsUpdate`
   und, wenn möglich, IP-Beschränkung.
 
+## CrowdSec-Seite
+
+Menü **CrowdSec** (nur Admins) für den in NPMplus eingebauten CrowdSec-Bouncer. CrowdSec selbst läuft als eigener
+Container (Installer bzw. Block in `deploy/compose.yaml`). Oben zeigen Badges, ob der Bouncer aktiv ist, die
+Local API erreichbar ist und Bouncer-Key und Machine-Login funktionieren.
+
+- **Bans:** aktive Sperren mit IP/Bereich, Scenario, Herkunft, Typ und Restlaufzeit, filterbar. Die
+  Community-Blockliste wird nicht angezeigt (zehntausende Einträge). IP oder Bereich (CIDR) manuell bannen mit
+  Dauer, Typ (ban/captcha) und Grund, Sperren einzeln entfernen.
+- **Alerts:** die letzten Alerts mit Zeit, Quelle (Land, Provider), Scenario, angegriffenen Hosts und Pfaden (z. B.
+  `/.env`) und Anzahl Events. Filter nach IP/Bereich oder Scenario; Entbannen direkt aus dem Alert.
+- **Einstellungen:** bearbeitet `/data/crowdsec/crowdsec.conf` (Bouncer an/aus, Local-API-URL, Bouncer-Key, Modus,
+  Antwort für gesperrte Clients, Captcha, AppSec). Unbekannte Zeilen und Kommentare bleiben erhalten. Speichern lädt
+  nginx neu, ein Neustart ist nicht nötig; lehnt nginx die Konfiguration ab, bleibt der alte Stand.
+- Bouncer-Key, Captcha-Secret und Machine-Passwort werden nur geschrieben, nie angezeigt, und in Logs maskiert.
+- **Machine-Login:** Bannen, Entbannen und Alerts brauchen ihn, nur Anzeigen der Bans geht mit dem Bouncer-Key. Der
+  Installer legt ihn an (`/opt/npmplus/crowdsec/lapi-credentials.yaml`), von Hand:
+  `docker exec crowdsec cscli machines add npmplus-gui --auto -f -` und Login/Passwort in den Einstellungen
+  eintragen.
+- **Pro Proxy-Host:** Schalter **„CrowdSec-Bouncer deaktivieren“**. Sperren und AppSec gelten dann für diesen Host
+  nicht (z. B. für reine LAN-Dienste).
+- Alle Änderungen stehen im Audit-Log.
+
 ## Log-Viewer
 
 - Menü **Logs** (nur Admins): Quellen Zugriffslog, Fehlerlog, Stream-Log, Certbot-Log und NPMplus-Log.

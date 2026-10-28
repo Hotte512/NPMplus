@@ -159,7 +159,9 @@ wird nur installiert, wenn es fehlt.
   3. Key anlegen: Vorlage **„Lokale DNS-Einträge“**, Domains z. B. `*.example.com`, erlaubte IP **`127.0.0.1`**.
   4. In NPMplus › *Einstellungen › UniFi Local DNS*: Gateway-URL `http://127.0.0.1:8090`, API-Key = Guard-Key.
 - **CrowdSec:** Acquis-Datei, `LOGROTATE=true` und Bouncer (`cscli bouncers add npmplus`, Key landet ohne Ausgabe in
-  `/opt/npmplus/crowdsec/crowdsec.conf`) richtet das Skript ein. Kontrolle: `docker exec crowdsec cscli metrics`.
+  `/opt/npmplus/crowdsec/crowdsec.conf`) richtet das Skript ein, dazu den Machine-Login `npmplus-gui` für die
+  CrowdSec-Seite (`/opt/npmplus/crowdsec/lapi-credentials.yaml`, Rechte 0600). Kontrolle:
+  `docker exec crowdsec cscli metrics`.
   Tipp: Zugriffe aus dem eigenen LAN stehen dort unter „Lines whitelisted“ – CrowdSec ignoriert private Adressen
   standardmäßig, gewertet werden nur Zugriffe von außen. `cscli bouncers list` zeigt den Bouncer `npmplus` mit der
   Docker-Bridge-IP (z. B. `172.17.0.1`), das ist richtig.

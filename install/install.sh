@@ -1193,6 +1193,28 @@ set_conf() {
     rm -f "$tmp"
 }
 
+cs_machine_exists() { docker exec crowdsec cscli machines list -o json 2> /dev/null | grep -Eq '"machineId": *"npmplus-gui"'; }
+
+# Machine-Login für die CrowdSec-Seite in NPMplus (Bannen, Entbannen, Alerts). Das Passwort geht direkt in die
+# Datei, im Format von „cscli machines add -f“, und taucht in keiner Ausgabe auf.
+setup_crowdsec_machine() {
+    local conf=$1 creds="$NPMPLUS_DATA/crowdsec/lapi-credentials.yaml" tmp
+    if [[ -s "$creds" ]] && cs_machine_exists; then
+        ok "Machine-Login für die CrowdSec-Seite bereits eingerichtet."
+        return
+    fi
+    tmp=$(mktemp "$creds.XXXXXX") # mktemp legt die Datei mit 0600 an
+    if docker exec crowdsec cscli machines add npmplus-gui --auto --force -f - > "$tmp" 2> /dev/null &&
+        grep -q '^password:' "$tmp"; then
+        chown "$(stat -c '%u:%g' "$conf")" "$tmp"
+        mv "$tmp" "$creds"
+        ok "Machine-Login „npmplus-gui“ für die CrowdSec-Seite angelegt ($creds)."
+    else
+        rm -f "$tmp"
+        warn "Machine-Login für die CrowdSec-Seite konnte nicht angelegt werden; Bans sind dort nur lesbar."
+    fi
+}
+
 setup_crowdsec() {
     local conf="$NPMPLUS_DATA/crowdsec/crowdsec.conf"
     info "Richte den CrowdSec-Bouncer in NPMplus ein"
@@ -1207,6 +1229,7 @@ setup_crowdsec() {
         CS_STATUS="$conf fehlt – prüfen mit: docker logs npmplus"
         return
     }
+    setup_crowdsec_machine "$conf"
     if cs_conf_done "$conf" && cs_bouncer_exists; then
         ok "Bouncer bereits eingerichtet."
         CS_STATUS="aktiv (Bouncer „npmplus“ war schon eingerichtet)"
