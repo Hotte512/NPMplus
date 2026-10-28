@@ -42,6 +42,12 @@ Einträge nach Datum. Upstream-Änderungen stehen im [NPMplus-Repository](https:
 - README: Sprachwahl oben (Deutsch/Englisch), englische Fassung als `README.en.md`.
 
 ### Behoben
+- **Sicherheit, UniFi Local DNS:** Nur Admins können den lokalen DNS-Eintrag eines Proxy-Hosts einschalten oder
+  ändern; bei Hosts mit aktivem Eintrag auch Domainnamen und Ziel-Host. Vorher konnte jeder Nutzer mit dem Recht
+  „Proxy-Hosts verwalten“ für beliebige freie Domains LAN-weite DNS-Einträge anlegen.
+- **Sicherheit, UniFi Local DNS:** Das Zertifikat des Gateways lässt sich per SHA-256-Fingerprint festlegen
+  (selbstsignierte Zertifikate). Ohne Prüfung warnt die Einstellungsseite und bietet den zuletzt gesehenen
+  Fingerprint zum Übernehmen an. Gilt auch für die Erkennung des UniFi API Guard.
 - Installer: Zusatzdienste der alten Installation (z. B. `geoipupdate` für GeoIP) werden bei der Übernahme
   mitgenommen und bei jedem weiteren Lauf behalten; mit `IMPORT_FROM` lassen sie sich nachträglich holen.
 - Installer: Der Probelauf (`DRY_RUN`) bricht nicht mehr ab, wenn `jq` fehlt, und zeigt übernommene Werte nur als `***`.

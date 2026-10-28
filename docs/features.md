@@ -59,11 +59,14 @@ Der Key wird in Logs (Konsole, Log-Viewer) maskiert.
 | NPMplus-Adresse | LAN-IP von NPMplus, Ziel für Hosts mit „NPMplus-Adresse“ |
 | TTL | Leer oder 0 = Auto (wie in der UniFi-Oberfläche) |
 | TLS prüfen | Zertifikat des Gateways prüfen (aus bei selbstsigniertem Zertifikat) |
+| TLS-Fingerprint | Nur bei „TLS prüfen“ aus: SHA-256-Fingerprint des selbstsignierten Gateway-Zertifikats. NPMplus verbindet sich nur, wenn er passt. Ohne Fingerprint warnt die Seite und zeigt den zuletzt gesehenen zum Übernehmen an (vorher vergleichen, z. B. `openssl s_client -connect 192.168.1.1:443 </dev/null \| openssl x509 -noout -fingerprint -sha256`). |
 
 Darunter stehen alle von NPMplus verwalteten Einträge, Fehler und der Button **„Jetzt synchronisieren“**.
 
 **Pro Proxy-Host** („Lokaler DNS-Eintrag (UniFi)“): aus, NPMplus-Adresse, Ziel-Host oder eigenes Ziel (IP oder
 Hostname). IPs werden A/AAAA-Einträge, Hostnamen CNAME-Einträge. Wildcard-Domains werden übersprungen.
+Die Einträge gelten im ganzen LAN, deshalb können nur Admins diese Einstellung ändern. Ist ein Eintrag aktiv,
+können andere Nutzer auch Domainnamen und Ziel-Host des Hosts nicht ändern.
 
 **Verhalten:**
 
