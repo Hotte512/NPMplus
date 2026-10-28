@@ -9,16 +9,31 @@ const APP_LOG_MAX_LINE_LENGTH = 16384;
 const appLogEntries = [];
 let appLogSeq = 0;
 
-const record = (scope, type, args) => {
+/**
+ * Secrets (e.g. api keys) are masked in every log line, also inside error messages like failed sql queries
+ */
+const MIN_SECRET_LENGTH = 6;
+const secrets = new Set();
+// also covers escaped json, e.g. in a logged sql query: \"api_key\":\"...\"
+const SECRET_FIELDS = /(?<prefix>(?:api_key|apiKey|x-api-key)(?:\\?")?\s*[:=]\s*(?:\\?")?)[^"\\\s,}]+/giu;
+
+const registerSecret = (value) => {
+	if (typeof value === "string" && value.trim().length >= MIN_SECRET_LENGTH) secrets.add(value.trim());
+};
+
+const redact = (line) => {
+	let out = line.replace(SECRET_FIELDS, (_, prefix) => `${prefix}***`);
+	for (const secret of secrets) out = out.replaceAll(secret, "***");
+	return out;
+};
+
+const record = (line) => {
 	try {
 		appLogSeq++;
 		appLogEntries.push({
 			seq: appLogSeq,
 			// same formatting as the console output
-			line: `${new Date().toISOString()} ${format(`[${scope}] › ${type.padEnd(9)}`, ...args)}`.slice(
-				0,
-				APP_LOG_MAX_LINE_LENGTH,
-			),
+			line: `${new Date().toISOString()} ${line}`.slice(0, APP_LOG_MAX_LINE_LENGTH),
 		});
 		if (appLogEntries.length > APP_LOG_MAX_ENTRIES) appLogEntries.shift();
 	} catch {
@@ -44,8 +59,9 @@ const createLogger = (scope) =>
 		["info", "warn", "error", "success", "start", "complete", "fatal", "debug"].map((type) => [
 			type,
 			(...args) => {
-				console.log(`[${scope}] › ${type.padEnd(9)}`, ...args);
-				record(scope, type, args);
+				const line = redact(format(`[${scope}] › ${type.padEnd(9)}`, ...args));
+				console.log(line);
+				record(line);
 			},
 		]),
 	);
@@ -74,6 +90,7 @@ export {
 	migrate,
 	nginx,
 	oidc,
+	registerSecret,
 	remoteVersion,
 	setup,
 	ssl,
