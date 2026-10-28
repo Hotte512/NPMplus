@@ -9,6 +9,7 @@
 		"name",
 		"satisfy_any",
 		"pass_auth",
+		"npmplus_description",
 		"proxy_host_count"
 	],
 	"properties": {
@@ -39,6 +40,13 @@
 			"type": "boolean",
 			"default": false,
 			"example": false
+		},
+		"npmplus_description": {
+			"description": "Optional description of this access list",
+			"type": "string",
+			"maxLength": 255,
+			"default": "",
+			"example": "Office network only"
 		},
 		"proxy_host_count": {
 			"type": "integer",

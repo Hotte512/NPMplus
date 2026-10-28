@@ -56,6 +56,7 @@ const internalAccessList = {
 				name: data.name,
 				satisfy_any: data.satisfy_any,
 				pass_auth: data.pass_auth,
+				npmplus_description: data.npmplus_description,
 				owner_user_id: access.token.getUserId(1),
 			});
 
@@ -140,11 +141,17 @@ const internalAccessList = {
 
 		await accessListModel.transaction(async (trx) => {
 			// patch name if specified
-			if (data.name !== undefined || data.satisfy_any !== undefined || data.pass_auth !== undefined) {
+			if (
+				data.name !== undefined ||
+				data.satisfy_any !== undefined ||
+				data.pass_auth !== undefined ||
+				data.npmplus_description !== undefined
+			) {
 				await accessListModel.query(trx).where({ id: data.id }).patch({
 					name: data.name,
 					satisfy_any: data.satisfy_any,
 					pass_auth: data.pass_auth,
+					npmplus_description: data.npmplus_description,
 				});
 			}
 
