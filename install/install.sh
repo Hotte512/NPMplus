@@ -14,6 +14,11 @@
 
 set -Eeuo pipefail
 
+# LXC-Templates setzen oft LANG=en_US.UTF-8 ohne erzeugte Locale, apt/perl warnen dann bei jedem Aufruf.
+# C.UTF-8 ist immer vorhanden.
+export LANG=C.UTF-8 LC_ALL=C.UTF-8
+unset LANGUAGE
+
 # ---------------------------------------------------------------------------------------------------------------
 # Feste Werte
 # ---------------------------------------------------------------------------------------------------------------
@@ -358,14 +363,21 @@ write_file_with_backup() {
 compose() { docker compose -f "$COMPOSE_FILE" --project-directory "$INSTALL_DIR" "$@"; }
 
 # Wartet bis Befehl erfolgreich ist: wait_for Sekunden "Beschreibung" befehl...
+# Meldet sich alle 15 s, damit niemand einen Hänger vermutet.
 wait_for() {
     local timeout=$1 what=$2 i
     shift 2
-    for ((i = 0; i < timeout; i += 3)); do
+    if "$@" > /dev/null 2>&1; then
+        return 0
+    fi
+    info "Warte auf $what (bis zu ${timeout} s) …"
+    for ((i = 3; i <= timeout; i += 3)); do
+        sleep 3
         if "$@" > /dev/null 2>&1; then
+            ok "$what bereit nach ${i} s."
             return 0
         fi
-        sleep 3
+        ((i % 15 == 0)) && printf '    … %s s\n' "$i"
     done
     warn "Zeitüberschreitung beim Warten auf: $what"
     return 1
@@ -643,8 +655,8 @@ main() {
 
     # shellcheck disable=SC2016 # wird erst in sh -c ausgewertet
     wait_for 300 "NPMplus-Healthcheck" \
-        sh -c '[ "$(docker inspect -f "{{.State.Health.Status}}" npmplus)" = healthy ]' &&
-        ok "NPMplus läuft."
+        sh -c '[ "$(docker inspect -f "{{.State.Health.Status}}" npmplus)" = healthy ]' ||
+        warn "NPMplus meldet noch nicht „healthy“ (der erste Start kann dauern). Prüfen mit: docker logs npmplus"
     [[ "$CROWDSEC" == yes ]] && setup_crowdsec
     [[ "$UNIFI_GUARD" == yes ]] && setup_guard
     setup_cron

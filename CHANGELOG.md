@@ -21,6 +21,8 @@ Einträge nach Datum. Upstream-Änderungen stehen im [NPMplus-Repository](https:
   später Release), kurze englische Zusammenfassung.
 
 ### Behoben
+- Installer: zeigt beim Warten auf NPMplus und CrowdSec den Fortschritt an statt stumm zu wirken; keine
+  Locale-Warnungen mehr in frischen LXC-Containern.
 - **Sicherheit:** Der UniFi-API-Key konnte im Log (Konsole und Log-Viewer) erscheinen, wenn das Speichern der
   Einstellung an einem Datenbankfehler scheiterte. API-Keys werden jetzt in allen Logzeilen maskiert. Wer den Key
   im Log gesehen hat, sollte ihn im UniFi-Gateway neu erzeugen.
