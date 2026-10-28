@@ -68,6 +68,16 @@ Hostname). IPs werden A/AAAA-Einträge, Hostnamen CNAME-Einträge. Wildcard-Doma
 - Status: grünes/rotes **DNS**-Badge in der Host-Liste, Statuszeile im Proxy-Host-Dialog, Details im Log-Viewer
   unter „NPMplus-Log“.
 
+## Zugriffslisten: Beschreibung und Verwendung
+
+- Im Zugriffslisten-Dialog gibt es das Feld **Beschreibung** (max. 255 Zeichen). Es steht in der Tabelle unter dem
+  Namen.
+- Die Spalte **Proxy-Hosts** listet die ersten drei Hosts, die die Liste verwenden, z. B. `example.com` oder
+  `example.com /admin` bei einer Location. Weitere stehen als „+N weitere“ da, alle im Tooltip. Ein Klick auf eine
+  Domain öffnet den Proxy-Host-Dialog.
+- Ohne die Berechtigung, alle Einträge zu sehen, erscheinen nur die eigenen Proxy-Hosts.
+- Die Suche findet Name, Beschreibung und die Domains der verwendenden Hosts.
+
 ## Zertifikate: DNS-Challenge über http.net
 
 - DNS-Anbieter **„http.net“** beim Anlegen eines Let's-Encrypt-Zertifikats mit DNS-Challenge.
