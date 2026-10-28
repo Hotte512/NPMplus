@@ -40,7 +40,8 @@
 									"admin_port": 8091,
 									"admin_scheme": "http",
 									"admin_url": ""
-								}
+								},
+								"tls_fingerprint_seen": ""
 							}
 						}
 					},
@@ -96,6 +97,10 @@
 										"type": "string"
 									}
 								}
+							},
+							"tls_fingerprint_seen": {
+								"type": "string",
+								"description": "SHA-256 fingerprint of the certificate the gateway presented last while TLS verification is off"
 							}
 						}
 					}

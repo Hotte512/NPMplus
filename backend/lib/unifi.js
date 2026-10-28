@@ -1,8 +1,64 @@
 import { isIP } from "node:net";
-import { Agent, request } from "undici";
+import { Agent, buildConnector, request } from "undici";
 
 const TRAILING_SLASHES = /\/+$/u;
-const insecureAgent = new Agent({ connect: { rejectUnauthorized: false } });
+const FINGERPRINT_SEPARATORS = /[\s:]/gu;
+
+/**
+ * @param   {String} fingerprint  sha-256 fingerprint, hex with or without colons
+ * @returns {String} lower case hex without separators
+ */
+const normalizeFingerprint = (fingerprint) => (fingerprint ?? "").replace(FINGERPRINT_SEPARATORS, "").toLowerCase();
+
+// sha-256 fingerprint of the certificate last presented by each gateway host, shown in the settings to pin it
+const seenFingerprints = new Map();
+// one agent per pinned fingerprint ("" = not verified at all)
+const agents = new Map();
+
+/**
+ * Dispatcher for a gateway connection: default CA verification, or a self-signed certificate checked against the
+ * pinned sha-256 fingerprint, or (no pin) no verification at all
+ *
+ * @param   {Object}  config
+ * @param   {Boolean} [config.verify_tls]
+ * @param   {String}  [config.tls_fingerprint]
+ * @returns {Agent|undefined}
+ */
+const dispatcherFor = (config) => {
+	if (config.verify_tls) return;
+	const pin = normalizeFingerprint(config.tls_fingerprint);
+	if (!agents.has(pin)) {
+		// no session resumption, a resumed session has no peer certificate to check
+		const connector = buildConnector({ rejectUnauthorized: false, maxCachedSessions: 0 });
+		const connect = (opts, callback) =>
+			connector(opts, (err, socket) => {
+				if (err) return callback(err);
+				const seen = normalizeFingerprint(socket.getPeerCertificate?.()?.fingerprint256);
+				seenFingerprints.set(opts.hostname, seen);
+				if (pin && seen !== pin) {
+					socket.destroy();
+					return callback(
+						new Error(`TLS certificate fingerprint does not match the pinned one (got ${seen})`),
+					);
+				}
+				callback(null, socket);
+			});
+		agents.set(pin, new Agent({ connect }));
+	}
+	return agents.get(pin);
+};
+
+/**
+ * @param   {String} url  gateway url
+ * @returns {String} fingerprint of the certificate the gateway presented last, "" if unknown
+ */
+const seenFingerprint = (url) => {
+	try {
+		return seenFingerprints.get(new URL(url).hostname) ?? "";
+	} catch {
+		return "";
+	}
+};
 
 /**
  * Builds the dns policy body for a target, an IP becomes an A/AAAA record, anything else a CNAME
@@ -33,6 +89,7 @@ const policyValue = (policy) => policy.ipv4Address ?? policy.ipv6Address ?? poli
  * @param {String}  config.api_key
  * @param {String}  [config.site_id]   uuid of the site, empty = the default site
  * @param {Boolean} [config.verify_tls]
+ * @param {String}  [config.tls_fingerprint]  sha-256 fingerprint to pin when verify_tls is off
  */
 const createClient = (config) => {
 	const base = `${config.url.replace(TRAILING_SLASHES, "")}/proxy/network/integration/v1`;
@@ -47,7 +104,7 @@ const createClient = (config) => {
 				...(body ? { "Content-Type": "application/json" } : {}),
 			},
 			body: body ? JSON.stringify(body) : undefined,
-			dispatcher: config.verify_tls ? undefined : insecureAgent,
+			dispatcher: dispatcherFor(config),
 			headersTimeout: 15000,
 			bodyTimeout: 15000,
 		});
@@ -94,4 +151,4 @@ const createClient = (config) => {
 	};
 };
 
-export { createClient, policyFor, policyValue };
+export { createClient, dispatcherFor, normalizeFingerprint, policyFor, policyValue, seenFingerprint };
