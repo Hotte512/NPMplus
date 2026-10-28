@@ -52,6 +52,25 @@
 			"type": "integer",
 			"minimum": 0,
 			"example": 3
+		},
+		"npmplus_usage": {
+			"description": "Proxy hosts and locations using this access list",
+			"type": "array",
+			"items": {
+				"type": "object",
+				"properties": {
+					"proxy_host_id": {
+						"$ref": "../common.json#/properties/id"
+					},
+					"domain_names": {
+						"$ref": "../common.json#/properties/domain_names"
+					},
+					"location_path": {
+						"type": ["string", "null"],
+						"example": "/admin"
+					}
+				}
+			}
 		}
 	}
 }
