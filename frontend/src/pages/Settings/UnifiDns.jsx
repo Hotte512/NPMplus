@@ -174,7 +174,7 @@ export default function UnifiDns() {
 								</label>
 							)}
 						</Field>
-						<UnifiDnsStatus />
+						<UnifiDnsStatus gatewayUrl={data?.meta?.url ?? ""} />
 					</div>
 					<div className="card-footer bg-transparent mt-auto">
 						<div className="btn-list justify-content-end">
