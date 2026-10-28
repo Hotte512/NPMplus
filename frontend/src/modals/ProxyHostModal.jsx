@@ -145,6 +145,7 @@ const ProxyHostModal = EasyModal.create(({ id, isClone, visible, remove }) => {
 						npmplusUnifiDns: data?.npmplusUnifiDns ?? "off",
 						npmplusUnifiDnsTarget: data?.npmplusUnifiDnsTarget ?? "",
 						npmplusCrowdsecAppsec: data?.npmplusCrowdsecAppsec,
+						npmplusCrowdsecDisable: data?.npmplusCrowdsecDisable,
 						npmplusProxyResponseBuffering: data?.npmplusProxyResponseBuffering,
 						npmplusProxyRequestBuffering: data?.npmplusProxyRequestBuffering,
 						npmplusUpstreamCompression: data?.npmplusUpstreamCompression,
@@ -476,6 +477,38 @@ const ProxyHostModal = EasyModal.create(({ id, isClone, visible, remove }) => {
 																	)}
 																</Field>
 															) : null}
+														</div>
+														<div>
+															<label
+																className="row cursor-pointer"
+																htmlFor="npmplusCrowdsecDisable"
+															>
+																<span className="col">
+																	<T id="host.flags.disable-crowdsec" />
+																	<div className="text-secondary small">
+																		<T id="host.flags.disable-crowdsec.help" />
+																	</div>
+																</span>
+																<span className="col-auto">
+																	<Field
+																		name="npmplusCrowdsecDisable"
+																		type="checkbox"
+																	>
+																		{({ field }) => (
+																			<span className="form-check form-check-single form-switch">
+																				<input
+																					{...field}
+																					id="npmplusCrowdsecDisable"
+																					className={cn("form-check-input", {
+																						"bg-lime": field.checked,
+																					})}
+																					type="checkbox"
+																				/>
+																			</span>
+																		)}
+																	</Field>
+																</span>
+															</label>
 														</div>
 														<div>
 															<label

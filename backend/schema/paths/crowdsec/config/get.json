@@ -1,0 +1,24 @@
+{
+	"operationId": "getCrowdsecConfig",
+	"summary": "Get the bouncer config and machine login, secrets are never returned",
+	"tags": [
+		"crowdsec"
+	],
+	"security": [
+		{
+			"cookieAuth": []
+		}
+	],
+	"responses": {
+		"200": {
+			"description": "200 response",
+			"content": {
+				"application/json": {
+					"schema": {
+						"type": "object"
+					}
+				}
+			}
+		}
+	}
+}

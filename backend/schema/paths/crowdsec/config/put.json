@@ -1,0 +1,99 @@
+{
+	"operationId": "updateCrowdsecConfig",
+	"summary": "Update the bouncer config and machine login, an empty secret keeps the stored one",
+	"tags": [
+		"crowdsec"
+	],
+	"security": [
+		{
+			"cookieAuth": []
+		}
+	],
+	"requestBody": {
+		"description": "Payload",
+		"required": true,
+		"content": {
+			"application/json": {
+				"schema": {
+					"type": "object",
+					"additionalProperties": false,
+					"minProperties": 1,
+					"properties": {
+						"always_send_to_appsec": {
+							"type": "boolean"
+						},
+						"api_key": {
+							"type": "string"
+						},
+						"api_url": {
+							"type": "string"
+						},
+						"appsec_failure_action": {
+							"type": "string"
+						},
+						"appsec_url": {
+							"type": "string"
+						},
+						"bouncing_on_type": {
+							"type": "string"
+						},
+						"captcha_expiration": {
+							"type": "string"
+						},
+						"captcha_provider": {
+							"type": "string"
+						},
+						"enabled": {
+							"type": "boolean"
+						},
+						"exclude_location": {
+							"type": "string"
+						},
+						"fallback_remediation": {
+							"type": "string"
+						},
+						"machine_id": {
+							"type": "string"
+						},
+						"mode": {
+							"type": "string"
+						},
+						"password": {
+							"type": "string"
+						},
+						"redirect_location": {
+							"type": "string"
+						},
+						"ret_code": {
+							"type": "string"
+						},
+						"secret_key": {
+							"type": "string"
+						},
+						"site_key": {
+							"type": "string"
+						},
+						"ssl_verify": {
+							"type": "boolean"
+						},
+						"update_frequency": {
+							"type": "string"
+						}
+					}
+				}
+			}
+		}
+	},
+	"responses": {
+		"200": {
+			"description": "200 response",
+			"content": {
+				"application/json": {
+					"schema": {
+						"type": "object"
+					}
+				}
+			}
+		}
+	}
+}

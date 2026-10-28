@@ -1,0 +1,36 @@
+{
+	"operationId": "deleteCrowdsecDecision",
+	"summary": "Delete a decision (needs a machine login)",
+	"tags": [
+		"crowdsec"
+	],
+	"security": [
+		{
+			"cookieAuth": []
+		}
+	],
+	"parameters": [
+		{
+			"in": "path",
+			"name": "decisionID",
+			"required": true,
+			"description": "Decision ID",
+			"schema": {
+				"type": "integer",
+				"minimum": 1
+			}
+		}
+	],
+	"responses": {
+		"200": {
+			"description": "200 response",
+			"content": {
+				"application/json": {
+					"schema": {
+						"type": "object"
+					}
+				}
+			}
+		}
+	}
+}

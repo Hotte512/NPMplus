@@ -8,6 +8,7 @@ export * from "./createRedirectionHost";
 export * from "./createSetupUser";
 export * from "./createStream";
 export * from "./createUser";
+export * from "./crowdsec";
 export * from "./deleteAccessList";
 export * from "./deleteCertificate";
 export * from "./deleteDeadHost";

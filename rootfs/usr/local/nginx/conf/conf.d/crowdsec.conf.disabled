@@ -18,6 +18,8 @@ access_by_lua_block {
   local cs = require "crowdsec"
   if ngx.var.unix == "1" then
     ngx.log(ngx.DEBUG, "[Crowdsec] Unix socket request ignoring...")
+  elseif ngx.var.crowdsec_disable == "1" then
+    ngx.log(ngx.DEBUG, "[Crowdsec] Bouncer disabled for this host, ignoring...")
   else
     cs.Allow(ngx.var.remote_addr)
   end

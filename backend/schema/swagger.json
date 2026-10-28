@@ -37,6 +37,10 @@
 			"description": "Endpoints for the local DNS records on a UniFi gateway"
 		},
 		{
+			"name": "crowdsec",
+			"description": "Endpoints for the CrowdSec bouncer, decisions and alerts"
+		},
+		{
 			"name": "access-lists",
 			"description": "Endpoints related to Access Lists"
 		},
@@ -144,6 +148,40 @@
 		"/unifi-dns/sync": {
 			"post": {
 				"$ref": "./paths/unifi-dns/sync/post.json"
+			}
+		},
+		"/crowdsec/status": {
+			"get": {
+				"$ref": "./paths/crowdsec/status/get.json"
+			}
+		},
+		"/crowdsec/config": {
+			"get": {
+				"$ref": "./paths/crowdsec/config/get.json"
+			},
+			"put": {
+				"$ref": "./paths/crowdsec/config/put.json"
+			}
+		},
+		"/crowdsec/decisions": {
+			"get": {
+				"$ref": "./paths/crowdsec/decisions/get.json"
+			},
+			"post": {
+				"$ref": "./paths/crowdsec/decisions/post.json"
+			},
+			"delete": {
+				"$ref": "./paths/crowdsec/decisions/delete.json"
+			}
+		},
+		"/crowdsec/decisions/{decisionID}": {
+			"delete": {
+				"$ref": "./paths/crowdsec/decisions/decisionID/delete.json"
+			}
+		},
+		"/crowdsec/alerts": {
+			"get": {
+				"$ref": "./paths/crowdsec/alerts/get.json"
 			}
 		},
 		"/nginx/access-lists": {

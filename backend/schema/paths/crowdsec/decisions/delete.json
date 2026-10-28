@@ -1,0 +1,37 @@
+{
+	"operationId": "deleteCrowdsecDecisionsByIp",
+	"summary": "Delete all decisions of an ip or range (needs a machine login)",
+	"tags": [
+		"crowdsec"
+	],
+	"security": [
+		{
+			"cookieAuth": []
+		}
+	],
+	"parameters": [
+		{
+			"in": "query",
+			"name": "ip",
+			"required": true,
+			"description": "IP or range",
+			"schema": {
+				"type": "string",
+				"maxLength": 64,
+				"pattern": "^[0-9a-fA-F:.]+(/[0-9]{1,3})?$"
+			}
+		}
+	],
+	"responses": {
+		"200": {
+			"description": "200 response",
+			"content": {
+				"application/json": {
+					"schema": {
+						"type": "object"
+					}
+				}
+			}
+		}
+	}
+}
