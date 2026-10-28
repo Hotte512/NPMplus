@@ -364,7 +364,7 @@ const internalAccessList = {
 	 * @param   {Array}   [expand]
 	 * @returns {Promise}
 	 */
-	getAll: (access, expand) => {
+	getAll: async (access, expand) => {
 		access.can("access_lists:view");
 
 		const query = accessListModel
@@ -386,7 +386,59 @@ const internalAccessList = {
 
 		if (expand) query.withGraphFetched(`[${expand.join(", ")}]`);
 
-		return query;
+		const rows = await query;
+		await internalAccessList.addUsage(access, rows);
+		return rows;
+	},
+
+	/**
+	 * Adds npmplus_usage to each row: the proxy hosts (and location paths) using the access list
+	 *
+	 * @param   {Access}  access
+	 * @param   {Array}   rows
+	 * @returns {Promise}
+	 */
+	addUsage: async (access, rows) => {
+		if (rows.length === 0) return;
+
+		const query = accessListModel
+			.knex()("npmplus_proxy_host_access_list")
+			.join("proxy_host", "proxy_host.id", "npmplus_proxy_host_access_list.proxy_host_id")
+			.leftJoin("npmplus_location", "npmplus_location.id", "npmplus_proxy_host_access_list.location_id")
+			.whereIn(
+				"npmplus_proxy_host_access_list.access_list_id",
+				rows.map((row) => row.id),
+			)
+			.select(
+				"npmplus_proxy_host_access_list.access_list_id",
+				"proxy_host.id as proxy_host_id",
+				"proxy_host.domain_names",
+				"npmplus_location.path as location_path",
+			);
+
+		if (access.visibility !== "all") {
+			query.andWhere("proxy_host.owner_user_id", access.token.getUserId(1));
+		}
+
+		const usage = new Map(rows.map((row) => [row.id, new Map()]));
+		for (const item of await query) {
+			const domainNames =
+				typeof item.domain_names === "string" ? JSON.parse(item.domain_names) : item.domain_names;
+			const locationPath = item.location_path ?? null;
+			usage.get(item.access_list_id)?.set(`${item.proxy_host_id} ${locationPath}`, {
+				proxy_host_id: item.proxy_host_id,
+				domain_names: domainNames ?? [],
+				location_path: locationPath,
+			});
+		}
+
+		for (const row of rows) {
+			row.npmplus_usage = [...usage.get(row.id).values()].sort(
+				(a, b) =>
+					(a.domain_names[0] ?? "").localeCompare(b.domain_names[0] ?? "") ||
+					(a.location_path ?? "").localeCompare(b.location_path ?? ""),
+			);
+		}
 	},
 
 	/**

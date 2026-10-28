@@ -15,7 +15,11 @@ import { useMemo } from "react";
 import { EmptyData, GravatarFormatter, HasPermission, ValueWithDateFormatter } from "src/components";
 import { TableLayout } from "src/components/Table/TableLayout";
 import { intl, T } from "src/locale";
+import { showProxyHostModal } from "src/modals";
 import { ACCESS_LISTS, MANAGE } from "src/modules/Permissions";
+
+// number of proxy hosts/locations listed per access list, the rest is in the tooltip
+const USAGE_SHOWN = 3;
 
 const features = tableFeatures({
 	rowSortingFeature,
@@ -81,7 +85,38 @@ export default function Table({ data, isFetching, isFiltered, onEdit, onDelete, 
 			columnHelper.accessor((row) => row.proxyHostCount, {
 				id: "proxyHostCount",
 				header: intl.formatMessage({ id: "proxy-hosts" }),
-				cell: (info) => <T id="proxy-hosts.count" data={{ count: info.getValue() }} />,
+				cell: (info) => {
+					const usage = info.row.original.npmplusUsage ?? [];
+					if (usage.length === 0) {
+						return <T id="proxy-hosts.count" data={{ count: info.getValue() }} />;
+					}
+					const label = (item) =>
+						`${item.domainNames.join(", ")}${item.locationPath ? ` ${item.locationPath}` : ""}`;
+					return (
+						<div className="small" title={usage.map(label).join("\n")}>
+							{usage.slice(0, USAGE_SHOWN).map((item) => (
+								<div key={`${item.proxyHostId} ${item.locationPath}`}>
+									<button
+										type="button"
+										className="btn btn-link p-0 text-start text-reset"
+										onClick={() => showProxyHostModal(item.proxyHostId)}
+									>
+										{item.domainNames[0]}
+										{item.domainNames.length > 1 ? ` +${item.domainNames.length - 1}` : ""}
+									</button>
+									{item.locationPath ? (
+										<span className="text-secondary"> {item.locationPath}</span>
+									) : null}
+								</div>
+							))}
+							{usage.length > USAGE_SHOWN ? (
+								<div className="text-secondary">
+									<T id="access-list.used-by-more" data={{ count: usage.length - USAGE_SHOWN }} />
+								</div>
+							) : null}
+						</div>
+					);
+				},
 			}),
 			columnHelper.accessor((row) => row.id, {
 				id: "id",

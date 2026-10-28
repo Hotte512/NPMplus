@@ -33,7 +33,11 @@ export default function TableWrapper() {
 	if (search) {
 		filtered = data?.filter(
 			(item) =>
-				item.name.toLowerCase().includes(search) || item.npmplusDescription?.toLowerCase().includes(search),
+				item.name.toLowerCase().includes(search) ||
+				item.npmplusDescription?.toLowerCase().includes(search) ||
+				item.npmplusUsage?.some((usage) =>
+					usage.domainNames.some((domain) => domain.toLowerCase().includes(search)),
+				),
 		);
 	}
 
