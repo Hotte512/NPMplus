@@ -250,6 +250,11 @@ wait_network() {
             ok "Netzwerk bereit (${CT_IP:-IP unbekannt})."
             return
         fi
+        # Debian versucht DHCP nur einmal beim Booten; ist der Port der Bridge da noch nicht bereit, bleibt eth0 leer
+        if ((i == 15)) && [[ "$IP" == dhcp && -z "$(ct_ip 2> /dev/null || true)" ]]; then
+            info "Noch keine IP, frage DHCP erneut an"
+            pct exec "$CTID" -- sh -c 'ifdown eth0 >/dev/null 2>&1; ifup eth0 >/dev/null 2>&1' || true
+        fi
         if ((i > 0 && i % 5 == 0)); then
             ip=$(ct_ip 2> /dev/null || true)
             printf '    … %s s, IP: %s\n' "$((i * 2))" "${ip:-noch keine}"
