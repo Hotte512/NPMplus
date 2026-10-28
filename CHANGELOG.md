@@ -6,6 +6,10 @@ Einträge nach Datum. Upstream-Änderungen stehen im [NPMplus-Repository](https:
 ## 2026-10-28
 
 ### Neu
+- **CrowdSec-Seite:** eigener Menüpunkt mit aktiven Bans (manuell bannen und entbannen), Alerts (angegriffene Hosts
+  und Pfade) und den Bouncer-Einstellungen, ohne Neustart ([Doku](docs/features.md#crowdsec-seite)).
+- **Proxy-Hosts:** CrowdSec-Bouncer pro Host abschaltbar.
+- **Installer:** legt mit CrowdSec auch den Machine-Login für die CrowdSec-Seite an.
 - **Installer für Alpine:** `install.sh` läuft jetzt auch auf Alpine 3.20+; `proxmox.sh` legt standardmäßig einen
   Alpine-LXC an (kleiner, schneller Start), Debian bleibt wählbar (`CT_OS`).
 - **Übernahme einer vorhandenen Installation** (z. B. per community-scripts): Umgebungsvariablen, Zusatz-Volumes,
