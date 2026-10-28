@@ -12,6 +12,9 @@ Einträge nach Datum. Upstream-Änderungen stehen im [NPMplus-Repository](https:
 - **Referenz-Konfiguration** `deploy/compose.yaml` mit optionalen Blöcken für UniFi API Guard und CrowdSec.
 - **UniFi API Guard:** neues Begleitprojekt, ein Rechte-Proxy für die UniFi-API. NPMplus bekommt damit einen Key,
   der nur die DNS-Einträge der eigenen Domains ändern darf ([Projekt](https://github.com/Hotte512/unifi-api-guard)).
+- **Zugriffslisten:** Spalte „Proxy-Hosts“ zeigt, welche Hosts und Locations die Liste verwenden; ein Klick öffnet
+  den Host. Die Suche findet auch diese Domains.
+- **Zugriffslisten:** Feld „Beschreibung“, angezeigt unter dem Namen und durchsuchbar.
 
 ### Geändert
 - README überarbeitet: Installation, Hinweis auf den UniFi API Guard, Build-Stand (derzeit Upstream `develop`,
@@ -21,13 +24,6 @@ Einträge nach Datum. Upstream-Änderungen stehen im [NPMplus-Repository](https:
 - **Sicherheit:** Der UniFi-API-Key konnte im Log (Konsole und Log-Viewer) erscheinen, wenn das Speichern der
   Einstellung an einem Datenbankfehler scheiterte. API-Keys werden jetzt in allen Logzeilen maskiert. Wer den Key
   im Log gesehen hat, sollte ihn im UniFi-Gateway neu erzeugen.
-
-## 2026-10-28
-
-### Neu
-- **Zugriffslisten:** Spalte „Proxy-Hosts“ zeigt, welche Hosts und Locations die Liste verwenden; ein Klick öffnet
-  den Host. Die Suche findet auch diese Domains.
-- **Zugriffslisten:** Feld „Beschreibung“, angezeigt unter dem Namen und durchsuchbar.
 
 ## 2026-10-27
 

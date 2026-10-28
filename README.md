@@ -22,6 +22,7 @@ Nginx Proxy Manager) mit zusätzlichen Funktionen für Homelab und UniFi-Netze. 
 | Proxy-Hosts | Beschreibung, Tags, Gruppierung, kompakte Tabelle mit ein-/ausblendbaren Spalten |
 | Proxy-Hosts | ACME-http-01-Challenges an das Ziel weiterleiten (eigener Port) |
 | Proxy-Hosts | Lokaler DNS-Eintrag auf einem UniFi-Gateway (UniFi Network 9.4+), optional über den [UniFi API Guard](https://github.com/Hotte512/unifi-api-guard) |
+| Zugriffslisten | Beschreibung, Anzeige der Proxy-Hosts, die eine Liste verwenden |
 | Zertifikate | DNS-Challenge über http.net, beschränkt auf erlaubte Zonen |
 | Logs | Log-Viewer für nginx-, Certbot- und NPMplus-Logs, API-Keys werden im Log maskiert |
 | Oberfläche | Hotte-Logo im Header, damit die Variante sofort erkennbar ist |
