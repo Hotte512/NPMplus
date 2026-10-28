@@ -6,6 +6,13 @@ Einträge nach Datum. Upstream-Änderungen stehen im [NPMplus-Repository](https:
 ## 2026-10-28
 
 ### Neu
+- **Installer für Alpine:** `install.sh` läuft jetzt auch auf Alpine 3.20+; `proxmox.sh` legt standardmäßig einen
+  Alpine-LXC an (kleiner, schneller Start), Debian bleibt wählbar (`CT_OS`).
+- **Übernahme einer vorhandenen Installation** (z. B. per community-scripts): Umgebungsvariablen, Zusatz-Volumes,
+  DNS und Guard werden übernommen, die Daten in `/opt/npmplus` bleiben, alter Update-Job wird ersetzt, Rückweg wird
+  angezeigt.
+- **`install.sh --update`:** System- und Container-Update in einem Befehl; optional tägliches System-Update
+  (`AUTO_OS_UPDATE`).
 - **Installer:** ein Befehl für Proxmox VE (legt einen Debian-LXC an) oder für vorhandene Debian/Ubuntu-Systeme.
   Fragt nach UniFi API Guard, CrowdSec und automatischen Updates, installiert Docker und richtet alles ein
   ([Anleitung](docs/installation.md)).
@@ -17,6 +24,7 @@ Einträge nach Datum. Upstream-Änderungen stehen im [NPMplus-Repository](https:
 - **Zugriffslisten:** Feld „Beschreibung“, angezeigt unter dem Namen und durchsuchbar.
 
 ### Geändert
+- Installer: ein erneuter Lauf übernimmt die bisherigen Antworten und zusätzliche Einträge der `compose.yaml`.
 - README: Haftungsausschluss und Hinweis auf die Entwicklung mit KI-Unterstützung (deutsch und englisch).
 - Doku UniFi Local DNS: richtige Gateway-URL mit Guard auf demselben Host (`http://127.0.0.1:8090`).
 - Installationsanleitung: Abschnitt Fehlersuche (u. a. versehentlicher Lauf auf dem Proxmox-Host), Hinweise

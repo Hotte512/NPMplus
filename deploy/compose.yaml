@@ -2,7 +2,8 @@
 #
 # Ablage z. B. unter /opt/npmplus-hotte/compose.yaml, Start mit:
 #   docker compose -f /opt/npmplus-hotte/compose.yaml up -d
-# Der Installer (install/install.sh) erzeugt genau diese Datei, passend zu den gewählten Optionen.
+# Der Installer (install/install.sh) erzeugt genau diese Datei, passend zu den gewählten Optionen. Übernimmt er eine
+# vorhandene Installation (z. B. community-scripts), kommen deren Variablen, Bind-Mounts, dns und cap_add hinzu.
 #
 # Daten:  /opt/npmplus (NPMplus), /opt/unifi-api-guard (Guard), /opt/crowdsec (CrowdSec)
 # Ports:  80/443 (Proxy), 81 (NPMplus-Oberfläche, HTTPS), 8091 (Guard-Admin), 8090 nur lokal (Guard-Proxy),

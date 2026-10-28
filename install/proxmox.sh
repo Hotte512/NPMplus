@@ -1,13 +1,13 @@
 #!/usr/bin/env bash
-# NPMplus · Hotte – legt auf einem Proxmox-VE-Host einen Debian-12-LXC an und installiert darin NPMplus · Hotte
-# (Docker, optional UniFi API Guard und CrowdSec). Als root auf dem Proxmox-Host ausführen:
+# NPMplus · Hotte – legt auf einem Proxmox-VE-Host einen LXC an (Alpine, wahlweise Debian 12) und installiert darin
+# NPMplus · Hotte (Docker, optional UniFi API Guard und CrowdSec). Als root auf dem Proxmox-Host ausführen:
 #
 #   bash -c "$(curl -fsSL https://raw.githubusercontent.com/Hotte512/NPMplus/claude/hotte-ci/install/proxmox.sh)"
 #
 # Alle Fragen lassen sich per Umgebungsvariable beantworten (NONINTERACTIVE=1 fragt gar nicht):
-#   CTID CT_HOSTNAME TEMPLATE_STORAGE ROOTFS_STORAGE DISK_GB CORES RAM_MB SWAP_MB BRIDGE IP (dhcp oder CIDR) GATEWAY
-#   VLAN UNPRIVILEGED ONBOOT CT_PASSWORD
-# sowie die Optionen von install.sh: TZ ACME_EMAIL UNIFI_GUARD CROWDSEC AUTO_UPDATE INSTALL_DIR
+#   CT_OS (alpine|debian) CTID CT_HOSTNAME TEMPLATE_STORAGE ROOTFS_STORAGE DISK_GB CORES RAM_MB SWAP_MB BRIDGE
+#   IP (dhcp oder CIDR) GATEWAY VLAN UNPRIVILEGED ONBOOT CT_PASSWORD
+# sowie die Optionen von install.sh: TZ ACME_EMAIL UNIFI_GUARD CROWDSEC AUTO_UPDATE AUTO_OS_UPDATE INSTALL_DIR
 
 # Deutsche Anführungszeichen („…“) in Texten sind gewollt:
 # shellcheck disable=SC1111
@@ -131,18 +131,24 @@ collect_options() {
     fi
     ask_text CT_HOSTNAME "Hostname des Containers:" "npmplus-hotte"
     [[ "$CT_HOSTNAME" =~ ^[a-zA-Z0-9]([a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?$ ]] || die "Ungültiger Hostname '$CT_HOSTNAME'."
+    ask_choice CT_OS "Betriebssystem des Containers (Alpine: klein und schnell, Debian: vertrauter):" alpine debian
+    case "$CT_OS" in
+        alpine) DEF_DISK=4 DEF_RAM=1024 ;;
+        debian) DEF_DISK=8 DEF_RAM=2048 ;;
+        *) die "CT_OS muss alpine oder debian sein." ;;
+    esac
 
     local list=()
     mapfile -t list < <(storages vztmpl local)
     ((${#list[@]})) || die "Kein Storage für Container-Vorlagen (Inhalt „vztmpl“) gefunden."
-    ask_choice TEMPLATE_STORAGE "Storage für die Debian-Vorlage:" "${list[@]}"
+    ask_choice TEMPLATE_STORAGE "Storage für die Container-Vorlage:" "${list[@]}"
     mapfile -t list < <(storages rootdir local-lvm)
     ((${#list[@]})) || die "Kein Storage für Container-Datenträger (Inhalt „rootdir“) gefunden."
     ask_choice ROOTFS_STORAGE "Storage für den Container-Datenträger:" "${list[@]}"
 
-    ask_text DISK_GB "Festplattengröße in GB:" "8"
+    ask_text DISK_GB "Festplattengröße in GB:" "$DEF_DISK"
     ask_text CORES "CPU-Kerne:" "2"
-    ask_text RAM_MB "Arbeitsspeicher in MB:" "2048"
+    ask_text RAM_MB "Arbeitsspeicher in MB:" "$DEF_RAM"
     ask_text SWAP_MB "Swap in MB:" "512"
     local n
     for n in DISK_GB CORES RAM_MB SWAP_MB; do
@@ -173,6 +179,11 @@ Rechte-Proxy für die UniFi-API: NPMplus bekommt einen eigenen Key, der nur DNS-
 
 Erkennt Angriffe in den NPMplus-Logs und sperrt IPs; der Bouncer in NPMplus wird automatisch eingerichtet." no
     ask_yesno AUTO_UPDATE "Automatische Updates (täglich neue Images holen und alte löschen)?" yes
+    if [[ "$AUTO_UPDATE" == yes ]]; then
+        ask_yesno AUTO_OS_UPDATE "Zusätzlich täglich das Betriebssystem des Containers aktualisieren (apk/apt upgrade)?" no
+    else
+        AUTO_OS_UPDATE=no
+    fi
     ask_text INSTALL_DIR "Verzeichnis für die compose.yaml im Container:" "/opt/npmplus-hotte"
 }
 
@@ -194,15 +205,21 @@ fetch_install_script() {
     head -n1 "$TMP_DIR/install.sh" | grep -q '^#!/usr/bin/env bash' || die "install.sh sieht nicht wie ein Skript aus."
 }
 
+# Neueste Vorlage: Alpine 3.x „default“ (ohne edge) bzw. Debian 12 „standard“
 latest_template() {
+    local pattern
+    if [[ "$CT_OS" == alpine ]]; then
+        pattern='^alpine-3\.[0-9]+-default_[0-9]+_amd64\.tar\.(xz|zst|gz)$'
+    else
+        pattern='^debian-12-standard_.*_amd64\.tar\.zst$'
+    fi
     pveam update > /dev/null 2>&1 || warn "pveam update fehlgeschlagen, verwende die vorhandene Liste."
-    pveam available --section system | awk '$2 ~ /^debian-12-standard_.*_amd64\.tar\.zst$/ {print $2}' |
-        sort -V | tail -n1
+    pveam available --section system | awk -v p="$pattern" '$2 ~ p {print $2}' | sort -V | tail -n1
 }
 
 prepare_template() {
     TEMPLATE=$(latest_template)
-    [[ -n "$TEMPLATE" ]] || die "Keine Debian-12-Vorlage in „pveam available“ gefunden."
+    [[ -n "$TEMPLATE" ]] || die "Keine passende Vorlage ($CT_OS) in „pveam available“ gefunden."
     if pveam list "$TEMPLATE_STORAGE" | awk '{print $1}' | grep -q "/$TEMPLATE$"; then
         ok "Vorlage vorhanden: $TEMPLATE"
     else
@@ -222,7 +239,7 @@ create_ct() {
         --cores "$CORES" --memory "$RAM_MB" --swap "$SWAP_MB"
         --rootfs "$ROOTFS_STORAGE:$DISK_GB"
         --net0 "$net"
-        --ostype debian
+        --ostype "$CT_OS"
         --unprivileged "$([[ "$UNPRIVILEGED" == yes ]] && echo 1 || echo 0)"
         --features "nesting=1,keyctl=1" # nötig für Docker im LXC
         --onboot "$([[ "$ONBOOT" == yes ]] && echo 1 || echo 0)"
@@ -239,21 +256,32 @@ create_ct() {
     pct start "$CTID"
 }
 
-ct_ip() { pct exec "$CTID" -- sh -c "ip -4 -o addr show dev eth0 | awk '{print \$4}' | cut -d/ -f1 | head -n1"; }
+# IPv4 von eth0; mehrzeiliges Format, das iproute2 (Debian) und busybox ip (Alpine) gleich ausgeben
+ct_ip() {
+    pct exec "$CTID" -- sh -c "ip -4 addr show dev eth0 2>/dev/null | awk '\$1 == \"inet\" {sub(/\/.*/, \"\", \$2); print \$2; exit}'"
+}
+
+# DNS-Test, der in beiden Vorlagen funktioniert: getent (Debian, Alpine mit musl-utils), sonst busybox nslookup
+ct_dns_ok() {
+    local host=deb.debian.org
+    [[ "$CT_OS" == alpine ]] && host=dl-cdn.alpinelinux.org
+    pct exec "$CTID" -- sh -c "getent hosts $host >/dev/null 2>&1 || nslookup $host >/dev/null 2>&1"
+}
 
 wait_network() {
     info "Warte auf Netzwerk im Container (IP: $IP, DNS; bis zu 120 s)"
     local i ip
     for ((i = 0; i < 60; i++)); do
-        if pct exec "$CTID" -- getent hosts deb.debian.org > /dev/null 2>&1; then
+        if ct_dns_ok > /dev/null 2>&1; then
             CT_IP=$(ct_ip || true)
             ok "Netzwerk bereit (${CT_IP:-IP unbekannt})."
             return
         fi
-        # Debian versucht DHCP nur einmal beim Booten; ist der Port der Bridge da noch nicht bereit, bleibt eth0 leer
+        # DHCP läuft nur einmal beim Booten; ist der Port der Bridge da noch nicht bereit, bleibt eth0 leer.
+        # ifdown/ifup gibt es unter Debian (ifupdown) und Alpine (ifupdown-ng bzw. busybox).
         if ((i == 15)) && [[ "$IP" == dhcp && -z "$(ct_ip 2> /dev/null || true)" ]]; then
             info "Noch keine IP, frage DHCP erneut an"
-            pct exec "$CTID" -- sh -c 'ifdown eth0 >/dev/null 2>&1; ifup eth0 >/dev/null 2>&1' || true
+            pct exec "$CTID" -- sh -c 'command -v ifup >/dev/null 2>&1 && { ifdown eth0 >/dev/null 2>&1; ifup eth0 >/dev/null 2>&1; }' || true
         fi
         if ((i > 0 && i % 5 == 0)); then
             ip=$(ct_ip 2> /dev/null || true)
@@ -268,6 +296,13 @@ wait_network() {
     die "Container $CTID hat nach 120 s keine IP. DHCP auf der Bridge/im VLAN prüfen oder statische IP wählen. Container bleibt bestehen."
 }
 
+# Alpine-Vorlagen haben weder bash noch curl
+prepare_alpine() {
+    [[ "$CT_OS" == alpine ]] || return 0
+    info "Installiere bash und curl im Alpine-Container"
+    pct exec "$CTID" -- apk add --no-cache -q bash curl > /dev/null || die "apk add bash curl im Container ist fehlgeschlagen."
+}
+
 run_install() {
     info "Starte install.sh im Container (das dauert einige Minuten)"
     pct push "$CTID" "$TMP_DIR/install.sh" "$CT_SCRIPT" --perms 0755
@@ -278,6 +313,7 @@ run_install() {
         UNIFI_GUARD="$UNIFI_GUARD" \
         CROWDSEC="$CROWDSEC" \
         AUTO_UPDATE="$AUTO_UPDATE" \
+        AUTO_OS_UPDATE="$AUTO_OS_UPDATE" \
         INSTALL_DIR="$INSTALL_DIR" \
         TERM="${TERM:-xterm}" \
         bash "$CT_SCRIPT" ||
@@ -299,10 +335,10 @@ main() {
 
     info "Zusammenfassung"
     cat << EOF
-   Container:  $CTID ($CT_HOSTNAME), $([[ "$UNPRIVILEGED" == yes ]] && echo unprivilegiert || echo privilegiert), Start beim Booten: $ONBOOT
+   Container:  $CTID ($CT_HOSTNAME, $CT_OS), $([[ "$UNPRIVILEGED" == yes ]] && echo unprivilegiert || echo privilegiert), Start beim Booten: $ONBOOT
    Ressourcen: ${CORES} Kerne, ${RAM_MB} MB RAM, ${SWAP_MB} MB Swap, ${DISK_GB} GB auf $ROOTFS_STORAGE
    Netzwerk:   $BRIDGE${VLAN:+ (VLAN $VLAN)}, IPv4 $IP${GATEWAY:+ über $GATEWAY}
-   NPMplus:    TZ=$TZ, UniFi API Guard=$UNIFI_GUARD, CrowdSec=$CROWDSEC, Auto-Update=$AUTO_UPDATE
+   NPMplus:    TZ=$TZ, UniFi API Guard=$UNIFI_GUARD, CrowdSec=$CROWDSEC, Auto-Update=$AUTO_UPDATE (OS: $AUTO_OS_UPDATE)
 EOF
     if [[ "$UI" == whiptail ]]; then
         whiptail --title "$TITLE" --yesno "Container $CTID ($CT_HOSTNAME) jetzt anlegen und NPMplus · Hotte installieren?" \
@@ -312,6 +348,7 @@ EOF
     prepare_template
     create_ct
     wait_network
+    prepare_alpine
     run_install
 
     CT_IP=$(ct_ip || true)

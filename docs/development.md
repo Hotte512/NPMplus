@@ -10,6 +10,14 @@
 Auf `claude/hotte-ci` liegen außerdem der Installer (`install/install.sh`, `install/proxmox.sh`) und die
 Referenz-Konfiguration `deploy/compose.yaml`. Der Installer erzeugt dieselbe Datei; Änderungen an einer Stelle
 daher an der anderen nachziehen. Die Skripte vor jedem Push mit `shellcheck -x install/*.sh` prüfen.
+`install.sh` läuft auch unter Alpine (busybox): keine GNU-only-Optionen verwenden (`grep -P`, `sed -i` mit
+GNU-Erweiterungen, `stat -c`, `date -d`, `timeout`, `hostname -I` nur als Rückfall) und keine Prozess-Substitution
+`<( … )` (braucht `/dev/fd`).
+
+Nur für Tests: `OS_RELEASE_FILE=<Datei>` ersetzt `/etc/os-release` (z. B. Alpine-Pfad mit `DRY_RUN=1` auf einem
+Debian-Rechner prüfen), `NPMPLUS_HOTTE_LIB=1` lädt beim `source` nur die Funktionen, ohne den Ablauf zu starten.
+`OLD_COMPOSE=<Datei> DRY_RUN=1` zeigt die Übernahme einer fremden compose.yaml (`docker compose config` braucht
+keinen laufenden Docker-Dienst).
 
 Jede Funktion ist ein eigener Commit auf `claude/hotte-features`. Neue Funktionen verändern Upstream-Dateien so
 wenig wie möglich (neue Dateien bevorzugen, in Upstream-Dateien nur kurze Aufrufe), damit spätere Rebases
