@@ -82,6 +82,9 @@ Docker kommt aus dem offiziellen Docker-Repository und wird nur installiert, wen
   4. In NPMplus › *Einstellungen › UniFi Local DNS*: Gateway-URL `http://127.0.0.1:8090`, API-Key = Guard-Key.
 - **CrowdSec:** Acquis-Datei, `LOGROTATE=true` und Bouncer (`cscli bouncers add npmplus`, Key landet ohne Ausgabe in
   `/opt/npmplus/crowdsec/crowdsec.conf`) richtet das Skript ein. Kontrolle: `docker exec crowdsec cscli metrics`.
+  Tipp: Zugriffe aus dem eigenen LAN stehen dort unter „Lines whitelisted“ – CrowdSec ignoriert private Adressen
+  standardmäßig, gewertet werden nur Zugriffe von außen. `cscli bouncers list` zeigt den Bouncer `npmplus` mit der
+  Docker-Bridge-IP (z. B. `172.17.0.1`), das ist richtig.
   Weitere Collections, AppSec-CRS und Bot-Erkennung: NPMplus-README, Abschnitt „Crowdsec“.
 
 ## Erneut ausführen, Updates, Deinstallation
@@ -94,6 +97,16 @@ Docker kommt aus dem offiziellen Docker-Repository und wird nur installiert, wen
 - **Deinstallation:** `docker compose -f /opt/npmplus-hotte/compose.yaml down`, `rm -f /etc/cron.d/npmplus-hotte`;
   wer auch die Daten löschen will: `rm -rf /opt/npmplus /opt/unifi-api-guard /opt/crowdsec /opt/npmplus-hotte`.
   Beim Proxmox-LXC reicht `pct stop <CTID> && pct destroy <CTID>`.
+
+## Fehlersuche
+
+| Problem | Ursache und Lösung |
+| --- | --- |
+| `install.sh` meldet „Das ist ein Proxmox-VE-Host“ | `install.sh` gehört in den LXC/die VM. Auf dem Host `proxmox.sh` verwenden. |
+| `install.sh` versehentlich auf dem Proxmox-Host ausgeführt (ältere Version ohne Sperre) | Container mit `docker compose -f /opt/npmplus-hotte/compose.yaml down` stoppen, `/etc/cron.d/npmplus-hotte` und die Ordner unter `/opt/` löschen, Docker-Pakete entfernen (`apt-get purge docker-ce docker-ce-cli containerd.io docker-buildx-plugin docker-compose-plugin`) und **den Host neu starten**. Docker hinterlässt sonst Firewall-Regeln, die das Netz neuer VMs und LXCs blockieren (z. B. bekommt ein neuer LXC per DHCP keine IP). |
+| `proxmox.sh`: „hat keine IP“ | DHCP auf der Bridge bzw. im VLAN prüfen (VLAN-Tag angeben?) oder eine feste IP wählen. Siehe auch die Zeile darüber. |
+| `proxmox.sh`: „IP, aber DNS geht nicht“ | Nameserver in `/etc/resolv.conf` des Containers prüfen (`pct exec <CTID> -- cat /etc/resolv.conf`). |
+| Installer wartet lange | Der erste Start von NPMplus dauert etwas; das Skript zeigt alle 15 s den Fortschritt. Nach Zeitüberschreitung: `docker logs npmplus` bzw. `docker logs crowdsec`, dann das Skript erneut ausführen. |
 
 ## Sicherheit
 

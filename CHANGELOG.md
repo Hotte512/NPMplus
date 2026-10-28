@@ -17,6 +17,8 @@ Einträge nach Datum. Upstream-Änderungen stehen im [NPMplus-Repository](https:
 - **Zugriffslisten:** Feld „Beschreibung“, angezeigt unter dem Namen und durchsuchbar.
 
 ### Geändert
+- Installationsanleitung: Abschnitt Fehlersuche (u. a. versehentlicher Lauf auf dem Proxmox-Host), Hinweise
+  zu den CrowdSec-Kennzahlen.
 - README überarbeitet: Installation, Hinweis auf den UniFi API Guard, Build-Stand (derzeit Upstream `develop`,
   später Release), kurze englische Zusammenfassung.
 
