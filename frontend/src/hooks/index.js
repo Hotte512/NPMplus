@@ -5,6 +5,7 @@ export * from "./useAuditLogs";
 export * from "./useCertificate";
 export * from "./useCertificates";
 export * from "./useCheckVersion";
+export * from "./useCrowdsec";
 export * from "./useDeadHost";
 export * from "./useDeadHosts";
 export * from "./useDirectorySuggestions";

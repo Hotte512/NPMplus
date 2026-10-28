@@ -1,0 +1,145 @@
+{
+	"operationId": "updateCrowdsecConfig",
+	"summary": "Update the bouncer config and machine login, an empty secret keeps the stored one",
+	"tags": [
+		"crowdsec"
+	],
+	"security": [
+		{
+			"cookieAuth": []
+		}
+	],
+	"requestBody": {
+		"description": "Payload",
+		"required": true,
+		"content": {
+			"application/json": {
+				"schema": {
+					"type": "object",
+					"additionalProperties": false,
+					"minProperties": 1,
+					"properties": {
+						"always_send_to_appsec": {
+							"type": "boolean"
+						},
+						"api_key": {
+							"type": "string",
+							"maxLength": 1024,
+							"pattern": "^[^\\r\\n]*$"
+						},
+						"api_url": {
+							"type": "string",
+							"maxLength": 1024,
+							"pattern": "^(https?://[^\\s]+)?$"
+						},
+						"appsec_failure_action": {
+							"type": "string",
+							"enum": [
+								"deny",
+								"passthrough"
+							]
+						},
+						"appsec_url": {
+							"type": "string",
+							"maxLength": 1024,
+							"pattern": "^(https?://[^\\s]+)?$"
+						},
+						"bouncing_on_type": {
+							"type": "string",
+							"enum": [
+								"all",
+								"ban",
+								"captcha"
+							]
+						},
+						"captcha_expiration": {
+							"type": "string",
+							"maxLength": 1024,
+							"pattern": "^[0-9]{0,9}$"
+						},
+						"captcha_provider": {
+							"type": "string",
+							"enum": [
+								"",
+								"recaptcha",
+								"hcaptcha",
+								"turnstile"
+							]
+						},
+						"enabled": {
+							"type": "boolean"
+						},
+						"exclude_location": {
+							"type": "string",
+							"maxLength": 1024,
+							"pattern": "^[^\\r\\n]*$"
+						},
+						"fallback_remediation": {
+							"type": "string",
+							"enum": [
+								"ban",
+								"captcha"
+							]
+						},
+						"machine_id": {
+							"type": "string",
+							"maxLength": 255,
+							"pattern": "^[A-Za-z0-9._@-]*$"
+						},
+						"mode": {
+							"type": "string",
+							"enum": [
+								"live",
+								"stream"
+							]
+						},
+						"password": {
+							"type": "string",
+							"maxLength": 255
+						},
+						"redirect_location": {
+							"type": "string",
+							"maxLength": 1024,
+							"pattern": "^[^\\r\\n]*$"
+						},
+						"ret_code": {
+							"type": "string",
+							"maxLength": 1024,
+							"pattern": "^([1-5][0-9]{2})?$"
+						},
+						"secret_key": {
+							"type": "string",
+							"maxLength": 1024,
+							"pattern": "^[^\\r\\n]*$"
+						},
+						"site_key": {
+							"type": "string",
+							"maxLength": 1024,
+							"pattern": "^[^\\r\\n]*$"
+						},
+						"ssl_verify": {
+							"type": "boolean"
+						},
+						"update_frequency": {
+							"type": "string",
+							"maxLength": 1024,
+							"pattern": "^[0-9]{0,6}$"
+						}
+					}
+				}
+			}
+		}
+	},
+	"responses": {
+		"200": {
+			"description": "200 response",
+			"content": {
+				"application/json": {
+					"schema": {
+						"type": "object"
+					}
+				}
+			}
+		}
+	}
+}

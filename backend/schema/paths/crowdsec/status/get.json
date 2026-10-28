@@ -1,0 +1,24 @@
+{
+	"operationId": "getCrowdsecStatus",
+	"summary": "Get the state of the bouncer, the local api, the bouncer key and the machine login",
+	"tags": [
+		"crowdsec"
+	],
+	"security": [
+		{
+			"cookieAuth": []
+		}
+	],
+	"responses": {
+		"200": {
+			"description": "200 response",
+			"content": {
+				"application/json": {
+					"schema": {
+						"type": "object"
+					}
+				}
+			}
+		}
+	}
+}
