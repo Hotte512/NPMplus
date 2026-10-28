@@ -23,6 +23,8 @@ Einträge nach Datum. Upstream-Änderungen stehen im [NPMplus-Repository](https:
   später Release), kurze englische Zusammenfassung.
 
 ### Behoben
+- Installer: liest das Einrichtungs-Token des Guards aus der neuen Datei `setup-token`; bei fehlendem Token
+  nennt er den `chown`-Befehl für das Datenverzeichnis.
 - Installer: `install.sh` bricht auf einem Proxmox-VE-Host ab und verweist auf `proxmox.sh` (Docker auf dem Host
   würde die Netze der VMs und LXCs stören).
 - Installer: zeigt beim Warten auf Netzwerk, NPMplus und CrowdSec den Fortschritt an statt stumm zu wirken; keine

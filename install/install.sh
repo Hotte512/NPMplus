@@ -494,6 +494,11 @@ prepare_guard() {
 }
 
 guard_token() {
+    # neuere Guard-Versionen legen das Token zusätzlich als Datei ab
+    if [[ -s "$GUARD_DATA/setup-token" ]]; then
+        tr -d '[:space:]' < "$GUARD_DATA/setup-token"
+        return
+    fi
     local since
     since=$(docker inspect -f '{{.State.StartedAt}}' unifi-api-guard)
     docker logs --since "$since" unifi-api-guard 2>&1 |
@@ -515,7 +520,7 @@ setup_guard() {
     if [[ -n "$GUARD_TOKEN" ]]; then
         GUARD_STATUS="Einrichtungs-Token gefunden."
     else
-        GUARD_STATUS="Kein Einrichtungs-Token im Log – prüfen mit: docker logs unifi-api-guard"
+        GUARD_STATUS="Kein Einrichtungs-Token gefunden – prüfen mit: docker logs unifi-api-guard (bei „permission denied“: chown $GUARD_UID:$GUARD_UID $GUARD_DATA)"
     fi
 }
 

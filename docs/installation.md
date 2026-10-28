@@ -75,7 +75,7 @@ Docker kommt aus dem offiziellen Docker-Repository und wird nur installiert, wen
 
 - **NPMplus:** `https://<IP>:81` (selbstsigniertes Zertifikat). Beim ersten Aufruf legt ein Assistent das
   Admin-Konto an; ein Startpasswort gibt es nicht. Startmeldungen: `docker logs npmplus`.
-- **UniFi API Guard:** Das Skript zeigt am Ende das einmalige Einrichtungs-Token (sonst `docker logs unifi-api-guard`).
+- **UniFi API Guard:** Das Skript zeigt am Ende das einmalige Einrichtungs-Token (später: `cat /opt/unifi-api-guard/setup-token`, bis die Einrichtung abgeschlossen ist).
   1. `http://<IP>:8091` öffnen, Token eingeben, Admin-Passwort festlegen.
   2. UniFi-Gateway eintragen (z. B. `https://192.168.1.1` und UniFi-API-Key), Fingerprint prüfen, Verbindung testen.
   3. Key anlegen: Vorlage **„Lokale DNS-Einträge“**, Domains z. B. `*.example.com`, erlaubte IP **`127.0.0.1`**.
