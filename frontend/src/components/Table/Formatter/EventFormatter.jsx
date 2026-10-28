@@ -26,6 +26,8 @@ const getEventValue = (event) => {
 			return event.meta?.domainNames?.join(", ") || event.meta?.niceName || "N/A";
 		case "setting":
 			return event.meta?.id;
+		case "crowdsec":
+			return event.meta?.value ?? event.meta?.id;
 		default:
 			break;
 	}
@@ -68,6 +70,7 @@ const getIcon = (row) => {
 			ico = <IconShield size={16} className={c} />;
 			break;
 		case "setting":
+		case "crowdsec":
 			ico = <IconSettings size={16} className={c} />;
 			break;
 		default:

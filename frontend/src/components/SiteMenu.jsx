@@ -11,6 +11,7 @@ import {
 	IconLock,
 	IconSettings,
 	IconShield,
+	IconShieldX,
 	IconUsers,
 } from "@tabler/icons-react";
 import React from "react";
@@ -102,6 +103,11 @@ const menuGroups = [
 					to: "/logs",
 					icon: IconFileText,
 					label: "logs",
+				},
+				{
+					to: "/crowdsec",
+					icon: IconShieldX,
+					label: "crowdsec",
 				},
 			],
 		},

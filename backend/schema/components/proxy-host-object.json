@@ -34,6 +34,7 @@
 		"npmplus_unifi_dns",
 		"npmplus_unifi_dns_target",
 		"npmplus_crowdsec_appsec",
+		"npmplus_crowdsec_disable",
 		"npmplus_proxy_request_buffering",
 		"npmplus_proxy_response_buffering",
 		"npmplus_upstream_compression",
@@ -102,6 +103,9 @@
 		},
 		"npmplus_crowdsec_appsec": {
 			"$ref": "../common.json#/properties/npmplus_crowdsec_appsec"
+		},
+		"npmplus_crowdsec_disable": {
+			"$ref": "../common.json#/properties/npmplus_crowdsec_disable"
 		},
 		"npmplus_proxy_request_buffering": {
 			"$ref": "../common.json#/properties/npmplus_proxy_request_buffering"
