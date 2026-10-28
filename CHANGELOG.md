@@ -6,6 +6,8 @@ Einträge nach Datum. Upstream-Änderungen stehen im [NPMplus-Repository](https:
 ## 2026-10-28
 
 ### Neu
+- **UniFi Local DNS:** erkennt einen UniFi API Guard hinter der Gateway-URL, zeigt dessen Version und verlinkt
+  direkt zur Guard-Verwaltung.
 - **CrowdSec-Seite:** eigener Menüpunkt mit aktiven Bans (manuell bannen und entbannen), Alerts (angegriffene Hosts
   und Pfade) und den Bouncer-Einstellungen, ohne Neustart ([Doku](docs/features.md#crowdsec-seite)).
 - **Proxy-Hosts:** CrowdSec-Bouncer pro Host abschaltbar.
