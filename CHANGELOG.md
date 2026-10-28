@@ -10,6 +10,13 @@ Einträge nach Datum. Upstream-Änderungen stehen im [NPMplus-Repository](https:
   Einstellung an einem Datenbankfehler scheiterte. API-Keys werden jetzt in allen Logzeilen maskiert. Wer den Key
   im Log gesehen hat, sollte ihn im UniFi-Gateway neu erzeugen.
 
+## 2026-10-28
+
+### Neu
+- **Zugriffslisten:** Spalte „Proxy-Hosts“ zeigt, welche Hosts und Locations die Liste verwenden; ein Klick öffnet
+  den Host. Die Suche findet auch diese Domains.
+- **Zugriffslisten:** Feld „Beschreibung“, angezeigt unter dem Namen und durchsuchbar.
+
 ## 2026-10-27
 
 ### Neu
