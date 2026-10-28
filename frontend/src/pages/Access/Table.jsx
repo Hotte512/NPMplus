@@ -51,9 +51,17 @@ export default function Table({ data, isFetching, isFiltered, onEdit, onDelete, 
 			columnHelper.accessor((row) => row.name, {
 				id: "name",
 				header: intl.formatMessage({ id: "column.name" }),
-				cell: (info) => (
-					<ValueWithDateFormatter value={info.row.original.name} createdOn={info.row.original.createdOn} />
-				),
+				cell: (info) => {
+					const value = info.row.original;
+					return (
+						<>
+							<ValueWithDateFormatter value={value.name} createdOn={value.createdOn} />
+							{value.npmplusDescription ? (
+								<div className="small text-secondary mt-1">{value.npmplusDescription}</div>
+							) : null}
+						</>
+					);
+				},
 			}),
 			columnHelper.accessor((row) => row.items.length, {
 				id: "items",

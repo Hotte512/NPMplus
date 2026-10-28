@@ -4,6 +4,8 @@
 	"access-list.auth-count": "{count} {count, plural, one {User} other {Users}}",
 	"access-list.custom": "Benutzerdefiniert",
 	"access-list.custom.subtitle": "Verwendet einen benutzerdefinierten Zugriffslistentyp",
+	"access-list.description": "Beschreibung",
+	"access-list.description.placeholder": "Optionale Beschreibung, z. B. wofür diese Zugriffsliste gedacht ist",
 	"access-list.global": "Global",
 	"access-list.global.subtitle": "Verwendet dasselbe wie die globale Zugriffsliste",
 	"access-list.help-rules-last": "Wenn mindestens eine Regel vorhanden ist, wird diese Regel zum Ablehnen aller Anfragen als letzte hinzugefügt.",

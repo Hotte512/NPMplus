@@ -75,6 +75,9 @@
 						"pass_auth": {
 							"$ref": "../../../components/access-list-object.json#/properties/pass_auth"
 						},
+						"npmplus_description": {
+							"$ref": "../../../components/access-list-object.json#/properties/npmplus_description"
+						},
 						"items": {
 							"$ref": "../../../common.json#/properties/access_items"
 						},

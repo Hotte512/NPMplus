@@ -4,6 +4,8 @@
 	"access-list.auth-count": "{count} {count, plural, one {User} other {Users}}",
 	"access-list.custom": "Custom",
 	"access-list.custom.subtitle": "Use a custom access list type",
+	"access-list.description": "Description",
+	"access-list.description.placeholder": "Optional description, e.g. what this access list is for",
 	"access-list.global": "Global",
 	"access-list.global.subtitle": "Use the same as the Global Access List",
 	"access-list.help-rules-last": "When at least 1 rule exists, this deny all rule will be added last",
