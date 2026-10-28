@@ -80,7 +80,15 @@ Der Installer kann ein tägliches Update einrichten. Von Hand:
 docker compose -f /opt/npmplus-hotte/compose.yaml pull && docker compose -f /opt/npmplus-hotte/compose.yaml up -d && docker image prune -f
 ```
 
-## Hinweis
+## Haftungsausschluss und Hinweise
 
-Privates Hobby-Projekt ohne Gewähr, nicht mit dem NPMplus-Upstream verbunden – Fehler dieser Variante bitte hier
-melden, nicht bei NPMplus. Lizenz wie NPMplus (AGPL-3.0, Teile MIT).
+- **Keine Haftung, keine Gewähr.** Privates Hobby-Projekt. Nutzung auf eigenes Risiko; vor Änderungen am
+  Live-System eine Sicherung bzw. einen Proxmox-Snapshot anlegen. Für Schäden, Datenverlust oder Ausfälle wird
+  keine Haftung übernommen.
+- **Mit KI-Unterstützung entwickelt.** Code, Skripte und Doku entstehen mit Hilfe von KI (Claude), werden
+  geprüft und getestet, können aber trotzdem Fehler enthalten. Skripte vor dem Ausführen lesen.
+- **Nicht mit dem NPMplus-Upstream verbunden** – Fehler dieser Variante bitte hier melden, nicht bei NPMplus.
+- Lizenz wie NPMplus (AGPL-3.0, Teile MIT).
+
+> **English:** No warranty, no liability – use at your own risk and keep a backup/snapshot. Developed with AI
+> assistance (Claude); reviewed and tested, but mistakes are possible. Not affiliated with NPMplus upstream.

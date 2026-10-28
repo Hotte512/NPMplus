@@ -17,6 +17,7 @@ Einträge nach Datum. Upstream-Änderungen stehen im [NPMplus-Repository](https:
 - **Zugriffslisten:** Feld „Beschreibung“, angezeigt unter dem Namen und durchsuchbar.
 
 ### Geändert
+- README: Haftungsausschluss und Hinweis auf die Entwicklung mit KI-Unterstützung (deutsch und englisch).
 - Doku UniFi Local DNS: richtige Gateway-URL mit Guard auf demselben Host (`http://127.0.0.1:8090`).
 - Installationsanleitung: Abschnitt Fehlersuche (u. a. versehentlicher Lauf auf dem Proxmox-Host), Hinweise
   zu den CrowdSec-Kennzahlen.
