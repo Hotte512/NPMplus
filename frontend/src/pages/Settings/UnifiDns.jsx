@@ -4,7 +4,7 @@ import { Field, Form, Formik } from "formik";
 import { useState } from "react";
 import { Alert } from "react-bootstrap";
 import { Button, Loading } from "src/components";
-import { useSetSetting, useSetting } from "src/hooks";
+import { useSetSetting, useSetting, useUnifiDnsStatus } from "src/hooks";
 import { intl, T } from "src/locale";
 import { showObjectSuccess } from "src/notifications";
 import UnifiDnsStatus from "./UnifiDnsStatus";
@@ -38,6 +38,7 @@ const textField = (name, placeholder, help, props = {}) => (
 export default function UnifiDns() {
 	const { data, isPending, error } = useSetting("unifi-dns");
 	const { mutate: setSetting } = useSetSetting();
+	const { data: status } = useUnifiDnsStatus();
 	const queryClient = useQueryClient();
 	const [errorMsg, setErrorMsg] = useState(null);
 	const [isSubmitting, setIsSubmitting] = useState(false);
@@ -58,6 +59,7 @@ export default function UnifiDns() {
 					siteId: values.siteId.trim(),
 					defaultTarget: values.defaultTarget.trim(),
 					verifyTls: values.verifyTls,
+					tlsFingerprint: values.tlsFingerprint.trim(),
 					ttl: Number.parseInt(values.ttl, 10) || 0,
 				},
 			},
@@ -104,11 +106,12 @@ export default function UnifiDns() {
 				siteId: data?.meta?.siteId ?? "",
 				defaultTarget: data?.meta?.defaultTarget ?? "",
 				verifyTls: data?.meta?.verifyTls ?? false,
+				tlsFingerprint: data?.meta?.tlsFingerprint ?? "",
 				ttl: data?.meta?.ttl || "",
 			}}
 			onSubmit={onSubmit}
 		>
-			{() => (
+			{({ values, setFieldValue }) => (
 				<Form>
 					<div className="card-body">
 						<Alert variant="danger" show={Boolean(errorMsg)} onClose={() => setErrorMsg(null)} dismissible>
@@ -174,6 +177,27 @@ export default function UnifiDns() {
 								</label>
 							)}
 						</Field>
+						{values.verifyTls
+							? null
+							: textField("tlsFingerprint", "AB:CD:…", "settings.unifi-dns.tlsFingerprint.help", {
+									pattern: "[0-9a-fA-F:\\s]*",
+								})}
+						{!values.verifyTls && !values.tlsFingerprint.trim() ? (
+							<Alert variant="warning" show>
+								<T id="settings.unifi-dns.tlsFingerprint.warning" />
+								{status?.tlsFingerprintSeen ? (
+									<div className="mt-2">
+										<code className="text-break">{status.tlsFingerprintSeen}</code>{" "}
+										<Button
+											size="sm"
+											onClick={() => setFieldValue("tlsFingerprint", status.tlsFingerprintSeen)}
+										>
+											<T id="settings.unifi-dns.tlsFingerprint.use" />
+										</Button>
+									</div>
+								) : null}
+							</Alert>
+						) : null}
 						<UnifiDnsStatus gatewayUrl={data?.meta?.url ?? ""} />
 					</div>
 					<div className="card-footer bg-transparent mt-auto">

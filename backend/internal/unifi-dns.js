@@ -1,6 +1,6 @@
 import db from "../db.js";
 import errs from "../lib/error.js";
-import { createClient, policyFor, policyValue } from "../lib/unifi.js";
+import { createClient, policyFor, policyValue, seenFingerprint } from "../lib/unifi.js";
 import { getGuardInfo } from "../lib/unifi-guard.js";
 import { global as logger, registerSecret } from "../logger.js";
 
@@ -279,6 +279,8 @@ const internalUnifiDns = {
 			records,
 			hosts,
 			guard: await getGuardInfo(config),
+			// lets an admin pin the self-signed certificate of the gateway
+			tls_fingerprint_seen: config?.url && !config.verify_tls ? seenFingerprint(config.url) : "",
 		};
 	},
 };
