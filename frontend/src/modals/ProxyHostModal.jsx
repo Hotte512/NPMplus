@@ -25,10 +25,11 @@ import {
 	useProxyHost,
 	useProxyHosts,
 	useSetProxyHost,
+	useUser,
 } from "src/hooks";
 import { intl, T } from "src/locale";
 import EasyModal from "src/modules/easyModal";
-import { MANAGE, PROXY_HOSTS } from "src/modules/Permissions";
+import { isAdmin, MANAGE, PROXY_HOSTS } from "src/modules/Permissions";
 import { showTabOfInvalid, validateNumber, validateString, validateUpstreamUrl } from "src/modules/Validations";
 import { showObjectSuccess } from "src/notifications";
 
@@ -44,6 +45,9 @@ const ProxyHostModal = EasyModal.create(({ id, isClone, visible, remove }) => {
 		[allProxyHosts],
 	);
 	const { mutate: setProxyHost } = useSetProxyHost();
+	const { data: currentUser } = useUser("me");
+	// local dns records apply to the whole LAN, the backend only lets admins change them
+	const canEditUnifiDns = isAdmin(currentUser?.roles);
 	const queryClient = useQueryClient();
 	const [errorMsg, setErrorMsg] = useState(null);
 	const [isSubmitting, setIsSubmitting] = useState(false);
@@ -142,7 +146,8 @@ const ProxyHostModal = EasyModal.create(({ id, isClone, visible, remove }) => {
 						npmplusNoindex: data?.npmplusNoindex,
 						npmplusAcmePassthrough: data?.npmplusAcmePassthrough,
 						npmplusAcmePassthroughPort: data?.npmplusAcmePassthroughPort ?? 80,
-						npmplusUnifiDns: data?.npmplusUnifiDns ?? "off",
+						// a clone by a non-admin can not keep the local dns record
+						npmplusUnifiDns: isClone && !canEditUnifiDns ? "off" : (data?.npmplusUnifiDns ?? "off"),
 						npmplusUnifiDnsTarget: data?.npmplusUnifiDnsTarget ?? "",
 						npmplusCrowdsecAppsec: data?.npmplusCrowdsecAppsec,
 						npmplusCrowdsecDisable: data?.npmplusCrowdsecDisable,
@@ -702,6 +707,12 @@ const ProxyHostModal = EasyModal.create(({ id, isClone, visible, remove }) => {
 																	<T id="host.unifi-dns" />
 																	<div className="text-secondary small">
 																		<T id="host.unifi-dns.help" />
+																		{canEditUnifiDns ? null : (
+																			<>
+																				{" "}
+																				<T id="host.unifi-dns.admin-only" />
+																			</>
+																		)}
 																	</div>
 																</span>
 																<span className="col-auto">
@@ -711,6 +722,7 @@ const ProxyHostModal = EasyModal.create(({ id, isClone, visible, remove }) => {
 																				id="npmplusUnifiDns"
 																				className="form-select"
 																				required
+																				disabled={!canEditUnifiDns}
 																				{...field}
 																			>
 																				<option value="off">
@@ -761,6 +773,7 @@ const ProxyHostModal = EasyModal.create(({ id, isClone, visible, remove }) => {
 																					className={`form-control form-control-sm ${form.errors.npmplusUnifiDnsTarget ? "is-invalid" : ""}`}
 																					style={{ width: "12rem" }}
 																					placeholder="192.168.1.10"
+																					disabled={!canEditUnifiDns}
 																					{...field}
 																				/>
 																			</span>

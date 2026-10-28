@@ -1,4 +1,5 @@
 import db from "../db.js";
+import errs from "../lib/error.js";
 import { createClient, policyFor, policyValue } from "../lib/unifi.js";
 import { getGuardInfo } from "../lib/unifi-guard.js";
 import { global as logger, registerSecret } from "../logger.js";
@@ -128,7 +129,50 @@ const foreignPolicies = (client) => {
 	};
 };
 
+const isAdmin = (access) => {
+	try {
+		return access.canAdmin();
+	} catch {
+		return false;
+	}
+};
+
+const sameDomains = (a, b) => {
+	const norm = (list) =>
+		(list ?? [])
+			.map((d) => d.toLowerCase())
+			.sort()
+			.join(",");
+	return norm(a) === norm(b);
+};
+
 const internalUnifiDns = {
+	/**
+	 * Local dns records are created with the gateway api key and apply to the whole LAN, so only admins may turn them
+	 * on, change their target, or change the domains/forward host of a host that has them.
+	 *
+	 * @param {Access} access
+	 * @param {Object} data      create or update payload
+	 * @param {Object} [existing] current row on update
+	 */
+	assertHostChangeAllowed: (access, data, existing) => {
+		if (isAdmin(access)) return;
+		const mode = existing?.npmplus_unifi_dns ?? "off";
+		const denied =
+			(data.npmplus_unifi_dns !== undefined && data.npmplus_unifi_dns !== mode) ||
+			(data.npmplus_unifi_dns_target !== undefined &&
+				data.npmplus_unifi_dns_target !== (existing?.npmplus_unifi_dns_target ?? "") &&
+				(data.npmplus_unifi_dns ?? mode) === "custom") ||
+			(mode !== "off" &&
+				((data.domain_names !== undefined && !sameDomains(data.domain_names, existing.domain_names)) ||
+					(mode === "forward" &&
+						data.forward_host !== undefined &&
+						data.forward_host !== existing.forward_host)));
+		if (denied) {
+			throw new errs.PermissionError("Only administrators can change local DNS records (UniFi DNS)");
+		}
+	},
+
 	/**
 	 * Brings the dns policies of one proxy host in line with its settings. Never throws, errors are logged and returned.
 	 *

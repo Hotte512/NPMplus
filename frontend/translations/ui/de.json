@@ -254,6 +254,7 @@
 	"host.forward-port": "Forward Port",
 	"host.forward-scheme": "Schema",
 	"host.unifi-dns": "Lokaler DNS-Eintrag (UniFi)",
+	"host.unifi-dns.admin-only": "Nur Administratoren können diese Einstellung ändern; bei aktivem Eintrag auch Domainnamen und Ziel-Host.",
 	"host.unifi-dns.custom": "eigenes Ziel",
 	"host.unifi-dns.forward": "Ziel-Host",
 	"host.unifi-dns.help": "Legt für die Domainnamen einen DNS-Eintrag auf dem UniFi-Gateway an, damit lokale Clients das Ziel direkt erreichen. Muss in den Einstellungen eingerichtet sein.",

@@ -254,6 +254,7 @@
 	"host.forward-port": "Forward Port",
 	"host.forward-scheme": "Scheme",
 	"host.unifi-dns": "Local DNS record (UniFi)",
+	"host.unifi-dns.admin-only": "Only administrators can change this setting; while a record is active, also the domain names and forward host.",
 	"host.unifi-dns.custom": "custom",
 	"host.unifi-dns.forward": "forward host",
 	"host.unifi-dns.help": "Creates a DNS record for the domain names on the UniFi gateway, so local clients reach the target directly. Needs to be set up in the settings.",
