@@ -1,12 +1,30 @@
-import { IconAlertTriangle, IconRefresh } from "@tabler/icons-react";
+import { IconAlertTriangle, IconExternalLink, IconRefresh } from "@tabler/icons-react";
 import { Alert } from "react-bootstrap";
 import { Button } from "src/components";
 import { useSyncUnifiDns, useUnifiDnsStatus } from "src/hooks";
 import { intl, T } from "src/locale";
 
+const LOOPBACK = /^(?:localhost|127(?:\.\d{1,3}){3}|::1)$/iu;
+
+/**
+ * Address of the UniFi API Guard admin page. The guard runs next to the gateway url; when that points to this very
+ * machine (loopback) the admin page is reached through the host the browser uses for NPMplus.
+ */
+export const guardAdminUrl = (guard, gatewayUrl, browserHost) => {
+	if (guard.adminUrl) return guard.adminUrl;
+	let host = "";
+	try {
+		host = new URL(gatewayUrl).hostname.replace(/^\[|\]$/gu, "");
+	} catch {
+		// no valid gateway url, fall back to the browser host
+	}
+	if (!host || LOOPBACK.test(host)) host = browserHost.replace(/^\[|\]$/gu, "");
+	return `${guard.adminScheme}://${host.includes(":") ? `[${host}]` : host}:${guard.adminPort}/`;
+};
+
 const ttlLabel = (ttl) => (ttl ? `${ttl}s` : intl.formatMessage({ id: "settings.unifi-dns.ttl.auto" }));
 
-export default function UnifiDnsStatus() {
+export default function UnifiDnsStatus({ gatewayUrl }) {
 	const { data, isPending, error } = useUnifiDnsStatus();
 	const { mutate: sync, isPending: isSyncing, data: syncResult } = useSyncUnifiDns();
 
@@ -25,6 +43,28 @@ export default function UnifiDnsStatus() {
 
 	return (
 		<div className="mt-4">
+			{data.guard ? (
+				<div className="alert alert-info d-flex align-items-center mb-3">
+					<span>
+						<T id="settings.unifi-dns.guard" /> {data.guard.version}
+					</span>
+					<a
+						className="btn btn-sm ms-auto"
+						href={guardAdminUrl(data.guard, gatewayUrl, window.location.hostname)}
+						target="_blank"
+						rel="noopener noreferrer"
+					>
+						<IconExternalLink size={16} className="me-1" />
+						<T id="settings.unifi-dns.guard.open" />
+					</a>
+				</div>
+			) : gatewayUrl ? (
+				<div className="form-hint mb-3">
+					<a href="https://github.com/Hotte512/unifi-api-guard" target="_blank" rel="noopener noreferrer">
+						<T id="settings.unifi-dns.guard.hint" />
+					</a>
+				</div>
+			) : null}
 			<div className="d-flex align-items-center mb-2">
 				<h3 className="mb-0">
 					<T id="settings.unifi-dns.records" />

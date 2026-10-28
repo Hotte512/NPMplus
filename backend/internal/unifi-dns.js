@@ -1,5 +1,6 @@
 import db from "../db.js";
 import { createClient, policyFor, policyValue } from "../lib/unifi.js";
+import { getGuardInfo } from "../lib/unifi-guard.js";
 import { global as logger, registerSecret } from "../logger.js";
 
 const TABLE = "npmplus_unifi_dns_record";
@@ -227,7 +228,14 @@ const internalUnifiDns = {
 			.orderBy("domain");
 		const hosts = {};
 		for (const id of visible) if (status.has(id)) hosts[id] = status.get(id);
-		return { enabled: Boolean(config?.enabled), ttl: ttlOf(config), last_error: lastError, records, hosts };
+		return {
+			enabled: Boolean(config?.enabled),
+			ttl: ttlOf(config),
+			last_error: lastError,
+			records,
+			hosts,
+			guard: await getGuardInfo(config),
+		};
 	},
 };
 
