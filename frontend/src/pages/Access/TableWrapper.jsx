@@ -27,7 +27,10 @@ export default function TableWrapper() {
 
 	let filtered = null;
 	if (search) {
-		filtered = data?.filter((item) => item.name.toLowerCase().includes(search));
+		filtered = data?.filter(
+			(item) =>
+				item.name.toLowerCase().includes(search) || item.npmplusDescription?.toLowerCase().includes(search),
+		);
 	}
 
 	return (

@@ -96,6 +96,7 @@ const AccessListModal = EasyModal.create(({ id, visible, remove, close, formRef 
 						name: data?.name,
 						satisfyAny: data?.satisfyAny,
 						passAuth: data?.passAuth,
+						npmplusDescription: data?.npmplusDescription ?? "",
 						items: toItemRows(data?.items),
 						clients: toClientRows(data?.clients),
 					}}
@@ -150,6 +151,35 @@ const AccessListModal = EasyModal.create(({ id, visible, remove, close, formRef 
 																component="div"
 																className="invalid-feedback"
 															/>
+														</div>
+													)}
+												</Field>
+												<Field
+													name="npmplusDescription"
+													validate={(value) => validateString(value, 0, 255)}
+												>
+													{({ field, form }) => (
+														<div className="mt-3">
+															<label className="form-label" htmlFor="npmplusDescription">
+																<T id="access-list.description" />
+															</label>
+															<input
+																id="npmplusDescription"
+																type="text"
+																maxLength={255}
+																className={`form-control ${form.errors.npmplusDescription && form.touched.npmplusDescription ? "is-invalid" : ""}`}
+																placeholder={intl.formatMessage({
+																	id: "access-list.description.placeholder",
+																})}
+																{...field}
+															/>
+															{form.errors.npmplusDescription ? (
+																<div className="invalid-feedback">
+																	{form.touched.npmplusDescription
+																		? form.errors.npmplusDescription
+																		: null}
+																</div>
+															) : null}
 														</div>
 													)}
 												</Field>
