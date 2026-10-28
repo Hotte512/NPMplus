@@ -242,17 +242,25 @@ create_ct() {
 ct_ip() { pct exec "$CTID" -- sh -c "ip -4 -o addr show dev eth0 | awk '{print \$4}' | cut -d/ -f1 | head -n1"; }
 
 wait_network() {
-    info "Warte auf Netzwerk im Container"
-    local i
+    info "Warte auf Netzwerk im Container (IP: $IP, DNS; bis zu 120 s)"
+    local i ip
     for ((i = 0; i < 60; i++)); do
         if pct exec "$CTID" -- getent hosts deb.debian.org > /dev/null 2>&1; then
             CT_IP=$(ct_ip || true)
             ok "Netzwerk bereit (${CT_IP:-IP unbekannt})."
             return
         fi
+        if ((i > 0 && i % 5 == 0)); then
+            ip=$(ct_ip 2> /dev/null || true)
+            printf '    … %s s, IP: %s\n' "$((i * 2))" "${ip:-noch keine}"
+        fi
         sleep 2
     done
-    die "Container $CTID hat nach 120 s kein Netzwerk (DNS). Bridge/DHCP/Gateway prüfen, Container bleibt bestehen."
+    ip=$(ct_ip 2> /dev/null || true)
+    if [[ -n "$ip" ]]; then
+        die "Container $CTID hat die IP $ip, aber DNS geht nicht. Prüfen: pct exec $CTID -- cat /etc/resolv.conf"
+    fi
+    die "Container $CTID hat nach 120 s keine IP. DHCP auf der Bridge/im VLAN prüfen oder statische IP wählen. Container bleibt bestehen."
 }
 
 run_install() {
