@@ -20,6 +20,7 @@
 	"access-list.satisfy-any": "Satisfy Any",
 	"access-list.satisfy-any-warning": "\"{name}\" nutzt Satisfy Any. Das gilt auch für Auth Request: Eine passende Regel oder ein gültiger User überspringt es.",
 	"access-list.subtitle": "{users} {users, plural, one {User} other {Users}}, {rules} {rules, plural, one {Regel} other {Regeln}} - Erstellt: {date}",
+	"access-list.used-by-more": "+{count} weitere",
 	"access-lists": "Zugriffslisten",
 	"access-lists.count": "{count} {count, plural, one {Zugriffsliste} other {Zugriffslisten}}",
 	"action.add": "Hinzufügen",
