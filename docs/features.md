@@ -1,5 +1,7 @@
 # Funktionen
 
+Installation: [installation.md](installation.md).
+
 Alle Beispiele verwenden Platzhalter (`example.com`, `192.168.1.x`).
 
 ## Proxy-Hosts: Beschreibung, Tags und Gruppierung

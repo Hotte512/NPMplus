@@ -1,0 +1,86 @@
+# NPMplus · Hotte – Referenz-Compose
+#
+# Ablage z. B. unter /opt/npmplus-hotte/compose.yaml, Start mit:
+#   docker compose -f /opt/npmplus-hotte/compose.yaml up -d
+# Der Installer (install/install.sh) erzeugt genau diese Datei, passend zu den gewählten Optionen.
+#
+# Daten:  /opt/npmplus (NPMplus), /opt/unifi-api-guard (Guard), /opt/crowdsec (CrowdSec)
+# Ports:  80/443 (Proxy), 81 (NPMplus-Oberfläche, HTTPS), 8091 (Guard-Admin), 8090 nur lokal (Guard-Proxy),
+#         127.0.0.1:8080/7422 (CrowdSec LAPI/AppSec)
+#
+# Optionale Blöcke stehen zwischen „# >>> optional …“ und „# <<< optional …“: zum Aktivieren in diesen Zeilen
+# das erste „#“ entfernen.
+# Alle Optionen von NPMplus: https://github.com/ZoeyVid/NPMplus/blob/develop/compose.yaml
+name: npmplus
+services:
+  npmplus:
+    container_name: npmplus
+    restart: unless-stopped
+    image: ghcr.io/hotte512/npmplus:hotte-main
+    pull_policy: always
+    network_mode: host # Pflicht für CrowdSec und den Guard auf 127.0.0.1
+    cap_drop:
+      - ALL
+    cap_add:
+      - NET_BIND_SERVICE
+      - SETGID
+    security_opt:
+      - no-new-privileges:true
+    volumes:
+      - "/opt/npmplus:/data"
+    environment:
+      - "TZ=Europe/Berlin" # Pflicht, Zeitzone aus https://en.wikipedia.org/wiki/List_of_tz_database_time_zones
+# >>> optional: acme-email
+#      - "ACME_EMAIL=admin@example.com" # optional bei Let's Encrypt, Pflicht bei ZeroSSL/Google
+# <<< optional: acme-email
+# >>> optional: crowdsec-logs
+#      - "LOGROTATE=true" # schreibt access.log nach /opt/npmplus/nginx/logs, nötig für CrowdSec
+# <<< optional: crowdsec-logs
+
+# >>> optional: unifi-api-guard
+#  # Rechte-Proxy für die UniFi-API (https://github.com/Hotte512/unifi-api-guard).
+#  # In NPMplus › Einstellungen › UniFi Local DNS: Gateway-URL http://127.0.0.1:8090 und der Guard-Key.
+#  # Datenverzeichnis vorher anlegen: mkdir -p /opt/unifi-api-guard && chown 65532:65532 /opt/unifi-api-guard
+#  unifi-api-guard:
+#    container_name: unifi-api-guard
+#    restart: unless-stopped
+#    image: ghcr.io/hotte512/unifi-api-guard:latest
+#    pull_policy: always
+#    network_mode: host
+#    read_only: true
+#    cap_drop:
+#      - ALL
+#    security_opt:
+#      - no-new-privileges:true
+#    volumes:
+#      - "/opt/unifi-api-guard:/data"
+#    environment:
+#      - "TZ=Europe/Berlin"
+#      - "GUARD_PROXY_ADDR=127.0.0.1:8090" # Proxy nur lokal, also nur für NPMplus auf diesem Host
+#      - "GUARD_ADMIN_ADDR=:8091" # Admin-Oberfläche, nur aus dem LAN freigeben
+#      - "GUARD_ADMIN_ALLOW=127.0.0.0/8,::1/128,10.0.0.0/8,172.16.0.0/12,192.168.0.0/16,fc00::/7"
+# <<< optional: unifi-api-guard
+
+# >>> optional: crowdsec
+#  # CrowdSec nach der NPMplus-Anleitung, zusätzlich LOGROTATE=true oben aktivieren.
+#  # Acquis-Datei: /opt/crowdsec/conf/acquis.d/npmplus.yaml, Bouncer: docker exec crowdsec cscli bouncers add npmplus
+#  crowdsec:
+#    container_name: crowdsec
+#    restart: unless-stopped
+#    image: docker.io/crowdsecurity/crowdsec:latest
+#    pull_policy: always
+#    network_mode: bridge
+#    security_opt:
+#      - no-new-privileges:true
+#    ports:
+#      - "127.0.0.1:7422:7422" # AppSec
+#      - "127.0.0.1:8080:8080" # LAPI
+#    environment:
+#      - "TZ=Europe/Berlin"
+#      - "USE_WAL=true"
+#      - "COLLECTIONS=ZoeyVid/npmplus"
+#    volumes:
+#      - "/opt/crowdsec/conf:/etc/crowdsec"
+#      - "/opt/crowdsec/data:/var/lib/crowdsec/data"
+#      - "/opt/npmplus/nginx/logs:/opt/npmplus/nginx/logs:ro"
+# <<< optional: crowdsec

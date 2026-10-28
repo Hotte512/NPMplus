@@ -5,6 +5,18 @@ Einträge nach Datum. Upstream-Änderungen stehen im [NPMplus-Repository](https:
 
 ## 2026-10-28
 
+### Neu
+- **Installer:** ein Befehl für Proxmox VE (legt einen Debian-LXC an) oder für vorhandene Debian/Ubuntu-Systeme.
+  Fragt nach UniFi API Guard, CrowdSec und automatischen Updates, installiert Docker und richtet alles ein
+  ([Anleitung](docs/installation.md)).
+- **Referenz-Konfiguration** `deploy/compose.yaml` mit optionalen Blöcken für UniFi API Guard und CrowdSec.
+- **UniFi API Guard:** neues Begleitprojekt, ein Rechte-Proxy für die UniFi-API. NPMplus bekommt damit einen Key,
+  der nur die DNS-Einträge der eigenen Domains ändern darf ([Projekt](https://github.com/Hotte512/unifi-api-guard)).
+
+### Geändert
+- README überarbeitet: Installation, Hinweis auf den UniFi API Guard, Build-Stand (derzeit Upstream `develop`,
+  später Release), kurze englische Zusammenfassung.
+
 ### Behoben
 - **Sicherheit:** Der UniFi-API-Key konnte im Log (Konsole und Log-Viewer) erscheinen, wenn das Speichern der
   Einstellung an einem Datenbankfehler scheiterte. API-Keys werden jetzt in allen Logzeilen maskiert. Wer den Key

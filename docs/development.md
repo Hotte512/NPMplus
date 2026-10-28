@@ -7,6 +7,10 @@
 | `claude/hotte-ci` | Standard-Branch: Build-Workflow, `hotte-sync.env`, Dokumentation, Changelog |
 | `claude/hotte-features` | Upstream `develop` (Commit `FEATURES_BASE`) plus die eigenen Feature-Commits |
 
+Auf `claude/hotte-ci` liegen außerdem der Installer (`install/install.sh`, `install/proxmox.sh`) und die
+Referenz-Konfiguration `deploy/compose.yaml`. Der Installer erzeugt dieselbe Datei; Änderungen an einer Stelle
+daher an der anderen nachziehen. Die Skripte vor jedem Push mit `shellcheck -x install/*.sh` prüfen.
+
 Jede Funktion ist ein eigener Commit auf `claude/hotte-features`. Neue Funktionen verändern Upstream-Dateien so
 wenig wie möglich (neue Dateien bevorzugen, in Upstream-Dateien nur kurze Aufrufe), damit spätere Rebases
 selten Konflikte haben.
