@@ -34,6 +34,12 @@
 										"errors": [],
 										"synced_on": "2026-10-27T12:00:00.000Z"
 									}
+								},
+								"guard": {
+									"version": "v1.2.3",
+									"admin_port": 8091,
+									"admin_scheme": "http",
+									"admin_url": ""
 								}
 							}
 						}
@@ -45,7 +51,8 @@
 							"ttl",
 							"last_error",
 							"records",
-							"hosts"
+							"hosts",
+							"guard"
 						],
 						"properties": {
 							"enabled": {
@@ -68,6 +75,27 @@
 							},
 							"hosts": {
 								"type": "object"
+							},
+							"guard": {
+								"type": [
+									"object",
+									"null"
+								],
+								"description": "UniFi API Guard in front of the gateway, null for a plain gateway",
+								"properties": {
+									"version": {
+										"type": "string"
+									},
+									"admin_port": {
+										"type": "integer"
+									},
+									"admin_scheme": {
+										"type": "string"
+									},
+									"admin_url": {
+										"type": "string"
+									}
+								}
 							}
 						}
 					}
