@@ -1,8 +1,8 @@
-import { Agent, request } from "undici";
+import { request } from "undici";
 import { global as logger } from "../logger.js";
+import { dispatcherFor } from "./unifi.js";
 
 const TRAILING_SLASHES = /\/+$/u;
-const insecureAgent = new Agent({ connect: { rejectUnauthorized: false } });
 const HTTP_URL = /^https?:\/\//iu;
 const CACHE_MS = 60000;
 const TIMEOUT_MS = 3000;
@@ -20,11 +20,12 @@ const text = (v, max) => (typeof v === "string" && v.length <= max ? v : "");
  * @param   {Object}  config
  * @param   {String}  config.url
  * @param   {Boolean} [config.verify_tls]
+ * @param   {String}  [config.tls_fingerprint]
  * @returns {Promise<{version: String, admin_port: Number, admin_scheme: String, admin_url: String}|null>}
  */
 const getGuardInfo = async (config) => {
 	if (!config?.url) return null;
-	const key = `${config.url}|${Boolean(config.verify_tls)}`;
+	const key = `${config.url}|${Boolean(config.verify_tls)}|${config.tls_fingerprint ?? ""}`;
 	const hit = cache.get(key);
 	if (hit && Date.now() - hit.at < CACHE_MS) return hit.value;
 
@@ -33,7 +34,7 @@ const getGuardInfo = async (config) => {
 		const res = await request(`${config.url.replace(TRAILING_SLASHES, "")}/guard/v1/info`, {
 			method: "GET",
 			headers: { Accept: "application/json" },
-			dispatcher: config.verify_tls ? undefined : insecureAgent,
+			dispatcher: dispatcherFor(config),
 			headersTimeout: TIMEOUT_MS,
 			bodyTimeout: TIMEOUT_MS,
 			maxRedirections: 0,

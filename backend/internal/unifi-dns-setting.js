@@ -1,7 +1,10 @@
 import errs from "../lib/error.js";
+import { normalizeFingerprint } from "../lib/unifi.js";
 import { registerSecret } from "../logger.js";
 import settingModel from "../models/setting.js";
 import internalUnifiDns from "./unifi-dns.js";
+
+const SHA256_HEX = /^[0-9a-f]{64}$/u;
 
 // hooks for internal/setting.js, kept here so the upstream file only needs a few one-line calls
 
@@ -27,6 +30,12 @@ const prepareSettingUpdate = async (data) => {
 	const { api_key_set, ...meta } = data.meta;
 	// before saving: a failed sql query would log the new key
 	registerSecret(meta.api_key);
+	if (meta.tls_fingerprint !== undefined) {
+		meta.tls_fingerprint = normalizeFingerprint(meta.tls_fingerprint);
+		if (meta.tls_fingerprint && !SHA256_HEX.test(meta.tls_fingerprint)) {
+			throw new errs.ValidationError("The TLS fingerprint must be a SHA-256 fingerprint (64 hex digits)");
+		}
+	}
 	data.meta = { ...stored, ...meta, api_key: meta.api_key || stored.api_key || "" };
 };
 

@@ -146,6 +146,11 @@
 								"verify_tls": {
 									"type": "boolean"
 								},
+								"tls_fingerprint": {
+									"type": "string",
+									"maxLength": 95,
+									"pattern": "^[0-9a-fA-F:]*$"
+								},
 								"ttl": {
 									"type": "integer",
 									"minimum": 0,
