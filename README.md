@@ -1,3 +1,5 @@
+🇩🇪 Deutsch · [🇬🇧 English](README.en.md)
+
 # NPMplus · Hotte
 
 Eigene Variante von [NPMplus](https://github.com/ZoeyVid/NPMplus) (Reverse-Proxy mit Weboberfläche, Fork des
@@ -65,6 +67,8 @@ umkonfigurieren. Der [UniFi API Guard](https://github.com/Hotte512/unifi-api-gua
 davor. NPMplus bekommt einen eigenen Key, der nur DNS-Einträge der eigenen Domains anlegen, ändern und löschen darf.
 Läuft der Guard auf demselben Host, ist er nur lokal erreichbar (`http://127.0.0.1:8090`). Einrichtung:
 [Anleitung des Guards](https://github.com/Hotte512/unifi-api-guard/blob/main/docs/anleitung.md).
+Den Key legt man im Guard mit der Vorlage „Lokale DNS-Einträge“ an, die Regeln setzt sie automatisch. Ab Guard v1.1.0
+lassen sich Regeln später im Formular auf der Key-Seite ändern, ohne JSON. Die Version zeigt die Fußzeile des Guards.
 
 ## Build-Stand
 

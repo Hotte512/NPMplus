@@ -35,6 +35,9 @@ Einträge nach Datum. Upstream-Änderungen stehen im [NPMplus-Repository](https:
   zu den CrowdSec-Kennzahlen.
 - README überarbeitet: Installation, Hinweis auf den UniFi API Guard, Build-Stand (derzeit Upstream `develop`,
   später Release), kurze englische Zusammenfassung.
+- Doku UniFi API Guard v1.1.0: Regeln lassen sich im Formular auf der Key-Seite ändern (JSON bleibt als
+  Expertenmodus); Installations- und Funktionsdoku ergänzt. Das Guard-Image `latest` ist jetzt v1.1.0.
+- README: Sprachwahl oben (Deutsch/Englisch), englische Fassung als `README.en.md`.
 
 ### Behoben
 - Installer: Zusatzdienste der alten Installation (z. B. `geoipupdate` für GeoIP) werden bei der Übernahme
