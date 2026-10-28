@@ -99,6 +99,7 @@ const internalProxyHost = {
 		if (hasDuplicateDomains(thisData.domain_names)) {
 			throw new errs.ValidationError("Domain names need to be unique");
 		}
+		internalUnifiDns.assertHostChangeAllowed(access, thisData);
 
 		// Get a list of the domain names and check each of them against existing records
 		for (const domainName of thisData.domain_names) {
@@ -192,6 +193,7 @@ const internalProxyHost = {
 
 		const existingRow = await internalProxyHost.get(access, { id: thisData.id });
 		internalHost.checkCustomConfig(access, thisData, existingRow);
+		internalUnifiDns.assertHostChangeAllowed(access, thisData, existingRow);
 
 		// Get a list of the domain names and check each of them against existing records
 		if (thisData.domain_names !== undefined) {
