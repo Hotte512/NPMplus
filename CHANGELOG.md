@@ -21,6 +21,8 @@ Einträge nach Datum. Upstream-Änderungen stehen im [NPMplus-Repository](https:
   später Release), kurze englische Zusammenfassung.
 
 ### Behoben
+- Installer: `install.sh` bricht auf einem Proxmox-VE-Host ab und verweist auf `proxmox.sh` (Docker auf dem Host
+  würde die Netze der VMs und LXCs stören).
 - Installer: zeigt beim Warten auf NPMplus und CrowdSec den Fortschritt an statt stumm zu wirken; keine
   Locale-Warnungen mehr in frischen LXC-Containern.
 - **Sicherheit:** Der UniFi-API-Key konnte im Log (Konsole und Log-Viewer) erscheinen, wenn das Speichern der

@@ -268,6 +268,12 @@ EOF
 # System
 # ---------------------------------------------------------------------------------------------------------------
 check_system() {
+    # Docker auf dem Proxmox-Host verändert iptables (FORWARD DROP) und stört die Netze der VMs/LXCs
+    if [[ -d /etc/pve || -x /usr/bin/pveversion ]] && [[ "${ALLOW_PVE_HOST:-0}" != 1 && "$DRY_RUN" != 1 ]]; then
+        die "Das ist ein Proxmox-VE-Host. install.sh gehört in einen LXC oder eine VM.
+    Auf dem Host stattdessen ausführen (legt den LXC an):
+    bash -c \"\$(curl -fsSL https://raw.githubusercontent.com/Hotte512/NPMplus/claude/hotte-ci/install/proxmox.sh)\""
+    fi
     [[ -r /etc/os-release ]] || die "/etc/os-release fehlt, unbekanntes System."
     # shellcheck source=/dev/null
     . /etc/os-release
