@@ -1195,13 +1195,28 @@ set_conf() {
 
 cs_machine_exists() { docker exec crowdsec cscli machines list -o json 2> /dev/null | grep -Eq '"machineId": *"npmplus-gui"'; }
 
+# Falsch nur, wenn die LAPI das Passwort aus der Datei ausdrücklich ablehnt (401), z. B. nach einem erneuten
+# „cscli machines add --force“. Ist die LAPI vom Host nicht erreichbar, gilt der Login als in Ordnung. Das Passwort
+# geht über stdin an curl und steht so in keiner Befehlszeile.
+cs_machine_login_ok() {
+    local pw
+    pw=$(sed -n 's/^password: *//p' "$1" | head -n 1)
+    [[ "$pw" == \"* ]] || pw="\"$pw\""
+    [[ $(printf '{"machine_id":"npmplus-gui","password":%s,"scenarios":[]}' "$pw" |
+        curl -s -o /dev/null -w '%{http_code}' -m 10 -H 'Content-Type: application/json' --data-binary @- \
+            http://127.0.0.1:8080/v1/watchers/login) != 401 ]]
+}
+
 # Machine-Login für die CrowdSec-Seite in NPMplus (Bannen, Entbannen, Alerts). Das Passwort geht direkt in die
 # Datei, im Format von „cscli machines add -f“, und taucht in keiner Ausgabe auf.
 setup_crowdsec_machine() {
     local conf=$1 creds="$NPMPLUS_DATA/crowdsec/lapi-credentials.yaml" tmp
     if [[ -s "$creds" ]] && cs_machine_exists; then
-        ok "Machine-Login für die CrowdSec-Seite bereits eingerichtet."
-        return
+        if cs_machine_login_ok "$creds"; then
+            ok "Machine-Login für die CrowdSec-Seite bereits eingerichtet."
+            return
+        fi
+        warn "Machine-Login „npmplus-gui“ wird abgelehnt (Passwort passt nicht mehr), lege ihn neu an."
     fi
     tmp=$(mktemp "$creds.XXXXXX") # mktemp legt die Datei mit 0600 an
     if docker exec crowdsec cscli machines add npmplus-gui --auto --force -f - > "$tmp" 2> /dev/null &&
