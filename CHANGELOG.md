@@ -6,6 +6,8 @@ Einträge nach Datum. Upstream-Änderungen stehen im [NPMplus-Repository](https:
 ## 2026-10-29
 
 ### Behoben
+- **CrowdSec-Seite:** Machine-Login schlug immer mit „401 incorrect Username or Password“ fehl, obwohl Login und
+  Passwort stimmten (die LAPI lehnte die Kennung von NPMplus ab). Bannen, Entbannen und Alerts funktionieren jetzt.
 - **Installer:** Wird der Machine-Login der CrowdSec-Seite abgelehnt (Passwort passt nicht mehr zur Datei), legt
   `install.sh --update` ihn neu an, statt ihn als eingerichtet zu melden.
 - **Doku:** Anleitung für den Machine-Login von Hand korrigiert. Das Passwort wird nicht in den Einstellungen
