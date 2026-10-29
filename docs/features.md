@@ -118,10 +118,19 @@ Local API erreichbar ist und Bouncer-Key und Machine-Login funktionieren.
   Antwort für gesperrte Clients, Captcha, AppSec). Unbekannte Zeilen und Kommentare bleiben erhalten. Speichern lädt
   nginx neu, ein Neustart ist nicht nötig; lehnt nginx die Konfiguration ab, bleibt der alte Stand.
 - Bouncer-Key, Captcha-Secret und Machine-Passwort werden nur geschrieben, nie angezeigt, und in Logs maskiert.
-- **Machine-Login:** Bannen, Entbannen und Alerts brauchen ihn, nur Anzeigen der Bans geht mit dem Bouncer-Key. Der
-  Installer legt ihn an (`/opt/npmplus/crowdsec/lapi-credentials.yaml`), von Hand:
-  `docker exec crowdsec cscli machines add npmplus-gui --auto -f -` und Login/Passwort in den Einstellungen
-  eintragen.
+- **Machine-Login:** Bannen, Entbannen und Alerts brauchen ihn, nur Anzeigen der Bans geht mit dem Bouncer-Key.
+  NPMplus liest ihn aus `/opt/npmplus/crowdsec/lapi-credentials.yaml` (im Container `/data/crowdsec/`). Der
+  Installer legt ihn an und legt ihn bei `install.sh --update` neu an, wenn CrowdSec das Passwort ablehnt. Von Hand
+  (z. B. nach Installation per community-scripts) auf dem Host, das Passwort landet nur in der Datei:
+
+  ```bash
+  docker exec crowdsec cscli machines add npmplus-gui --auto --force -f - > /opt/npmplus/crowdsec/lapi-credentials.yaml
+  chmod 600 /opt/npmplus/crowdsec/lapi-credentials.yaml
+  ```
+
+  Danach nichts in den Einstellungen eintragen, die Datei genügt. Das Passwortfeld dort überschreibt die Datei und ist
+  nur nötig, wenn der Login woanders angelegt wurde. Jedes `machines add --force` erzeugt ein neues Passwort; die
+  Datei muss danach neu geschrieben werden, sonst meldet die Seite „401 incorrect Username or Password“.
 - **Pro Proxy-Host:** Schalter **„CrowdSec-Bouncer deaktivieren“**. Sperren und AppSec gelten dann für diesen Host
   nicht (z. B. für reine LAN-Dienste).
 - Alle Änderungen stehen im Audit-Log.
