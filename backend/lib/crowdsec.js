@@ -1,6 +1,7 @@
 import { readFileSync } from "node:fs";
 import { Agent, request } from "undici";
 import { registerSecret } from "../logger.js";
+import pjson from "../package.json" with { type: "json" };
 
 const TRAILING_SLASHES = /\/+$/u;
 // decisions of the community blocklist and console lists are not shown, they are tens of thousands
@@ -35,7 +36,8 @@ const createClient = (config) => {
 	let jwt = null;
 
 	const call = async (method, path, { auth, body } = {}) => {
-		const headers = { Accept: "application/json", "User-Agent": "npmplus-gui" };
+		// the lapi rejects a machine login with 401 unless the user agent has the form name/version
+		const headers = { Accept: "application/json", "User-Agent": `npmplus-gui/${pjson.version}` };
 		if (body) headers["Content-Type"] = "application/json";
 		if (auth === "bouncer" && !tlsAuth) headers["X-Api-Key"] = config.api_key ?? "";
 		if (auth === "machine") headers.Authorization = `Bearer ${jwt.token}`;
