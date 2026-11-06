@@ -49,6 +49,11 @@ readonly CROWDSEC_HELPER_SCRIPT="$CROWDSEC_HELPER_BIN/crowdsec-helper.sh"
 readonly NPMPLUS_SPOOL_TARGET="/data/crowdsec/helper"
 readonly NPMPLUS_SPOOL_IN="$NPMPLUS_SPOOL_TARGET/in"
 readonly NPMPLUS_SPOOL_OUT="$NPMPLUS_SPOOL_TARGET/out"
+# AppSec-Body-Limit (appsec-config npmplus/body-limit), Vorgabe für neue und aktualisierte Installationen: 64 MiB, partial
+readonly CROWDSEC_BODY_FILE="$CROWDSEC_DATA/conf/appsec-configs/npmplus-body-limit.yaml"
+readonly CROWDSEC_BODY_DEFAULT_SIZE=67108864
+readonly CROWDSEC_BODY_DEFAULT_ACTION=partial
+readonly CROWDSEC_BODY_MARK="npmplus/body-limit: Body-Limit aus NPMplus"
 readonly GUARD_UID=65532
 readonly GUARD_PROXY_PORT=8090
 readonly GUARD_ADMIN_PORT=8091
@@ -2087,7 +2092,21 @@ migrate_helper_spool() {
     fi
 }
 
-# Nach dem Start: neue Fassung des Helfers laden
+# appsec-config für das Body-Limit, gleicher Aufbau wie body_config in deploy/crowdsec-helper.sh
+crowdsec_body_config() {
+    cat << EOF
+# Erzeugt vom CrowdSec-Helfer von NPMplus · Hotte (crowdsec-helper.sh), Änderungen werden überschrieben.
+# Einstellen in NPMplus › CrowdSec › Einstellungen › AppSec-Body-Limit, gilt für alle Hosts.
+# Steht in der AppSec-Acquisition (acquis.d/npmplus.yaml) als erster Eintrag von appsec_configs.
+name: npmplus/body-limit
+on_load:
+  - apply:
+      - SetMaxBodySize($1)
+      - SetBodySizeExceededAction("$2")
+EOF
+}
+
+# Nach dem Start: neue Fassung des Helfers laden, Body-Limit einrichten (CrowdSec muss laufen)
 finish_crowdsec_helper() {
     # „docker restart crowdsec“ beendet auch den Helfer (gemeinsamer PID-Namensraum)
     docker start crowdsec-helper > /dev/null 2>&1 || true
@@ -2095,6 +2114,107 @@ finish_crowdsec_helper() {
         [[ "$(docker inspect -f '{{.State.Running}}' crowdsec-helper 2> /dev/null)" == true ]]; then
         docker restart crowdsec-helper > /dev/null && ok "CrowdSec-Helfer mit der neuen Fassung gestartet."
     fi
+    if ! cs_lapi_ready > /dev/null 2>&1; then
+        warn "CrowdSec läuft nicht, AppSec-Body-Limit nicht eingerichtet (erneut: install.sh --update)."
+        return 0
+    fi
+    setup_crowdsec_body_limit
+}
+
+# acquis_add_body_limit Datei Ausgabe – setzt npmplus/body-limit als ersten Eintrag unter appsec_configs.
+# Nur dort steht er richtig: Optionen wie default_remediation übernimmt CrowdSec von der zuletzt geladenen Konfiguration.
+acquis_add_body_limit() {
+    MARK="$CROWDSEC_BODY_MARK" awk '
+        BEGIN { mark = ENVIRON["MARK"]; state = 0 }
+        state == 0 && /^appsec_configs:[ \t]*$/ { print; state = 1; next }
+        state == 1 && /^[ \t]*#/ { print; next }
+        state == 1 && /^[ \t]*- / {
+            indent = $0
+            sub(/-.*$/, "", indent)
+            print indent "# " mark " (install.sh), muss der erste Eintrag sein"
+            print indent "- npmplus/body-limit"
+            print
+            state = 2
+            next
+        }
+        state == 1 { exit 3 }
+        { print }
+        END { if (state != 2) exit 3 }
+    ' "$1" > "$2"
+}
+
+# Body-Limit von AppSec: Standard 64 MiB, partial (CrowdSec selbst: 10 MiB, drop – große Uploads bekämen die Sperrseite).
+# Vorhandene Einstellungen (aus NPMplus oder von Hand) bleiben, ein bewusst entfernter Eintrag wird nicht wieder ergänzt.
+# Reihenfolge: erst prüft der Helfer die Werte unter anderem Namen (crowdsec -t), dann Datei und Acquisition, dann die
+# ganze Konfiguration; abgelehnt wird nur die Acquisition zurückgenommen, die Datei bleibt (nicht referenziert harmlos).
+setup_crowdsec_body_limit() {
+    local acquis="$CROWDSEC_DATA/conf/acquis.d/npmplus.yaml" need_file=0 need_acquis=0 backup="" tmp log msg
+    [[ -e "$CROWDSEC_BODY_FILE" || -L "$CROWDSEC_BODY_FILE" ]] || need_file=1
+    if [[ ! -f "$acquis" ]]; then
+        warn "$acquis fehlt – AppSec-Body-Limit nicht eingerichtet."
+        return 0
+    elif grep -Eq '^[[:space:]]*-[[:space:]]*["'"'"']?npmplus/body-limit' "$acquis"; then
+        :
+    elif grep -qF "$CROWDSEC_BODY_MARK" "$acquis"; then
+        warn "npmplus/body-limit wurde aus $acquis entfernt und bleibt draußen (AppSec-Body-Limit aus NPMplus wirkt nicht)."
+        return 0
+    else
+        need_acquis=1
+    fi
+    if [[ "$need_file" == 0 && "$need_acquis" == 0 ]]; then
+        ok "AppSec-Body-Limit bereits eingerichtet ($CROWDSEC_BODY_FILE)."
+        return 0
+    fi
+    log=$(mktemp)
+    if ! docker exec crowdsec-helper /bin/sh /helper/crowdsec-helper.sh probe \
+        "$CROWDSEC_BODY_DEFAULT_SIZE" "$CROWDSEC_BODY_DEFAULT_ACTION" > "$log" 2>&1; then
+        msg=$(tail -n 1 "$log")
+        rm -f "$log"
+        warn "AppSec-Body-Limit nicht eingerichtet: CrowdSec lehnt es ab (zu alte Version?) oder der Helfer läuft nicht.${msg:+
+    $msg}"
+        return 0
+    fi
+    rm -f "$log"
+    if [[ "$need_file" == 1 ]]; then
+        tmp=$(mktemp "$(dirname "$CROWDSEC_BODY_FILE")/.npmplus-body-limit.XXXXXX")
+        if ! crowdsec_body_config "$CROWDSEC_BODY_DEFAULT_SIZE" "$CROWDSEC_BODY_DEFAULT_ACTION" > "$tmp" ||
+            ! chmod 0644 "$tmp" || ! mv -f "$tmp" "$CROWDSEC_BODY_FILE"; then
+            rm -f "$tmp"
+            warn "$CROWDSEC_BODY_FILE konnte nicht geschrieben werden – AppSec-Body-Limit nicht eingerichtet."
+            return 0
+        fi
+    fi
+    if [[ "$need_acquis" == 1 ]]; then
+        tmp=$(mktemp)
+        if acquis_add_body_limit "$acquis" "$tmp"; then
+            backup="$acquis.bak-$(date +%Y%m%d-%H%M%S)"
+            cp -a "$acquis" "$backup"
+            cat "$tmp" > "$acquis"
+        else
+            warn "Kein appsec_configs-Eintrag in $acquis gefunden – AppSec-Body-Limit bitte von Hand ergänzen:
+    erster Eintrag unter appsec_configs: - npmplus/body-limit"
+        fi
+        rm -f "$tmp"
+        # ohne Eintrag in der Acquisition wirkt die Datei nicht, crowdsec muss nicht neu laden
+        [[ -n "$backup" ]] || return 0
+    fi
+    # die ganze Konfiguration prüfen, dann neu laden: eine abgelehnte würde crowdsec beim Neuladen beenden
+    log=$(mktemp)
+    if docker exec crowdsec crowdsec -c /etc/crowdsec/config.yaml -t > "$log" 2>&1; then
+        rm -f "$log"
+        docker kill -s HUP crowdsec > /dev/null
+        sleep 3
+        wait_for 120 "CrowdSec LAPI nach dem Neuladen" cs_lapi_ready ||
+            warn "CrowdSec meldet sich nach dem Neuladen nicht – prüfen mit: docker logs crowdsec"
+        ok "AppSec-Body-Limit: $((CROWDSEC_BODY_DEFAULT_SIZE / 1048576)) MB, $CROWDSEC_BODY_DEFAULT_ACTION (änderbar in NPMplus › CrowdSec › Einstellungen)."
+        [[ -n "$backup" ]] && ok "Acquis-Datei ergänzt (vorher: $backup)."
+        return 0
+    fi
+    msg=$(grep -E 'level=(fatal|error)' "$log" | tail -n 1 || true)
+    rm -f "$log"
+    [[ -n "$backup" ]] && cp -a "$backup" "$acquis"
+    warn "CrowdSec lehnt die Konfiguration mit dem AppSec-Body-Limit ab, Acquis-Datei zurückgenommen.${msg:+
+    $msg}"
 }
 
 cs_lapi_ready() { docker exec crowdsec cscli lapi status; }
@@ -2590,7 +2710,9 @@ main() {
         printf '   [dry-run] docker compose -f %s pull && up -d\n' "$COMPOSE_FILE"
         [[ "$CROWDSEC" == yes ]] &&
             printf '   [dry-run] warten auf LAPI und %s, cscli bouncers add npmplus, ENABLED/API_KEY setzen, npmplus neu starten\n' \
-                "$NPMPLUS_DATA/crowdsec/crowdsec.conf"
+                "$NPMPLUS_DATA/crowdsec/crowdsec.conf" &&
+            printf '   [dry-run] AppSec-Body-Limit: %s anlegen (64 MB, partial), npmplus/body-limit in acquis.d/npmplus.yaml, crowdsec -t, SIGHUP\n' \
+                "$CROWDSEC_BODY_FILE"
         [[ "$UNIFI_GUARD" == yes ]] && printf '   [dry-run] Einrichtungs-Token aus docker logs unifi-api-guard lesen\n'
         setup_cron
         ok "Dry-run beendet, nichts verändert."
