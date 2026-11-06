@@ -23,6 +23,10 @@ access_by_lua_block {
   elseif ngx.var.crowdsec_disable == "1" then
     ngx.log(ngx.DEBUG, "[Crowdsec] Bouncer disabled for this host, ignoring...")
     ngx.exit(ngx.DECLINED)
+  elseif ngx.var.crowdsec_exempt_global == "1" or ngx.var.crowdsec_exempt_host == "1" then
+    -- exceptions of the CrowdSec page, see conf.d/crowdsec-exceptions.conf
+    ngx.log(ngx.DEBUG, "[Crowdsec] Client address is exempt, ignoring...")
+    ngx.exit(ngx.DECLINED)
   else
     cs.Allow(ngx.var.remote_addr)
   end

@@ -1,0 +1,64 @@
+{
+	"operationId": "updateCrowdsecException",
+	"summary": "Update an exception",
+	"tags": [
+		"crowdsec"
+	],
+	"security": [
+		{
+			"cookieAuth": []
+		}
+	],
+	"parameters": [
+		{
+			"in": "path",
+			"name": "exception_id",
+			"required": true,
+			"description": "Exception ID",
+			"schema": {
+				"type": "integer",
+				"minimum": 1,
+				"maximum": 2147483647
+			}
+		}
+	],
+	"requestBody": {
+		"description": "Payload",
+		"required": true,
+		"content": {
+			"application/json": {
+				"schema": {
+					"type": "object",
+					"additionalProperties": false,
+					"minProperties": 1,
+					"properties": {
+						"value": {
+							"$ref": "../../../../components/crowdsec-exception-object.json#/properties/value"
+						},
+						"description": {
+							"$ref": "../../../../components/crowdsec-exception-object.json#/properties/description"
+						},
+						"scope": {
+							"$ref": "../../../../components/crowdsec-exception-object.json#/properties/scope"
+						},
+						"proxy_host_ids": {
+							"$ref": "../../../../components/crowdsec-exception-object.json#/properties/proxy_host_ids"
+						}
+					}
+				}
+			}
+		}
+	},
+	"responses": {
+		"200": {
+			"description": "200 response",
+			"content": {
+				"application/json": {
+					"schema": {
+						"$ref": "../../../../components/crowdsec-exception-object.json"
+					}
+				}
+			}
+		}
+	}
+}
