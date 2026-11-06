@@ -3,6 +3,7 @@ import { isIP } from "node:net";
 import path from "node:path";
 import { createClient } from "../lib/crowdsec.js";
 import errs from "../lib/error.js";
+import { normalizeCidr } from "../lib/ip-cidr.js";
 import { registerSecret } from "../logger.js";
 import internalAuditLog from "./audit-log.js";
 import internalNginx from "./nginx.js";
@@ -279,6 +280,40 @@ const formatDecision = (d) => ({
 	scenario: d.scenario ?? "",
 });
 
+// go's zero time stands for "no expiration"
+const formatTime = (value) => {
+	if (!value || String(value).startsWith("0001-")) return null;
+	return Number.isNaN(Date.parse(value)) ? null : value;
+};
+
+const formatAllowlist = (list) => ({
+	name: list.name ?? "",
+	description: list.description ?? "",
+	created_at: formatTime(list.created_at),
+	updated_at: formatTime(list.updated_at),
+	console_managed: Boolean(list.console_managed),
+	items: (list.items ?? []).map((item) => ({
+		value: item.value ?? "",
+		description: item.description ?? "",
+		created_at: formatTime(item.created_at),
+		expiration: formatTime(item.expiration),
+	})),
+});
+
+// allowlists came with "cscli allowlists", an older lapi doesn't know the endpoints
+const allowlistCall = async (fn) => {
+	try {
+		return await fn();
+	} catch (err) {
+		if (err.statusCode === 404 || err.statusCode === 405) {
+			throw new errs.ValidationError(
+				'CrowdSec: the Local API has no allowlists, they need a CrowdSec version with "cscli allowlists"',
+			);
+		}
+		throw err;
+	}
+};
+
 const formatAlert = (a) => ({
 	id: a.id,
 	created_at: a.created_at ?? a.start_at ?? null,
@@ -484,6 +519,35 @@ const internalCrowdsec = {
 			meta: { id: "decision", value: data.ip ?? `#${data.id}`, deleted },
 		});
 		return deleted;
+	},
+
+	/**
+	 * Allowlists of the lapi (read only, they are managed with cscli allowlists), needs a machine login
+	 *
+	 * @param   {Access}  access
+	 * @returns {Promise<Array>}
+	 */
+	getAllowlists: async (access) => {
+		access.canAdmin();
+		const client = await lapi(getClient);
+		requireMachine(client);
+		const lists = await lapi(() => allowlistCall(client.allowlists));
+		return (Array.isArray(lists) ? lists : []).map(formatAllowlist).sort((a, b) => a.name.localeCompare(b.name));
+	},
+
+	/**
+	 * @param   {Access}  access
+	 * @param   {String}  value  ip or range
+	 * @returns {Promise<{value: String, allowlisted: Boolean, reason: String}>}
+	 */
+	checkAllowlist: async (access, value) => {
+		access.canAdmin();
+		const normalized = normalizeCidr(String(value ?? "").trim());
+		if (!normalized) throw new errs.ValidationError(`Not an ip or range: ${String(value).slice(0, 64)}`);
+		const client = await lapi(getClient);
+		requireMachine(client);
+		const res = await lapi(() => allowlistCall(() => client.checkAllowlist(normalized)));
+		return { value: normalized, allowlisted: Boolean(res.allowlisted), reason: String(res.reason ?? "") };
 	},
 
 	/**

@@ -1,6 +1,7 @@
 import { useQuery } from "@tanstack/react-query";
 import {
 	getCrowdsecAlerts,
+	getCrowdsecAllowlists,
 	getCrowdsecClientIp,
 	getCrowdsecConfig,
 	getCrowdsecDecisions,
@@ -54,8 +55,18 @@ const useCrowdsecClientIp = () =>
 		staleTime: 60 * 1000,
 	});
 
+const useCrowdsecAllowlists = (options = {}) =>
+	useQuery({
+		queryKey: ["crowdsec", "allowlists"],
+		queryFn: () => getCrowdsecAllowlists(),
+		staleTime: 30 * 1000,
+		retry: false,
+		...options,
+	});
+
 export {
 	useCrowdsecAlerts,
+	useCrowdsecAllowlists,
 	useCrowdsecClientIp,
 	useCrowdsecConfig,
 	useCrowdsecDecisions,

@@ -83,6 +83,22 @@ router.route("/alerts").get(jwtdecode(), validate, async (_, res) => {
 });
 
 /**
+ * GET /api/crowdsec/allowlists  allowlists of the local api with their entries (read only)
+ */
+router.route("/allowlists").get(jwtdecode(), validate, async (_, res) => {
+	res.locals.access.canAdmin();
+	res.status(200).send(await internalCrowdsec.getAllowlists(res.locals.access));
+});
+
+/**
+ * GET /api/crowdsec/allowlists/check?value=192.0.2.1
+ */
+router.route("/allowlists/check").get(jwtdecode(), validate, async (_, res) => {
+	res.locals.access.canAdmin();
+	res.status(200).send(await internalCrowdsec.checkAllowlist(res.locals.access, res.locals.query.value));
+});
+
+/**
  * GET  /api/crowdsec/exceptions  client addresses the bouncer and appsec skip
  * POST /api/crowdsec/exceptions  add one, for all hosts or some proxy hosts
  */

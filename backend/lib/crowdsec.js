@@ -115,6 +115,16 @@ const createClient = (config) => {
 			return (await machine("GET", `/v1/alerts?${query}`)) ?? [];
 		},
 
+		/** @returns {Promise<Array>} allowlists with their entries (not expired ones), needs a lapi with allowlists */
+		allowlists: async () => (await machine("GET", "/v1/allowlists?with_content=true")) ?? [],
+
+		/**
+		 * @param   {String} value  ip or range
+		 * @returns {Promise<{allowlisted: Boolean, reason: String}>}
+		 */
+		checkAllowlist: async (value) =>
+			(await machine("GET", `/v1/allowlists/check/${encodeURIComponent(value)}`)) ?? {},
+
 		/** @returns {Promise<Number>} number of deleted decisions */
 		deleteDecision: async (id) => Number((await machine("DELETE", `/v1/decisions/${id}`))?.nbDeleted ?? 0),
 

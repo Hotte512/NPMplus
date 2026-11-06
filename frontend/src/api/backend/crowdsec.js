@@ -51,3 +51,11 @@ export async function deleteCrowdsecException(id) {
 export async function getCrowdsecClientIp() {
 	return await api.get({ url: "/crowdsec/client-ip" });
 }
+
+export async function getCrowdsecAllowlists() {
+	return await api.get({ url: "/crowdsec/allowlists" });
+}
+
+export async function checkCrowdsecAllowlist(value) {
+	return await api.get({ url: "/crowdsec/allowlists/check", params: { value } });
+}

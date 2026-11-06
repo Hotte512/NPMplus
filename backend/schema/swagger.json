@@ -186,6 +186,16 @@
 				"$ref": "./paths/crowdsec/alerts/get.json"
 			}
 		},
+		"/crowdsec/allowlists": {
+			"get": {
+				"$ref": "./paths/crowdsec/allowlists/get.json"
+			}
+		},
+		"/crowdsec/allowlists/check": {
+			"get": {
+				"$ref": "./paths/crowdsec/allowlists/check/get.json"
+			}
+		},
 		"/crowdsec/exceptions": {
 			"get": {
 				"$ref": "./paths/crowdsec/exceptions/get.json"
