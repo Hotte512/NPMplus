@@ -1,0 +1,59 @@
+{
+	"operationId": "updateCrowdsecAppsecBody",
+	"summary": "Set the AppSec request body limit and the action for larger bodies (all hosts)",
+	"tags": [
+		"crowdsec"
+	],
+	"security": [
+		{
+			"cookieAuth": []
+		}
+	],
+	"requestBody": {
+		"description": "Payload",
+		"required": true,
+		"content": {
+			"application/json": {
+				"schema": {
+					"type": "object",
+					"additionalProperties": false,
+					"required": [
+						"max_body_size_mb",
+						"action"
+					],
+					"properties": {
+						"max_body_size_mb": {
+							"description": "Request bodies up to this size (MiB) are inspected",
+							"type": "integer",
+							"minimum": 1,
+							"maximum": 1024,
+							"example": 64
+						},
+						"action": {
+							"description": "drop: reject larger bodies, partial: inspect only the first max_body_size_mb, allow: pass larger bodies without inspecting them",
+							"type": "string",
+							"enum": [
+								"drop",
+								"partial",
+								"allow"
+							],
+							"example": "partial"
+						}
+					}
+				}
+			}
+		}
+	},
+	"responses": {
+		"200": {
+			"description": "200 response",
+			"content": {
+				"application/json": {
+					"schema": {
+						"type": "object"
+					}
+				}
+			}
+		}
+	}
+}
