@@ -146,6 +146,10 @@ export default function Config() {
 				appsecUrl: data.appsecUrl,
 				appsecFailureAction: data.appsecFailureAction || "deny",
 				alwaysSendToAppsec: data.alwaysSendToAppsec,
+				appsecConnectTimeout: data.appsecConnectTimeout,
+				appsecSendTimeout: data.appsecSendTimeout,
+				appsecProcessTimeout: data.appsecProcessTimeout,
+				appsecDropUnreadableBody: data.appsecDropUnreadableBody,
 				sslVerify: data.sslVerify,
 				machineId: data.machineId,
 				password: "",
@@ -200,7 +204,10 @@ export default function Config() {
 							</div>
 							<div className="col-md-6">{textField("redirectLocation")}</div>
 						</div>
-						{textField("excludeLocation", { help: "crowdsec.config.excludeLocation.help" })}
+						{textField("excludeLocation", {
+							placeholder: "/.well-known/acme-challenge,/api/health",
+							help: "crowdsec.config.excludeLocation.help",
+						})}
 						{switchField("sslVerify")}
 
 						<h3 className="mt-4">
@@ -234,6 +241,21 @@ export default function Config() {
 						})}
 						{selectField("appsecFailureAction", ["deny", "passthrough"])}
 						{switchField("alwaysSendToAppsec")}
+						<div className="row">
+							{[
+								["appsecConnectTimeout", "100"],
+								["appsecSendTimeout", "100"],
+								["appsecProcessTimeout", "500"],
+							].map(([name, placeholder]) => (
+								<div key={name} className="col-md-4">
+									{textField(name, { placeholder, inputMode: "numeric", pattern: "[1-9][0-9]{0,4}" })}
+								</div>
+							))}
+						</div>
+						<p className="form-hint mt-n2">
+							<T id="crowdsec.config.appsecTimeouts.help" />
+						</p>
+						{switchField("appsecDropUnreadableBody", "crowdsec.config.appsecDropUnreadableBody.help")}
 
 						<h3 className="mt-4">
 							<T id="crowdsec.config.machine" />

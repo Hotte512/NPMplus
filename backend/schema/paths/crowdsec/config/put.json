@@ -32,12 +32,33 @@
 							"maxLength": 1024,
 							"pattern": "^(https?://[^\\s]+)?$"
 						},
+						"appsec_connect_timeout": {
+							"type": "string",
+							"maxLength": 6,
+							"pattern": "^([1-9][0-9]{0,5})?$",
+							"description": "Milliseconds (1-60000), empty for the default"
+						},
+						"appsec_drop_unreadable_body": {
+							"type": "boolean"
+						},
 						"appsec_failure_action": {
 							"type": "string",
 							"enum": [
 								"deny",
 								"passthrough"
 							]
+						},
+						"appsec_process_timeout": {
+							"type": "string",
+							"maxLength": 6,
+							"pattern": "^([1-9][0-9]{0,5})?$",
+							"description": "Milliseconds (1-60000), empty for the default"
+						},
+						"appsec_send_timeout": {
+							"type": "string",
+							"maxLength": 6,
+							"pattern": "^([1-9][0-9]{0,5})?$",
+							"description": "Milliseconds (1-60000), empty for the default"
 						},
 						"appsec_url": {
 							"type": "string",
@@ -71,8 +92,9 @@
 						},
 						"exclude_location": {
 							"type": "string",
-							"maxLength": 1024,
-							"pattern": "^[^\\r\\n]*$"
+							"maxLength": 4096,
+							"pattern": "^[^\\r\\n\"'\\\\]*$",
+							"description": "Comma separated paths starting with /, without spaces, quotes or backslashes"
 						},
 						"fallback_remediation": {
 							"type": "string",
