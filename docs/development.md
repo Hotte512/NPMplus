@@ -9,7 +9,22 @@
 
 Auf `claude/hotte-ci` liegen außerdem der Installer (`install/install.sh`, `install/proxmox.sh`) und die
 Referenz-Konfiguration `deploy/compose.yaml`. Der Installer erzeugt dieselbe Datei; Änderungen an einer Stelle
-daher an der anderen nachziehen. Die Skripte vor jedem Push mit `shellcheck -x install/*.sh` prüfen.
+daher an der anderen nachziehen. Die Skripte vor jedem Push mit `shellcheck -x install/*.sh deploy/*.sh` prüfen.
+
+Der CrowdSec-Helfer (`deploy/crowdsec-helper.sh`, POSIX-sh, läuft mit busybox im CrowdSec-Image) steckt unverändert
+als Heredoc in `install.sh` (Funktion `crowdsec_helper_script`), damit der Installer eine einzelne Datei bleibt.
+Nach jeder Änderung neu einbetten und prüfen, dass beide gleich sind:
+
+```bash
+bash -c 'NPMPLUS_HOTTE_LIB=1 . install/install.sh; crowdsec_helper_script' | diff - deploy/crowdsec-helper.sh
+```
+
+`body_config` im Helfer und `crowdsec_body_config` im Installer erzeugen dieselbe Datei; beide gleich halten, sonst
+schreibt der Helfer die Datei beim ersten Lauf neu.
+
+Der Helfer ist zum Testen ohne Container lauffähig: `HELPER_IN`, `HELPER_OUT`, `HELPER_CONF_DIR`,
+`HELPER_STATE_DIR`, `HELPER_TMP` ersetzen die Pfade, `HELPER_ONCE=1` macht einen Durchlauf; `cscli`, `crowdsec` und
+`pidof` lassen sich über `PATH` durch Attrappen ersetzen. Mit dash und mit busybox `sh` (im CrowdSec-Image) testen.
 `install.sh` läuft auch unter Alpine (busybox): keine GNU-only-Optionen verwenden (`grep -P`, `sed -i` mit
 GNU-Erweiterungen, `stat -c`, `date -d`, `timeout`, `hostname -I` nur als Rückfall) und keine Prozess-Substitution
 `<( … )` (braucht `/dev/fd`).

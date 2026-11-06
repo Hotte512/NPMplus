@@ -107,7 +107,9 @@ können andere Nutzer auch Domainnamen und Ziel-Host des Hosts nicht ändern.
 
 Menü **CrowdSec** (nur Admins) für den in NPMplus eingebauten CrowdSec-Bouncer. CrowdSec selbst läuft als eigener
 Container (Installer bzw. Block in `deploy/compose.yaml`). Oben zeigen Badges, ob der Bouncer aktiv ist, die
-Local API erreichbar ist und Bouncer-Key und Machine-Login funktionieren.
+Local API erreichbar ist, Bouncer-Key und Machine-Login funktionieren und ob der
+[CrowdSec-Helfer](#crowdsec-helfer) läuft („Helfer aktiv“, „Helfer nicht gefunden“, „Helfer antwortet nicht“,
+„Helfer: Fehler“ mit der Meldung als Tooltip).
 
 - **Bans:** aktive Sperren mit IP/Bereich, Scenario, Herkunft, Typ und Restlaufzeit, filterbar. Die
   Community-Blockliste wird nicht angezeigt (zehntausende Einträge). IP oder Bereich (CIDR) manuell bannen mit
@@ -121,17 +123,31 @@ Local API erreichbar ist und Bouncer-Key und Machine-Login funktionieren.
   für diesen Host gehen sie durch, für alle anderen bleibt AppSec aktiv.
   - Oben steht die Adresse, mit der NPMplus dich gerade sieht, mit Knopf **„Meine IP hinzufügen“**. Läuft der
     Zugriff über das LAN oder einen weiteren Proxy, ist das nicht die öffentliche IP.
-  - Eingaben werden geprüft und vereinheitlicht (`192.0.2.7/24` wird `192.0.2.0/24`). Bereiche größer als `/8`
-    (IPv4) bzw. `/16` (IPv6) sind nicht erlaubt. Maßgeblich ist die Client-Adresse nach Auswertung von Real-IP-Headern,
+  - Eingaben werden geprüft und vereinheitlicht (`192.0.2.7/24` wird `192.0.2.0/24`). Bereiche größer als `/16`
+    (IPv4) bzw. `/32` (IPv6) sind nicht erlaubt; früher gespeicherte größere Bereiche (bis `/8` bzw. `/16`) bleiben
+    in der Liste, wirken aber nicht mehr und sind als „Bereich zu groß, unwirksam“ markiert. Maßgeblich ist die Client-Adresse nach Auswertung von Real-IP-Headern,
     also dieselbe, die der Bouncer prüft.
   - Technisch: NPMplus schreibt `conf.d/crowdsec-exceptions.conf` (nginx-`geo`-Blöcke) und prüft sie mit `nginx -t`;
     wird sie abgelehnt, bleiben alte Datei und alter Stand erhalten. Die Datei wird beim Start neu erzeugt. Gelöschte
     Proxy-Hosts fallen aus den Ausnahmen heraus.
-  - Ausnahmen sind etwas anderes als Allowlists von CrowdSec (siehe unten): eine Allowlist verhindert Decisions,
-    AppSec prüft die Requests trotzdem.
-- **Allowlists:** zeigt die Allowlists der CrowdSec Local API mit Einträgen (IP/Bereich, Beschreibung, Ablauf) und
-  prüft per **„IP prüfen“**, ob eine Adresse oder ein Bereich darauf steht. Nur lesen, braucht den Machine-Login und
-  eine CrowdSec-Version mit Allowlists. Anlegen und Pflegen weiter mit `cscli`, z. B.:
+  - Ausnahmen wirken direkt in nginx, auch pro Host und ohne laufendes CrowdSec. Eine CrowdSec-Allowlist (siehe
+    unten) gilt dagegen in CrowdSec selbst für alle Hosts: keine Decisions, und AppSec überspringt die Adresse
+    (geprüft mit CrowdSec 1.8.2; ältere Versionen prüften Requests von Allowlist-Adressen noch).
+- **Allowlists:**
+  - **NPMplus-Allowlist:** eine echte CrowdSec-Allowlist namens `npmplus`, gepflegt auf dieser Seite: IP oder Bereich
+    (IPv4/IPv6, CIDR) mit optionaler Beschreibung und Gültigkeit (1 Stunde bis 1 Jahr oder unbegrenzt) hinzufügen,
+    Einträge entfernen, die eigene Adresse mit **„Meine IP hinzufügen“** übernehmen. Adressen darauf bekommen keine
+    Decisions (bestehende löscht CrowdSec beim Hinzufügen) und AppSec prüft ihre Requests nicht, auch nicht das
+    Body-Limit. Eingaben werden geprüft und vereinheitlicht wie bei den Ausnahmen (höchstens `/16` bzw. `/32`,
+    höchstens 500 Einträge). Übertragen werden sie vom [CrowdSec-Helfer](#crowdsec-helfer); die Spalte **Status**
+    zeigt pro Eintrag „übernommen“, „ausstehend“ (Helfer läuft nicht oder hat die Änderung noch nicht verarbeitet),
+    „Fehler“ (mit Meldung) oder „abgelaufen“. Ohne Helfer wird trotzdem gespeichert und später übernommen. Die
+    Der Helfer entfernt aus der Allowlist `npmplus` nur Einträge, die er selbst angelegt hat; mit `cscli` von Hand
+    ergänzte bleiben (auch wenn NPMplus noch keine Einträge hat). Steht eine Adresse schon von Hand darauf und wird
+    sie in NPMplus hinzugefügt, übernimmt der Helfer sie.
+  - **Alle Allowlists der Local API** mit Einträgen (IP/Bereich, Beschreibung, Ablauf), dazu **„IP prüfen“**, ob eine
+    Adresse oder ein Bereich auf einer davon steht. Nur lesen, braucht den Machine-Login und eine CrowdSec-Version mit
+    Allowlists. Weitere Allowlists anlegen und pflegen mit `cscli`, z. B.:
 
   ```bash
   docker exec crowdsec cscli allowlists create my_allowlist -d "my allowlist"
@@ -147,6 +163,13 @@ Local API erreichbar ist und Bouncer-Key und Machine-Login funktionieren.
     Zeitüberschreitung gilt „Wenn AppSec nicht erreichbar ist“.
   - **Requests mit nicht lesbarem Body ablehnen** (`APPSEC_DROP_UNREADABLE_BODY`): betrifft HTTP/2- und
     HTTP/3-Requests ohne Content-Length sowie gRPC. Aus (Standard) gehen sie ohne Body an AppSec.
+  - **AppSec-Body-Limit** (eigener Abschnitt mit eigenem Speichern-Knopf, gilt für alle Hosts): bis zu welcher Größe
+    (1–1024 MB) AppSec Request-Bodies (Uploads, Formulare) prüft und was mit größeren passiert:
+    `partial` prüft nur den Anfang und behandelt den Request sonst normal, `drop` lehnt ihn ab, `allow` lässt ihn
+    ohne Prüfung des Bodys durch (Header und URL werden weiter geprüft). CrowdSec selbst prüft nur 10 MB mit `drop`;
+    zusammen mit „Wenn AppSec nicht erreichbar ist: deny“ landen größere Uploads dann auf der Sperrseite. Der
+    Installer setzt **64 MB mit `partial`**. Angezeigt wird, was CrowdSec gerade verwendet und wann es neu geladen
+    wurde. Hohe Limits brauchen RAM im crowdsec-Container (AppSec hält den Body bis zum Limit im Speicher).
 - Bouncer-Key, Captcha-Secret und Machine-Passwort werden nur geschrieben, nie angezeigt, und in Logs maskiert.
 - **Machine-Login:** Bannen, Entbannen und Alerts brauchen ihn, nur Anzeigen der Bans geht mit dem Bouncer-Key.
   NPMplus liest ihn aus `/opt/npmplus/crowdsec/lapi-credentials.yaml` (im Container `/data/crowdsec/`). Der
@@ -164,6 +187,34 @@ Local API erreichbar ist und Bouncer-Key und Machine-Login funktionieren.
 - **Pro Proxy-Host:** Schalter **„CrowdSec-Bouncer deaktivieren“**. Sperren und AppSec gelten dann für diesen Host
   nicht (z. B. für reine LAN-Dienste).
 - Alle Änderungen stehen im Audit-Log.
+
+### CrowdSec-Helfer
+
+NPMplus kann CrowdSec nicht selbst ändern: die Local API kennt keine Schreibzugriffe auf Allowlists, und NPMplus
+bekommt bewusst keinen Docker-Socket. Das übernimmt der Container **`crowdsec-helper`** (richtet der Installer mit
+CrowdSec ein, `install.sh --update` ergänzt ihn bei vorhandenen Installationen):
+
+- gleiches Image wie `crowdsec` (bringt `cscli` mit), `network_mode`/`pid` von `crowdsec` geteilt (Local API unter
+  `127.0.0.1:8080`, Neuladen per SIGHUP), ohne Capabilities, ohne eigene Ports, Dateisystem schreibgeschützt
+  (`/tmp` im Speicher), höchstens 64 Prozesse und 256 MB RAM. Die CrowdSec-Konfiguration ist schreibgeschützt
+  eingebunden bis auf `appsec-configs` (dort liegt `npmplus-body-limit.yaml`); das Datenverzeichnis bleibt
+  beschreibbar, weil `cscli allowlists` direkt in die SQLite-Datenbank schreibt.
+- NPMplus speichert die Einstellungen in seiner Datenbank und schreibt daraus bei jeder Änderung und beim Start den
+  Soll-Zustand nach `/data/crowdsec/helper/in` (`allowlist.desired`, `appsec.desired`; auf dem Host
+  `/opt/crowdsec/helper/in`). Der Helfer bindet dieses Verzeichnis nur lesend ein; sein Ergebnis schreibt er nach
+  `/opt/crowdsec/helper/out`, das NPMplus nur lesend sieht. So schreibt keine Seite in ein Verzeichnis, das die andere
+  verändern kann.
+- Der Helfer schaut alle 5 Sekunden nach, prüft jeden Wert erneut (Dateien mit mehr als 20 ungültigen Zeilen oder
+  mehr als 503 Zeilen lehnt er ganz ab), gleicht die Allowlist `npmplus` mit `cscli allowlists` ab (fehlende
+  hinzufügen, eigene nicht mehr gewünschte entfernen; andere Allowlists bleiben unberührt) und schreibt beim
+  Body-Limit die appsec-config `npmplus/body-limit`. Die prüft er vorher unter anderem Namen mit `crowdsec -t`; erst
+  wenn CrowdSec sie annimmt, stellt er sie bereit und lädt CrowdSec neu, sonst bleibt die alte. Änderungen setzt er
+  höchstens einmal pro Minute um (schnelle Änderungen hintereinander werden gesammelt), zusätzlich gleicht er alle 5
+  Minuten ab.
+- Ergebnis und Lebenszeichen schreibt er nach `out/status.json`; meldet er sich 90 Sekunden nicht, zeigt die Seite
+  „Helfer antwortet nicht“. Log: `docker logs crowdsec-helper`. Wird `crowdsec` mit `docker restart crowdsec` neu
+  gestartet, endet auch der Helfer (gemeinsamer PID-Namensraum): danach `docker start crowdsec-helper`, oder gleich
+  `docker compose -f /opt/npmplus-hotte/compose.yaml restart crowdsec` verwenden, das startet ihn mit.
 
 ## Log-Viewer
 

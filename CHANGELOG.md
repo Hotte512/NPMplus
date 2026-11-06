@@ -13,7 +13,16 @@ Einträge nach Datum. Upstream-Änderungen stehen im [NPMplus-Repository](https:
 - **CrowdSec-Seite, Einstellungen:** AppSec-Timeouts (Verbindung, Senden, Verarbeitung) und „Requests mit nicht
   lesbarem Body ablehnen“ einstellbar; ausgenommene Pfade werden jetzt geprüft.
 - **CrowdSec-Seite, Allowlists:** zeigt die Allowlists der CrowdSec Local API mit ihren Einträgen und prüft, ob
-  eine IP oder ein Bereich darauf steht (nur lesen, anlegen weiter mit `cscli allowlists`).
+  eine IP oder ein Bereich darauf steht.
+- **CrowdSec-Seite, NPMplus-Allowlist:** eine echte CrowdSec-Allowlist (`npmplus`) direkt auf der Seite pflegen:
+  IP oder Bereich mit Beschreibung und optionaler Gültigkeit hinzufügen oder entfernen, eigene IP mit einem Klick.
+  Adressen darauf bekommen keine Sperren und AppSec prüft sie nicht. Status pro Eintrag
+  ([Doku](docs/features.md#crowdsec-seite)).
+- **CrowdSec-Seite, AppSec-Body-Limit:** bis zu welcher Größe AppSec Uploads prüft (1–1024 MB) und was mit größeren
+  passiert (`partial`, `drop`, `allow`), für alle Hosts.
+- **CrowdSec-Helfer:** neuer Container `crowdsec-helper`, der die beiden Einstellungen nach CrowdSec überträgt (ohne
+  Docker-Socket für NPMplus). Die CrowdSec-Seite zeigt, ob er läuft
+  ([Doku](docs/features.md#crowdsec-helfer)).
 
 ### Upstream
 - Auf den aktuellen Upstream-`develop` (`c09fb53b`) nachgezogen, u. a. mit diesen Upstream-Änderungen: nur Admins
@@ -22,6 +31,18 @@ Einträge nach Datum. Upstream-Änderungen stehen im [NPMplus-Repository](https:
   ungespeicherter Änderungen, neue Favicons.
 
 ### Geändert
+- **Installer:** AppSec prüft Request-Bodies jetzt bis **64 MB** und bei größeren nur den Anfang (`partial`), statt
+  ab 10 MB zu blockieren. Gilt für neue Installationen und nach `install.sh --update`; vorhandene Einstellungen
+  bleiben ([Doku](docs/installation.md#nach-der-installation)).
+- **`install.sh --update`** erzeugt die `compose.yaml` mit den bisherigen Antworten neu (alte Fassung als `.bak`)
+  und ergänzt so neue Dienste wie den CrowdSec-Helfer. Eigene Einstellungen bei NPMplus, CrowdSec, Guard und Helfer
+  (Variablen, Ports, Volumes, weitere Schlüssel) und auf oberster Ebene bleiben erhalten (auch bei einem erneuten
+  Lauf); vorher zeigt das Skript die Änderungen und fragt, falls etwas verloren ginge
+  ([Doku](docs/installation.md#erneut-ausführen-updates-deinstallation)).
+- **CrowdSec-Seite, Ausnahmen:** Bereiche dürfen höchstens `/16` (IPv4) bzw. `/32` (IPv6) groß sein (vorher `/8`
+  bzw. `/16`). Größere, schon gespeicherte Ausnahmen wirken nicht mehr und sind markiert.
+- **CrowdSec-Seite:** der Hinweis, AppSec prüfe Adressen auf einer Allowlist trotzdem, war falsch; aktuelle
+  CrowdSec-Versionen überspringen sie.
 - **ACME-Weiterleitung:** NPMplus beantwortet seine eigenen Challenges zuerst, alle anderen gehen an das Ziel
   (vorher umgekehrt). Upstream liefert Challenges jetzt aus einem Webroot statt zustandslos.
 - Proxy-Host-Dialog: Tags, ACME-, CrowdSec- und UniFi-DNS-Felder sind ohne Verwaltungsrecht ebenfalls gesperrt.

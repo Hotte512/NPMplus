@@ -142,7 +142,10 @@ Entfernte Cronjobs aus `/root/npmplus-hotte-backup-<Zeit>/` zurückkopieren – 
 | `/opt/npmplus-hotte/compose.yaml` | Compose-Datei (Projektname `npmplus`) |
 | `/opt/npmplus` | NPMplus-Daten (Datenbank, Zertifikate, Logs, `crowdsec/crowdsec.conf`) |
 | `/opt/unifi-api-guard` | Guard-Konfiguration (gehört UID 65532, Rechte 0700) |
-| `/opt/crowdsec/conf`, `/opt/crowdsec/data` | CrowdSec-Konfiguration (inkl. `acquis.d/npmplus.yaml`) und -Datenbank |
+| `/opt/crowdsec/conf`, `/opt/crowdsec/data` | CrowdSec-Konfiguration (inkl. `acquis.d/npmplus.yaml` und `appsec-configs/npmplus-body-limit.yaml`) und -Datenbank |
+| `/opt/crowdsec/helper/bin/crowdsec-helper.sh` | Skript des CrowdSec-Helfers (Container `crowdsec-helper`, schreibgeschützt eingebunden), wird bei jedem Lauf des Installers aktualisiert |
+| `/opt/crowdsec/helper/in` | Soll-Zustand, schreibt nur NPMplus (dort `/data/crowdsec/helper/in`), beim Helfer schreibgeschützt; gehört demselben Benutzer wie `/opt/npmplus/crowdsec` (mit `PUID`/`PGID` also nicht root) |
+| `/opt/crowdsec/helper/out` | `status.json`, schreibt nur der Helfer, bei NPMplus schreibgeschützt (`/data/crowdsec/helper/out`) |
 | `/etc/cron.d/npmplus-hotte` | Debian/Ubuntu: tägliches Update (nur mit `AUTO_UPDATE=yes`) |
 | `/etc/crontabs/root` | Alpine: tägliches Update als Block zwischen `# >>> npmplus-hotte` und `# <<< npmplus-hotte` (busybox `crond` liest `/etc/cron.d` nicht) |
 
@@ -168,6 +171,19 @@ wird nur installiert, wenn es fehlt.
   Tipp: Zugriffe aus dem eigenen LAN stehen dort unter „Lines whitelisted“ – CrowdSec ignoriert private Adressen
   standardmäßig, gewertet werden nur Zugriffe von außen. `cscli bouncers list` zeigt den Bouncer `npmplus` mit der
   Docker-Bridge-IP (z. B. `172.17.0.1`), das ist richtig.
+- **CrowdSec-Helfer und AppSec-Body-Limit:** Mit CrowdSec startet der Installer auch den Container
+  `crowdsec-helper`, der die NPMplus-Allowlist und das AppSec-Body-Limit von der CrowdSec-Seite nach CrowdSec
+  überträgt ([Details](features.md#crowdsec-helfer)). Außerdem legt er die appsec-config
+  `appsec-configs/npmplus-body-limit.yaml` an (**64 MB, `partial`** statt 10 MB mit `drop`, sonst bekommen größere
+  Uploads die Sperrseite) und setzt `npmplus/body-limit` als ersten Eintrag unter `appsec_configs` in
+  `acquis.d/npmplus.yaml` (vorher als `npmplus.yaml.bak-<Zeit>` gesichert, CrowdSec liest nur `*.yaml`). Erster
+  Eintrag deshalb, weil CrowdSec Optionen wie `default_remediation` von der zuletzt geladenen Konfiguration nimmt.
+  Vorher lässt er den Helfer die Werte unter anderem Namen mit `crowdsec -t` prüfen, nach dem Eintragen prüft er
+  die ganze Konfiguration erneut; lehnt CrowdSec sie ab (zu alte Version), nimmt er die Acquis-Datei zurück (die
+  dann nicht mehr referenzierte `npmplus-body-limit.yaml` stört nicht). Eine vorhandene `npmplus-body-limit.yaml` bleibt, wie sie ist; wer den Eintrag aus `appsec_configs`
+  entfernt und die Kommentarzeile darüber stehen lässt, bekommt ihn nicht wieder. Kontrolle:
+  `docker logs crowdsec-helper`, `cat /opt/crowdsec/helper/out/status.json`,
+  `docker exec crowdsec cscli allowlists inspect npmplus`.
   Weitere Collections, AppSec-CRS und Bot-Erkennung: NPMplus-README, Abschnitt „Crowdsec“.
 
 ### Weitere Dienste nachträglich holen (`IMPORT_FROM`)
@@ -209,6 +225,21 @@ Danach läuft der normale Ablauf: Fragen mit den bisherigen Antworten als Vorgab
   MODE=update bash -c "$(curl -fsSL https://raw.githubusercontent.com/Hotte512/NPMplus/claude/hotte-ci/install/install.sh)"
   ```
 
+  `--update` schreibt dabei auch die `compose.yaml` mit den bisherigen Antworten neu (alte Fassung als `.bak-<Zeit>`)
+  und ergänzt so neue Dienste. Mit CrowdSec kommen so der CrowdSec-Helfer und das AppSec-Body-Limit (64 MB,
+  `partial`) zu älteren Installationen dazu; das gemeinsame Spool-Verzeichnis der ersten Helfer-Fassung
+  (`/opt/crowdsec/helper/spool`) wird dabei durch `in/` und `out/` ersetzt. Der tägliche Update-Job tut das nicht,
+  er holt nur neue Images.
+
+  Eigene Änderungen an der `compose.yaml` bleiben dabei erhalten, wie bei einem erneuten Lauf: bei NPMplus,
+  CrowdSec, Guard und Helfer zusätzliche oder geänderte Umgebungsvariablen (z. B. `COLLECTIONS`, `BOUNCER_KEY_…`,
+  `ENROLL_KEY`, `GUARD_ADMIN_ALLOW`), geänderte Ports, weitere Volumes und weitere Einstellungen (z. B. `labels`,
+  `mem_limit`), dazu weitere Dienste und alle Einträge der obersten Ebene (z. B. `volumes:`, `x-…`). Vor dem
+  Schreiben zeigt das Skript die Änderungen (Variablenwerte als `***`). Würde dabei eine Einstellung verloren gehen
+  oder geändert, die der Installer selbst setzt (z. B. ein anderes `image` oder `restart`), fragt es nach; ohne
+  Terminal bleibt die Datei unverändert und das Skript bricht ab. Bestätigen ohne Rückfrage:
+  `ACCEPT_COMPOSE_CHANGES=yes`.
+
   Nur die Container:
   `docker compose -f /opt/npmplus-hotte/compose.yaml pull && docker compose -f /opt/npmplus-hotte/compose.yaml up -d && docker image prune -f`
 - **Deinstallation:** `docker compose -f /opt/npmplus-hotte/compose.yaml down`, `rm -f /etc/cron.d/npmplus-hotte`
@@ -226,6 +257,10 @@ Danach läuft der normale Ablauf: Fragen mit den bisherigen Antworten als Vorgab
 | `install.sh` versehentlich auf dem Proxmox-Host ausgeführt (ältere Version ohne Sperre) | Container mit `docker compose -f /opt/npmplus-hotte/compose.yaml down` stoppen, `/etc/cron.d/npmplus-hotte` und die Ordner unter `/opt/` löschen, Docker-Pakete entfernen (`apt-get purge docker-ce docker-ce-cli containerd.io docker-buildx-plugin docker-compose-plugin`) und **den Host neu starten**. Docker hinterlässt sonst Firewall-Regeln, die das Netz neuer VMs und LXCs blockieren (z. B. bekommt ein neuer LXC per DHCP keine IP). |
 | `proxmox.sh`: „hat keine IP“ | DHCP auf der Bridge bzw. im VLAN prüfen (VLAN-Tag angeben?) oder eine feste IP wählen. Siehe auch die Zeile darüber. |
 | `proxmox.sh`: „IP, aber DNS geht nicht“ | Nameserver in `/etc/resolv.conf` des Containers prüfen (`pct exec <CTID> -- cat /etc/resolv.conf`). |
+| „Diese Einstellungen der bisherigen compose.yaml würden geändert …“ | Die Liste zeigt, was der Installer anders setzen würde. Werte von Hand übertragen oder mit `ACCEPT_COMPOSE_CHANGES=yes` bestätigen. |
+| CrowdSec-Seite: Einträge bleiben „ausstehend“, `docker logs crowdsec-helper` zeigt nichts | Mit `PUID`/`PGID`: `/opt/crowdsec/helper/in` muss dem NPMplus-Benutzer gehören (`install.sh --update` setzt das). |
+| CrowdSec-Seite: „Helfer nicht gefunden“ | Installation älter als der Helfer: `install.sh --update` ausführen. Nur mit CrowdSec aus dem Installer. |
+| CrowdSec-Seite: „Helfer antwortet nicht“ | `docker ps -a` zeigt `crowdsec-helper` beendet, meist nach `docker restart crowdsec`: `docker start crowdsec-helper`. Sonst `docker logs crowdsec-helper`. |
 | Installer wartet lange | Der erste Start von NPMplus dauert etwas; das Skript zeigt alle 15 s den Fortschritt. Nach Zeitüberschreitung: `docker logs npmplus` bzw. `docker logs crowdsec`, dann das Skript erneut ausführen. |
 
 ## Sicherheit
