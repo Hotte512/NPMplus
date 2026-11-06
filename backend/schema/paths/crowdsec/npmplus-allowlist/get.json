@@ -1,0 +1,50 @@
+{
+	"operationId": "getCrowdsecNpmplusAllowlist",
+	"summary": "Get the entries of the CrowdSec allowlist \"npmplus\" with their sync state",
+	"tags": [
+		"crowdsec"
+	],
+	"security": [
+		{
+			"cookieAuth": []
+		}
+	],
+	"responses": {
+		"200": {
+			"description": "200 response",
+			"content": {
+				"application/json": {
+					"schema": {
+						"type": "object",
+						"properties": {
+							"name": {
+								"type": "string"
+							},
+							"helper": {
+								"type": "object"
+							},
+							"revision": {
+								"type": "string"
+							},
+							"applied_revision": {
+								"type": "string"
+							},
+							"items": {
+								"type": "array",
+								"items": {
+									"type": "object"
+								}
+							},
+							"client_ip": {
+								"type": "string"
+							},
+							"client_ip_listed": {
+								"type": "boolean"
+							}
+						}
+					}
+				}
+			}
+		}
+	}
+}

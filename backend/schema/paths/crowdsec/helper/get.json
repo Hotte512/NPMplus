@@ -1,0 +1,47 @@
+{
+	"operationId": "getCrowdsecHelper",
+	"summary": "Get the state of the crowdsec-helper container which applies allowlist entries and the AppSec body limit",
+	"tags": [
+		"crowdsec"
+	],
+	"security": [
+		{
+			"cookieAuth": []
+		}
+	],
+	"responses": {
+		"200": {
+			"description": "200 response",
+			"content": {
+				"application/json": {
+					"schema": {
+						"type": "object",
+						"properties": {
+							"state": {
+								"type": "string",
+								"enum": [
+									"active",
+									"stale",
+									"missing",
+									"invalid"
+								]
+							},
+							"version": {
+								"type": "string"
+							},
+							"heartbeat": {
+								"type": [
+									"string",
+									"null"
+								]
+							},
+							"spool_dir": {
+								"type": "string"
+							}
+						}
+					}
+				}
+			}
+		}
+	}
+}

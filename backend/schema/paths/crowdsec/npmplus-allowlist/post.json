@@ -1,0 +1,50 @@
+{
+	"operationId": "createCrowdsecNpmplusAllowlistItem",
+	"summary": "Add an address or range to the CrowdSec allowlist \"npmplus\" (applied by the crowdsec-helper container)",
+	"tags": [
+		"crowdsec"
+	],
+	"security": [
+		{
+			"cookieAuth": []
+		}
+	],
+	"requestBody": {
+		"description": "Payload",
+		"required": true,
+		"content": {
+			"application/json": {
+				"schema": {
+					"type": "object",
+					"additionalProperties": false,
+					"required": [
+						"value"
+					],
+					"properties": {
+						"value": {
+							"$ref": "../../../components/crowdsec-allowlist-item-object.json#/properties/value"
+						},
+						"description": {
+							"$ref": "../../../components/crowdsec-allowlist-item-object.json#/properties/description"
+						},
+						"expires_at": {
+							"$ref": "../../../components/crowdsec-allowlist-item-object.json#/properties/expires_at"
+						}
+					}
+				}
+			}
+		}
+	},
+	"responses": {
+		"201": {
+			"description": "201 response",
+			"content": {
+				"application/json": {
+					"schema": {
+						"$ref": "../../../components/crowdsec-allowlist-item-object.json"
+					}
+				}
+			}
+		}
+	}
+}

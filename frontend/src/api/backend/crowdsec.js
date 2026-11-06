@@ -59,3 +59,19 @@ export async function getCrowdsecAllowlists() {
 export async function checkCrowdsecAllowlist(value) {
 	return await api.get({ url: "/crowdsec/allowlists/check", params: { value } });
 }
+
+export async function getCrowdsecHelper() {
+	return await api.get({ url: "/crowdsec/helper" });
+}
+
+export async function getCrowdsecNpmplusAllowlist() {
+	return await api.get({ url: "/crowdsec/npmplus-allowlist" });
+}
+
+export async function createCrowdsecNpmplusAllowlistItem(data) {
+	return await api.post({ url: "/crowdsec/npmplus-allowlist", data });
+}
+
+export async function deleteCrowdsecNpmplusAllowlistItem(id) {
+	return await api.del({ url: `/crowdsec/npmplus-allowlist/${id}` });
+}
