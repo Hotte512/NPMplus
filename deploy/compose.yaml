@@ -6,7 +6,7 @@
 # vorhandene Installation (z. B. community-scripts), kommen deren Variablen, Bind-Mounts, dns, cap_add und weitere
 # Dienste (z. B. geoipupdate) hinzu.
 #
-# Daten:  /opt/npmplus (NPMplus), /opt/unifi-api-guard (Guard), /opt/crowdsec (CrowdSec)
+# Daten:  /opt/npmplus (NPMplus), /opt/unifi-api-guard (Guard), /opt/crowdsec (CrowdSec, Helfer unter /opt/crowdsec/helper)
 # Ports:  80/443 (Proxy), 81 (NPMplus-Oberfläche, HTTPS), 8091 (Guard-Admin), 8090 nur lokal (Guard-Proxy),
 #         127.0.0.1:8080/7422 (CrowdSec LAPI/AppSec)
 #
@@ -30,6 +30,10 @@ services:
       - no-new-privileges:true
     volumes:
       - "/opt/npmplus:/data"
+# >>> optional: crowdsec-helper-spool
+#      - "/opt/crowdsec/helper/in:/data/crowdsec/helper/in" # CrowdSec-Helfer: Soll-Zustand (schreibt NPMplus)
+#      - "/opt/crowdsec/helper/out:/data/crowdsec/helper/out:ro" # CrowdSec-Helfer: Status (schreibt der Helfer)
+# <<< optional: crowdsec-helper-spool
     environment:
       - "TZ=Europe/Berlin" # Pflicht, Zeitzone aus https://en.wikipedia.org/wiki/List_of_tz_database_time_zones
 # >>> optional: acme-email
@@ -85,4 +89,45 @@ services:
 #      - "/opt/crowdsec/conf:/etc/crowdsec"
 #      - "/opt/crowdsec/data:/var/lib/crowdsec/data"
 #      - "/opt/npmplus/nginx/logs:/opt/npmplus/nginx/logs:ro"
+#
+#  # CrowdSec-Helfer: setzt NPMplus-Allowlist und AppSec-Body-Limit um (cscli, SIGHUP an crowdsec), ohne Docker-Socket.
+#  # Nur zusammen mit crowdsec und dem Volume „crowdsec-helper-spool“ bei npmplus oben. Das Skript schreibt der
+#  # Installer nach /opt/crowdsec/helper/bin/crowdsec-helper.sh (Quelle: deploy/crowdsec-helper.sh), von Hand:
+#  #   mkdir -p /opt/crowdsec/helper/bin /opt/crowdsec/helper/in /opt/crowdsec/helper/out
+#  #   cp deploy/crowdsec-helper.sh /opt/crowdsec/helper/bin/
+#  # in/ schreibt nur NPMplus (gleicher Besitzer wie /opt/npmplus/crowdsec), out/ nur der Helfer.
+#  # Body-Limit: appsec-config npmplus/body-limit als ersten Eintrag unter appsec_configs in acquis.d/npmplus.yaml
+#  # (legt der Installer an, Vorgabe 64 MB, partial). Log: docker logs crowdsec-helper
+#  crowdsec-helper:
+#    container_name: crowdsec-helper
+#    restart: unless-stopped
+#    image: docker.io/crowdsecurity/crowdsec:latest # gleiches Image wie crowdsec, bringt cscli mit
+#    pull_policy: always
+#    network_mode: "service:crowdsec" # LAPI unter 127.0.0.1:8080 für cscli allowlists list/inspect
+#    pid: "service:crowdsec" # SIGHUP an den crowdsec-Prozess nach einer AppSec-Änderung
+#    depends_on:
+#      crowdsec:
+#        condition: service_started
+#        restart: true # „docker compose restart crowdsec“ startet den Helfer mit (nötig wegen pid/network)
+#    entrypoint: ["/bin/sh", "/helper/crowdsec-helper.sh"]
+#    cap_drop:
+#      - ALL
+#    security_opt:
+#      - no-new-privileges:true
+#    read_only: true
+#    tmpfs:
+#      - /tmp:size=64m
+#    pids_limit: 64
+#    mem_limit: 256m
+#    # Schreibrechte nur wo nötig: appsec-configs (npmplus-body-limit.yaml), data (cscli allowlists schreibt in die
+#    # SQLite-Datenbank), spool/out (Status). Den Soll-Zustand in spool/in liest der Helfer nur.
+#    volumes:
+#      - "/opt/crowdsec/conf:/etc/crowdsec:ro"
+#      - "/opt/crowdsec/conf/appsec-configs:/etc/crowdsec/appsec-configs"
+#      - "/opt/crowdsec/data:/var/lib/crowdsec/data"
+#      - "/opt/crowdsec/helper/in:/spool/in:ro"
+#      - "/opt/crowdsec/helper/out:/spool/out"
+#      - "/opt/crowdsec/helper/bin:/helper:ro"
+#    environment:
+#      - "TZ=Europe/Berlin"
 # <<< optional: crowdsec
