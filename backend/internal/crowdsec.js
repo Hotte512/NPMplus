@@ -16,6 +16,46 @@ const nginxConfDisabled = path.join(nginxConfDir, "crowdsec.conf.disabled");
 
 const YAML_LINE = /^(?<key>[a-z_]+):(?<value>.*)$/u;
 const LINE = /^(?<key>[A-Z_]+)=(?<value>.*)$/u;
+// a path the bouncer compares with $uri (exact or as prefix), the file separates them with commas
+const EXCLUDE_PATH = /^\/[\x21-\x7e]*$/u;
+const EXCLUDE_FORBIDDEN = /[,"'\\]/u;
+const TIMEOUT_MS = /^[1-9][0-9]{0,5}$/u;
+
+/**
+ * EXCLUDE_LOCATION: "/a, /b" => "/a,/b", empty entries are dropped
+ *
+ * @param   {String} value
+ * @returns {String}
+ */
+const normalizeExcludeLocation = (value) => {
+	const paths = value
+		.split(",")
+		.map((p) => p.trim())
+		.filter(Boolean);
+	if (paths.length > 50) throw new errs.ValidationError("Excluded paths: at most 50 paths");
+	for (const p of paths) {
+		if (p.length > 255 || !EXCLUDE_PATH.test(p) || EXCLUDE_FORBIDDEN.test(p)) {
+			throw new errs.ValidationError(
+				`Excluded paths: "${p.slice(0, 64)}" must start with / and may only contain printable ASCII without spaces, commas, quotes or backslashes`,
+			);
+		}
+	}
+	return [...new Set(paths)].join(",");
+};
+
+/**
+ * APPSEC_*_TIMEOUT in milliseconds, empty means the default of the bouncer
+ *
+ * @param   {String} value
+ * @returns {String}
+ */
+const normalizeTimeout = (value) => {
+	if (value === "") return "";
+	if (!TIMEOUT_MS.test(value) || Number(value) > 60000) {
+		throw new errs.ValidationError("AppSec timeouts must be between 1 and 60000 ms");
+	}
+	return value;
+};
 
 /**
  * Keys of crowdsec.conf editable through the api, everything else in the file is kept as is
@@ -31,7 +71,7 @@ const fields = {
 	fallback_remediation: { type: "string" },
 	ret_code: { type: "string" },
 	redirect_location: { type: "string" },
-	exclude_location: { type: "string" },
+	exclude_location: { type: "string", normalize: normalizeExcludeLocation },
 	captcha_provider: { type: "string" },
 	site_key: { type: "string" },
 	secret_key: { type: "string", secret: true },
@@ -39,6 +79,10 @@ const fields = {
 	appsec_url: { type: "string" },
 	appsec_failure_action: { type: "string" },
 	always_send_to_appsec: { type: "boolean" },
+	appsec_connect_timeout: { type: "string", normalize: normalizeTimeout },
+	appsec_send_timeout: { type: "string", normalize: normalizeTimeout },
+	appsec_process_timeout: { type: "string", normalize: normalizeTimeout },
+	appsec_drop_unreadable_body: { type: "boolean" },
 	ssl_verify: { type: "boolean" },
 };
 
@@ -294,8 +338,12 @@ const internalCrowdsec = {
 		for (const [key, field] of Object.entries(fields)) {
 			if (!(key in data)) continue;
 			if (field.secret && !data[key]) continue;
-			values[key.toUpperCase()] =
-				field.type === "boolean" ? String(Boolean(data[key])) : String(data[key]).trim();
+			if (field.type === "boolean") {
+				values[key.toUpperCase()] = String(Boolean(data[key]));
+			} else {
+				const value = String(data[key]).trim();
+				values[key.toUpperCase()] = field.normalize ? field.normalize(value) : value;
+			}
 		}
 		const newText = updateConf(oldText, values);
 		const enabled = toBool(values.ENABLED ?? old.ENABLED);
