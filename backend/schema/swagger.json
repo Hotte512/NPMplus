@@ -214,6 +214,14 @@
 				"$ref": "./paths/crowdsec/npmplus-allowlist/item_id/delete.json"
 			}
 		},
+		"/crowdsec/appsec-body": {
+			"get": {
+				"$ref": "./paths/crowdsec/appsec-body/get.json"
+			},
+			"put": {
+				"$ref": "./paths/crowdsec/appsec-body/put.json"
+			}
+		},
 		"/crowdsec/exceptions": {
 			"get": {
 				"$ref": "./paths/crowdsec/exceptions/get.json"

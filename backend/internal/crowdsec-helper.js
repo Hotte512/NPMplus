@@ -23,6 +23,15 @@ import internalAuditLog from "./audit-log.js";
  *   revision <16 hex>
  *   item <value> <expiration as unix time, 0 = never> <description>
  *   end
+ *
+ *   npmplus-crowdsec-desired 1 appsec
+ *   revision <16 hex>
+ *   max_body_size <bytes>
+ *   body_size_exceeded_action <drop|partial|allow>
+ *   end
+ *
+ * appsec.desired only exists once the limit was saved in NPMplus, until then the helper leaves the appsec-config
+ * written by install.sh (64 MiB, partial) as it is.
  */
 
 // only meant for testing, compose always uses this path
@@ -30,6 +39,11 @@ const helperDir = process.env.NPMPLUS_CROWDSEC_HELPER_DIR || "/data/crowdsec/hel
 const inDir = path.join(helperDir, "in");
 const statusFile = path.join(helperDir, "out", "status.json");
 const ITEM_TABLE = "npmplus_crowdsec_allowlist_item";
+const APPSEC_TABLE = "npmplus_crowdsec_appsec";
+const APPSEC_ACTIONS = ["drop", "partial", "allow"];
+// what install.sh writes for new and updated installations
+const APPSEC_DEFAULT = { max_body_size_mb: 64, action: "partial" };
+const MIB = 1024 * 1024;
 const LIST_NAME = "npmplus";
 // a heartbeat older than this means the helper is not running
 const STALE_MS = 90 * 1000;
@@ -100,6 +114,19 @@ const writeAtomic = async (name, text) => {
 	}
 };
 
+/**
+ * @param   {Object|null} row
+ * @returns {{text: String, revision: String}|null}
+ */
+const renderAppsec = (row) => {
+	if (!row) return null;
+	const mb = Number(row.max_body_size_mb);
+	if (!Number.isInteger(mb) || mb < 1 || mb > 1024 || !APPSEC_ACTIONS.includes(row.action)) return null;
+	return renderDesired("appsec", [`max_body_size ${mb * MIB}`, `body_size_exceeded_action ${row.action}`]);
+};
+
+const loadAppsec = async () => (await db()(APPSEC_TABLE).where({ id: 1 }).first()) ?? null;
+
 const loadItems = async () =>
 	(await db()(ITEM_TABLE).select("id", "value", "description", "expires_at", "created_on").orderBy("id")).map(
 		(r) => ({
@@ -114,12 +141,13 @@ const loadItems = async () =>
 /**
  * Writes all desired state files from the database
  *
- * @returns {Promise<{allowlist: String}>}  the revisions
+ * @returns {Promise}
  */
 const writeSpool = async () => {
-	const allowlist = renderAllowlist(await loadItems());
-	await writeAtomic("allowlist.desired", allowlist.text);
-	return { allowlist: allowlist.revision };
+	await writeAtomic("allowlist.desired", renderAllowlist(await loadItems()).text);
+	const appsec = renderAppsec(await loadAppsec());
+	if (appsec) await writeAtomic("appsec.desired", appsec.text);
+	else await rm(path.join(inDir, "appsec.desired"), { force: true });
 };
 
 const str = (value, max = 200) => (typeof value === "string" ? value.replace(SAFE_TEXT, "").slice(0, max) : "");
@@ -170,6 +198,7 @@ const readStatus = async () => {
 	if (!raw || typeof raw !== "object" || raw.format !== 1) return { invalid: true };
 	const al = raw.allowlist && typeof raw.allowlist === "object" ? raw.allowlist : {};
 	const items = Array.isArray(al.items) ? al.items.slice(0, MAX_ITEMS * 2) : [];
+	const as = raw.appsec && typeof raw.appsec === "object" ? raw.appsec : {};
 	return {
 		version: str(raw.helper_version, 16),
 		heartbeat: int(raw.heartbeat),
@@ -188,7 +217,16 @@ const readStatus = async () => {
 					message: str(i.message),
 				})),
 		},
-		raw,
+		appsec: {
+			state: str(as.state, 16),
+			message: str(as.message),
+			revision: REVISION.test(as.revision ?? "") ? as.revision : "",
+			last_run: int(as.last_run),
+			max_body_size: int(as.max_body_size) || null,
+			action: APPSEC_ACTIONS.includes(as.action) ? as.action : null,
+			referenced: as.referenced === true,
+			reloaded_at: int(as.reloaded_at),
+		},
 	};
 };
 
@@ -274,7 +312,7 @@ const internalCrowdsecHelper = {
 		access.canAdmin();
 		const status = await readStatus();
 		const helper = helperSummary(status);
-		if (!status || status.invalid) return { ...helper, spool_dir: helperDir, allowlist: null };
+		if (!status || status.invalid) return { ...helper, spool_dir: helperDir, allowlist: null, appsec: null };
 		return {
 			...helper,
 			spool_dir: helperDir,
@@ -282,6 +320,11 @@ const internalCrowdsecHelper = {
 				state: status.allowlist.state,
 				message: status.allowlist.message,
 				last_run: time(status.allowlist.last_run),
+			},
+			appsec: {
+				state: status.appsec.state,
+				message: status.appsec.message,
+				last_run: time(status.appsec.last_run),
 			},
 		};
 	},
@@ -377,6 +420,85 @@ const internalCrowdsecHelper = {
 		}),
 
 	/**
+	 * AppSec body limit: stored value, what the helper reports as applied and whether that matches
+	 *
+	 * @param   {Access}  access
+	 * @returns {Promise<Object>}
+	 */
+	getAppsec: async (access) => {
+		access.canAdmin();
+		const row = await loadAppsec();
+		const desired = renderAppsec(row);
+		const status = await readStatus();
+		const helper = helperSummary(status);
+		const usable = status && !status.invalid;
+		const applied = usable
+			? {
+					state: status.appsec.state,
+					message: status.appsec.message,
+					revision: status.appsec.revision,
+					max_body_size: status.appsec.max_body_size,
+					action: status.appsec.action,
+					referenced: status.appsec.referenced,
+					reloaded_at: time(status.appsec.reloaded_at),
+				}
+			: null;
+		let sync = "unmanaged";
+		if (desired) {
+			if (helper.state !== "active" || applied.revision !== desired.revision) sync = "pending";
+			else sync = applied.state === "ok" ? "ok" : "error";
+		}
+		return {
+			configured: Boolean(desired),
+			max_body_size_mb: desired ? Number(row.max_body_size_mb) : null,
+			action: desired ? row.action : null,
+			revision: desired?.revision ?? "",
+			modified_on: row?.modified_on || null,
+			default: APPSEC_DEFAULT,
+			helper,
+			applied,
+			sync,
+		};
+	},
+
+	/**
+	 * @param   {Access}  access
+	 * @param   {Object}  data
+	 * @param   {Number}  data.max_body_size_mb  1 to 1024
+	 * @param   {String}  data.action            drop, partial or allow
+	 * @returns {Promise<Object>}
+	 */
+	setAppsec: async (access, data) =>
+		serialize(async () => {
+			access.canAdmin();
+			const mb = Number(data.max_body_size_mb);
+			if (!Number.isInteger(mb) || mb < 1 || mb > 1024) {
+				throw new errs.ValidationError("The body limit must be between 1 and 1024 MB");
+			}
+			if (!APPSEC_ACTIONS.includes(data.action)) {
+				throw new errs.ValidationError(`The action must be one of ${APPSEC_ACTIONS.join(", ")}`);
+			}
+			const old = await loadAppsec();
+			const row = { id: 1, max_body_size_mb: mb, action: data.action, modified_on: new Date().toISOString() };
+			await applyChange(
+				async () => {
+					if (old) await db()(APPSEC_TABLE).where({ id: 1 }).update(row);
+					else await db()(APPSEC_TABLE).insert(row);
+				},
+				async () => {
+					if (old) await db()(APPSEC_TABLE).where({ id: 1 }).update(old);
+					else await db()(APPSEC_TABLE).where({ id: 1 }).delete();
+				},
+			);
+			await internalAuditLog.add(access, {
+				action: "updated",
+				object_type: "crowdsec",
+				meta: { id: "appsec-body", max_body_size_mb: mb, action: data.action },
+			});
+			return internalCrowdsecHelper.getAppsec(access);
+		}),
+
+	/**
 	 * Writes the desired state at startup, errors are only logged
 	 *
 	 * @returns {Promise}
@@ -391,6 +513,7 @@ const internalCrowdsecHelper = {
 		}),
 
 	renderAllowlist,
+	renderAppsec,
 };
 
 export default internalCrowdsecHelper;

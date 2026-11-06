@@ -2,6 +2,7 @@ import { useQuery } from "@tanstack/react-query";
 import {
 	getCrowdsecAlerts,
 	getCrowdsecAllowlists,
+	getCrowdsecAppsecBody,
 	getCrowdsecClientIp,
 	getCrowdsecConfig,
 	getCrowdsecDecisions,
@@ -87,9 +88,19 @@ const useCrowdsecNpmplusAllowlist = () =>
 				: 30 * 1000,
 	});
 
+const useCrowdsecAppsecBody = () =>
+	useQuery({
+		queryKey: ["crowdsec", "appsec-body"],
+		queryFn: () => getCrowdsecAppsecBody(),
+		staleTime: 5 * 1000,
+		refetchInterval: (query) =>
+			query.state.data?.sync === "pending" && query.state.data?.helper?.state === "active" ? 5 * 1000 : 30 * 1000,
+	});
+
 export {
 	useCrowdsecAlerts,
 	useCrowdsecAllowlists,
+	useCrowdsecAppsecBody,
 	useCrowdsecClientIp,
 	useCrowdsecConfig,
 	useCrowdsecDecisions,

@@ -131,6 +131,21 @@ router.route("/npmplus-allowlist/:item_id").delete(jwtdecode(), validate, async 
 });
 
 /**
+ * GET /api/crowdsec/appsec-body  AppSec request body limit (stored, applied by the helper)
+ * PUT /api/crowdsec/appsec-body  set limit and action, applies to all hosts
+ */
+router
+	.route("/appsec-body")
+	.get(jwtdecode(), validate, async (_, res) => {
+		res.locals.access.canAdmin();
+		res.status(200).send(await internalCrowdsecHelper.getAppsec(res.locals.access));
+	})
+	.put(jwtdecode(), validate, async (_, res) => {
+		res.locals.access.canAdmin();
+		res.status(200).send(await internalCrowdsecHelper.setAppsec(res.locals.access, res.locals.body));
+	});
+
+/**
  * GET  /api/crowdsec/exceptions  client addresses the bouncer and appsec skip
  * POST /api/crowdsec/exceptions  add one, for all hosts or some proxy hosts
  */

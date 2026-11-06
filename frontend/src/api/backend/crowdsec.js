@@ -75,3 +75,11 @@ export async function createCrowdsecNpmplusAllowlistItem(data) {
 export async function deleteCrowdsecNpmplusAllowlistItem(id) {
 	return await api.del({ url: `/crowdsec/npmplus-allowlist/${id}` });
 }
+
+export async function getCrowdsecAppsecBody() {
+	return await api.get({ url: "/crowdsec/appsec-body" });
+}
+
+export async function updateCrowdsecAppsecBody(data) {
+	return await api.put({ url: "/crowdsec/appsec-body", data });
+}

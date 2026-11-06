@@ -1,0 +1,56 @@
+{
+	"operationId": "getCrowdsecAppsecBody",
+	"summary": "Get the AppSec request body limit and what the crowdsec-helper container applied",
+	"tags": [
+		"crowdsec"
+	],
+	"security": [
+		{
+			"cookieAuth": []
+		}
+	],
+	"responses": {
+		"200": {
+			"description": "200 response",
+			"content": {
+				"application/json": {
+					"schema": {
+						"type": "object",
+						"properties": {
+							"configured": {
+								"type": "boolean"
+							},
+							"max_body_size_mb": {
+								"type": [
+									"integer",
+									"null"
+								]
+							},
+							"action": {
+								"type": [
+									"string",
+									"null"
+								]
+							},
+							"sync": {
+								"type": "string",
+								"enum": [
+									"ok",
+									"pending",
+									"error",
+									"unmanaged"
+								]
+							},
+							"applied": {
+								"type": [
+									"object",
+									"null"
+								]
+							}
+						}
+					}
+				}
+			}
+		}
+	}
+}
