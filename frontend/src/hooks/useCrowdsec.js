@@ -6,6 +6,8 @@ import {
 	getCrowdsecConfig,
 	getCrowdsecDecisions,
 	getCrowdsecExceptions,
+	getCrowdsecHelper,
+	getCrowdsecNpmplusAllowlist,
 	getCrowdsecStatus,
 } from "src/api/backend";
 
@@ -64,6 +66,27 @@ const useCrowdsecAllowlists = (options = {}) =>
 		...options,
 	});
 
+// the helper polls every 5 s, so its state is refreshed while the page is open
+const useCrowdsecHelper = () =>
+	useQuery({
+		queryKey: ["crowdsec", "helper"],
+		queryFn: () => getCrowdsecHelper(),
+		staleTime: 10 * 1000,
+		refetchInterval: 30 * 1000,
+	});
+
+const useCrowdsecNpmplusAllowlist = () =>
+	useQuery({
+		queryKey: ["crowdsec", "npmplus-allowlist"],
+		queryFn: () => getCrowdsecNpmplusAllowlist(),
+		staleTime: 5 * 1000,
+		// entries wait for the helper, look again until it reports them
+		refetchInterval: (query) =>
+			query.state.data?.items?.some((i) => i.sync === "pending") && query.state.data?.helper?.state === "active"
+				? 5 * 1000
+				: 30 * 1000,
+	});
+
 export {
 	useCrowdsecAlerts,
 	useCrowdsecAllowlists,
@@ -71,5 +94,7 @@ export {
 	useCrowdsecConfig,
 	useCrowdsecDecisions,
 	useCrowdsecExceptions,
+	useCrowdsecHelper,
+	useCrowdsecNpmplusAllowlist,
 	useCrowdsecStatus,
 };

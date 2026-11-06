@@ -3,7 +3,7 @@ import cn from "clsx";
 import { useState } from "react";
 import { useSearchParams } from "react-router";
 import { queryClient } from "src/api/backend/base";
-import { useCrowdsecStatus } from "src/hooks";
+import { useCrowdsecHelper, useCrowdsecStatus } from "src/hooks";
 import { T } from "src/locale";
 import Alerts from "./Alerts";
 import Allowlists from "./Allowlists";
@@ -13,16 +13,35 @@ import Exceptions from "./Exceptions";
 
 const TABS = { decisions: Decisions, alerts: Alerts, exceptions: Exceptions, allowlists: Allowlists, config: Config };
 
-const StatusBadge = ({ ok, label, title }) => (
-	<span className={cn("badge", ok ? "bg-green-lt" : "bg-red-lt")} title={title || undefined}>
+const StatusBadge = ({ ok, label, title, className }) => (
+	<span className={cn("badge", className ?? (ok ? "bg-green-lt" : "bg-red-lt"))} title={title || undefined}>
 		<T id={label} />
 	</span>
 );
+
+// crowdsec-helper container: applies the npmplus allowlist and the appsec body limit
+const HelperBadge = ({ helper }) => {
+	if (!helper) return null;
+	const failed = helper.state === "active" && [helper.allowlist?.state, helper.appsec?.state].includes("error");
+	if (failed) {
+		const message = [helper.allowlist?.message, helper.appsec?.message].filter(Boolean).join(" / ");
+		return <StatusBadge ok={false} label="crowdsec.helper.error" title={message} />;
+	}
+	return (
+		<StatusBadge
+			ok={helper.state === "active"}
+			className={helper.state === "missing" ? "bg-secondary-lt" : undefined}
+			label={`crowdsec.helper.${helper.state}`}
+			title={helper.version ? `crowdsec-helper ${helper.version}` : undefined}
+		/>
+	);
+};
 
 export default function Crowdsec() {
 	const [searchParams, setSearchParams] = useSearchParams();
 	const [tab, setTab] = useState(() => (TABS[searchParams.get("tab")] ? searchParams.get("tab") : "decisions"));
 	const { data: status } = useCrowdsecStatus();
+	const { data: helper } = useCrowdsecHelper();
 	const Tab = TABS[tab];
 
 	const selectTab = (key) => {
@@ -81,6 +100,7 @@ export default function Crowdsec() {
 									)}
 								</>
 							)}
+							<HelperBadge helper={helper} />
 							<button
 								type="button"
 								className="btn btn-sm"

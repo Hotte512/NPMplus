@@ -1,6 +1,7 @@
 import express from "express";
 import internalCrowdsec from "../internal/crowdsec.js";
 import internalCrowdsecExceptions from "../internal/crowdsec-exceptions.js";
+import internalCrowdsecHelper from "../internal/crowdsec-helper.js";
 import jwtdecode from "../lib/express/jwt-decode.js";
 import validate from "../lib/express/validate.js";
 
@@ -96,6 +97,37 @@ router.route("/allowlists").get(jwtdecode(), validate, async (_, res) => {
 router.route("/allowlists/check").get(jwtdecode(), validate, async (_, res) => {
 	res.locals.access.canAdmin();
 	res.status(200).send(await internalCrowdsec.checkAllowlist(res.locals.access, res.locals.query.value));
+});
+
+/**
+ * GET /api/crowdsec/helper  state of the crowdsec-helper container (status.json in the spool directory)
+ */
+router.route("/helper").get(jwtdecode(), validate, async (_, res) => {
+	res.locals.access.canAdmin();
+	res.status(200).send(await internalCrowdsecHelper.getHelper(res.locals.access));
+});
+
+/**
+ * GET  /api/crowdsec/npmplus-allowlist  entries of the allowlist "npmplus" with their sync state
+ * POST /api/crowdsec/npmplus-allowlist  add an entry, the helper applies it with cscli
+ */
+router
+	.route("/npmplus-allowlist")
+	.get(jwtdecode(), validate, async (req, res) => {
+		res.locals.access.canAdmin();
+		res.status(200).send(await internalCrowdsecHelper.getAllowlist(res.locals.access, req.ip));
+	})
+	.post(jwtdecode(), validate, async (_, res) => {
+		res.locals.access.canAdmin();
+		res.status(201).send(await internalCrowdsecHelper.createItem(res.locals.access, res.locals.body));
+	});
+
+/**
+ * DELETE /api/crowdsec/npmplus-allowlist/123
+ */
+router.route("/npmplus-allowlist/:item_id").delete(jwtdecode(), validate, async (_, res) => {
+	res.locals.access.canAdmin();
+	res.status(200).send(await internalCrowdsecHelper.deleteItem(res.locals.access, Number(res.locals.params.item_id)));
 });
 
 /**

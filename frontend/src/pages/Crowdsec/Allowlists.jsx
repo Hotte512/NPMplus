@@ -5,6 +5,7 @@ import { checkCrowdsecAllowlist } from "src/api/backend";
 import { Button, Loading } from "src/components";
 import { useCrowdsecAllowlists } from "src/hooks";
 import { formatDateTime, T } from "src/locale";
+import NpmplusAllowlist from "./NpmplusAllowlist";
 import SetupHint from "./SetupHint";
 
 const CSCLI = [
@@ -76,10 +77,23 @@ export default function Allowlists({ status, onShowConfig }) {
 	const canRead = Boolean(status?.machine?.ok);
 	const { data, isPending, error } = useCrowdsecAllowlists({ enabled: canRead });
 
-	if (status && !connected) return <SetupHint status={status} onShowConfig={onShowConfig} />;
+	if (status && !connected) {
+		return (
+			<>
+				<div className="card-body pb-0">
+					<NpmplusAllowlist />
+				</div>
+				<SetupHint status={status} onShowConfig={onShowConfig} />
+			</>
+		);
+	}
 
 	return (
 		<div className="card-body">
+			<NpmplusAllowlist />
+			<h3 className="mb-1">
+				<T id="crowdsec.allowlist.all" />
+			</h3>
 			<p className="text-secondary">
 				<T id="crowdsec.allowlist.intro" />
 			</p>
@@ -112,6 +126,11 @@ export default function Allowlists({ status, onShowConfig }) {
 								<div key={list.name} className="mb-4">
 									<h3 className="mb-1">
 										{list.name}
+										{list.name === "npmplus" && (
+											<span className="badge bg-teal-lt ms-2">
+												<T id="crowdsec.allowlist.managed" />
+											</span>
+										)}
 										{list.consoleManaged && (
 											<span className="badge bg-purple-lt ms-2">
 												<T id="crowdsec.allowlist.console" />

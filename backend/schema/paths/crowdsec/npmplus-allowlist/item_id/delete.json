@@ -1,0 +1,37 @@
+{
+	"operationId": "deleteCrowdsecNpmplusAllowlistItem",
+	"summary": "Remove an entry from the CrowdSec allowlist \"npmplus\"",
+	"tags": [
+		"crowdsec"
+	],
+	"security": [
+		{
+			"cookieAuth": []
+		}
+	],
+	"parameters": [
+		{
+			"in": "path",
+			"name": "item_id",
+			"required": true,
+			"description": "Entry ID",
+			"schema": {
+				"type": "integer",
+				"minimum": 1,
+				"maximum": 2147483647
+			}
+		}
+	],
+	"responses": {
+		"200": {
+			"description": "200 response",
+			"content": {
+				"application/json": {
+					"schema": {
+						"type": "boolean"
+					}
+				}
+			}
+		}
+	}
+}

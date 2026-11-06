@@ -196,6 +196,24 @@
 				"$ref": "./paths/crowdsec/allowlists/check/get.json"
 			}
 		},
+		"/crowdsec/helper": {
+			"get": {
+				"$ref": "./paths/crowdsec/helper/get.json"
+			}
+		},
+		"/crowdsec/npmplus-allowlist": {
+			"get": {
+				"$ref": "./paths/crowdsec/npmplus-allowlist/get.json"
+			},
+			"post": {
+				"$ref": "./paths/crowdsec/npmplus-allowlist/post.json"
+			}
+		},
+		"/crowdsec/npmplus-allowlist/{item_id}": {
+			"delete": {
+				"$ref": "./paths/crowdsec/npmplus-allowlist/item_id/delete.json"
+			}
+		},
 		"/crowdsec/exceptions": {
 			"get": {
 				"$ref": "./paths/crowdsec/exceptions/get.json"
