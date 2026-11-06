@@ -1,0 +1,27 @@
+{
+	"operationId": "getCrowdsecAllowlists",
+	"summary": "Get the allowlists of the local api with their entries (read only, needs a machine login)",
+	"tags": [
+		"crowdsec"
+	],
+	"security": [
+		{
+			"cookieAuth": []
+		}
+	],
+	"responses": {
+		"200": {
+			"description": "200 response",
+			"content": {
+				"application/json": {
+					"schema": {
+						"type": "array",
+						"items": {
+							"type": "object"
+						}
+					}
+				}
+			}
+		}
+	}
+}
