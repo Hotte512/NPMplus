@@ -100,6 +100,13 @@ export default function Exceptions() {
 								<tr key={e.id}>
 									<td>
 										<code>{e.value}</code>
+										{e.effective === false && (
+											<div>
+												<span className="badge bg-red-lt">
+													<T id="crowdsec.exception.too-large" />
+												</span>
+											</div>
+										)}
 									</td>
 									<td>
 										{e.scope === "global" ? (
