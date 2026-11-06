@@ -142,9 +142,9 @@ const formatCidr = (net) => {
  *
  * @param   {String} input
  * @param   {Object} [options]
- * @param   {Number} [options.minPrefix4]  smallest allowed ipv4 prefix
- * @param   {Number} [options.minPrefix6]  smallest allowed ipv6 prefix
- * @returns {String|null}  null if the input is not a valid address/range or the range is too large
+ * @param   {Number} [options.minPrefix4]  shortest allowed ipv4 prefix length, i.e. the largest allowed range (16 = /16)
+ * @param   {Number} [options.minPrefix6]  shortest allowed ipv6 prefix length, i.e. the largest allowed range
+ * @returns {String|null}  null if the input is not a valid address/range or the range is larger than allowed
  */
 const normalizeCidr = (input, { minPrefix4 = 0, minPrefix6 = 0 } = {}) => {
 	const net = parseCidr(input);

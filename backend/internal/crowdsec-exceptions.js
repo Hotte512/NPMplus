@@ -17,8 +17,9 @@ const nginxConfDir = process.env.NPMPLUS_NGINX_CONF_DIR || "/usr/local/nginx/con
 const includeFile = path.join(nginxConfDir, "crowdsec-exceptions.conf");
 // set by every proxy host (templates/proxy_host.conf)
 const HOST_MARKER = "set $crowdsec_host_id ";
-// excepting more than this would switch the bouncer off for large parts of the internet
-const MIN_PREFIX = { minPrefix4: 8, minPrefix6: 16 };
+// larger ranges would exempt whole providers from the bouncer and AppSec; rows stored with an older, looser limit
+// are kept in the database but no longer written to nginx (the ui marks them)
+const MIN_PREFIX = { minPrefix4: 16, minPrefix6: 32 };
 const MAX_EXCEPTIONS = 500;
 const CONTROL_CHARS = /\p{Cc}/u;
 
@@ -74,6 +75,7 @@ const load = async () => {
 
 const format = (exception, hosts) => ({
 	...exception,
+	effective: Boolean(normalizeCidr(exception.value, MIN_PREFIX)),
 	proxy_hosts: exception.proxy_host_ids.map((id) => hosts.get(id)).filter(Boolean),
 });
 
@@ -89,7 +91,10 @@ const render = (exceptions) => {
 	for (const e of exceptions) {
 		// stored values are validated on write, this protects the config from rows edited by hand
 		const value = normalizeCidr(e.value, MIN_PREFIX);
-		if (!value) continue;
+		if (!value) {
+			logger.warn(`CrowdSec exceptions: ${String(e.value).slice(0, 64)} is ignored, the range is too large`);
+			continue;
+		}
 		if (e.scope === "global") {
 			global.add(value);
 			continue;
@@ -187,7 +192,7 @@ const validate = (data, hosts) => {
 	const value = normalizeCidr(String(data.value ?? "").trim(), MIN_PREFIX);
 	if (!value) {
 		throw new errs.ValidationError(
-			"Not a valid IP address or CIDR range (IPv4 ranges need a prefix of at least /8, IPv6 of at least /16)",
+			"Not a valid IP address or CIDR range (IPv4 ranges need a prefix of at least /16, IPv6 ranges of at least /32)",
 		);
 	}
 	const description = String(data.description ?? "").trim();
