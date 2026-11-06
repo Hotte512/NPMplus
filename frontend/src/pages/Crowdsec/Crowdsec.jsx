@@ -8,8 +8,9 @@ import { T } from "src/locale";
 import Alerts from "./Alerts";
 import Config from "./Config";
 import Decisions from "./Decisions";
+import Exceptions from "./Exceptions";
 
-const TABS = { decisions: Decisions, alerts: Alerts, config: Config };
+const TABS = { decisions: Decisions, alerts: Alerts, exceptions: Exceptions, config: Config };
 
 const StatusBadge = ({ ok, label, title }) => (
 	<span className={cn("badge", ok ? "bg-green-lt" : "bg-red-lt")} title={title || undefined}>

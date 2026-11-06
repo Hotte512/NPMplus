@@ -31,3 +31,23 @@ export async function deleteCrowdsecDecisionsByIp(ip) {
 export async function getCrowdsecAlerts(params) {
 	return await api.get({ url: "/crowdsec/alerts", params });
 }
+
+export async function getCrowdsecExceptions() {
+	return await api.get({ url: "/crowdsec/exceptions" });
+}
+
+export async function createCrowdsecException(data) {
+	return await api.post({ url: "/crowdsec/exceptions", data });
+}
+
+export async function updateCrowdsecException(id, data) {
+	return await api.put({ url: `/crowdsec/exceptions/${id}`, data });
+}
+
+export async function deleteCrowdsecException(id) {
+	return await api.del({ url: `/crowdsec/exceptions/${id}` });
+}
+
+export async function getCrowdsecClientIp() {
+	return await api.get({ url: "/crowdsec/client-ip" });
+}

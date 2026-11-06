@@ -186,6 +186,27 @@
 				"$ref": "./paths/crowdsec/alerts/get.json"
 			}
 		},
+		"/crowdsec/exceptions": {
+			"get": {
+				"$ref": "./paths/crowdsec/exceptions/get.json"
+			},
+			"post": {
+				"$ref": "./paths/crowdsec/exceptions/post.json"
+			}
+		},
+		"/crowdsec/exceptions/{exception_id}": {
+			"put": {
+				"$ref": "./paths/crowdsec/exceptions/exception_id/put.json"
+			},
+			"delete": {
+				"$ref": "./paths/crowdsec/exceptions/exception_id/delete.json"
+			}
+		},
+		"/crowdsec/client-ip": {
+			"get": {
+				"$ref": "./paths/crowdsec/client-ip/get.json"
+			}
+		},
 		"/nginx/access-lists": {
 			"get": {
 				"$ref": "./paths/nginx/access-lists/get.json"

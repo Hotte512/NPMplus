@@ -1,0 +1,42 @@
+{
+	"type": "object",
+	"description": "Client address or range the CrowdSec bouncer and AppSec skip",
+	"properties": {
+		"id": {
+			"type": "integer",
+			"minimum": 1
+		},
+		"value": {
+			"description": "IPv4/IPv6 address or CIDR range, normalised on save",
+			"type": "string",
+			"minLength": 2,
+			"maxLength": 64,
+			"pattern": "^[0-9a-fA-F:.]+(/[0-9]{1,3})?$",
+			"example": "192.0.2.10"
+		},
+		"description": {
+			"type": "string",
+			"maxLength": 255,
+			"pattern": "^[^\\r\\n\\t\\u0000-\\u001f\\u007f]*$",
+			"example": "Office"
+		},
+		"scope": {
+			"description": "global: all hosts, hosts: only the proxy hosts in proxy_host_ids",
+			"type": "string",
+			"enum": [
+				"global",
+				"hosts"
+			]
+		},
+		"proxy_host_ids": {
+			"type": "array",
+			"maxItems": 1000,
+			"uniqueItems": true,
+			"items": {
+				"type": "integer",
+				"minimum": 1,
+				"maximum": 2147483647
+			}
+		}
+	}
+}

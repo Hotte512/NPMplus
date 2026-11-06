@@ -1,5 +1,6 @@
 import express from "express";
 import internalCrowdsec from "../internal/crowdsec.js";
+import internalCrowdsecExceptions from "../internal/crowdsec-exceptions.js";
 import jwtdecode from "../lib/express/jwt-decode.js";
 import validate from "../lib/express/validate.js";
 
@@ -79,6 +80,53 @@ router.route("/alerts").get(jwtdecode(), validate, async (_, res) => {
 			limit: limit ?? 100,
 		}),
 	);
+});
+
+/**
+ * GET  /api/crowdsec/exceptions  client addresses the bouncer and appsec skip
+ * POST /api/crowdsec/exceptions  add one, for all hosts or some proxy hosts
+ */
+router
+	.route("/exceptions")
+	.get(jwtdecode(), validate, async (_, res) => {
+		res.locals.access.canAdmin();
+		res.status(200).send(await internalCrowdsecExceptions.getAll(res.locals.access));
+	})
+	.post(jwtdecode(), validate, async (_, res) => {
+		res.locals.access.canAdmin();
+		res.status(201).send(await internalCrowdsecExceptions.create(res.locals.access, res.locals.body));
+	});
+
+/**
+ * PUT|DELETE /api/crowdsec/exceptions/123
+ */
+router
+	.route("/exceptions/:exception_id")
+	.put(jwtdecode(), validate, async (_, res) => {
+		res.locals.access.canAdmin();
+		res.status(200).send(
+			await internalCrowdsecExceptions.update(
+				res.locals.access,
+				Number(res.locals.params.exception_id),
+				res.locals.body,
+			),
+		);
+	})
+	.delete(jwtdecode(), validate, async (_, res) => {
+		res.locals.access.canAdmin();
+		res.status(200).send(
+			await internalCrowdsecExceptions.delete(res.locals.access, Number(res.locals.params.exception_id)),
+		);
+	});
+
+/**
+ * GET /api/crowdsec/client-ip
+ *
+ * The address nginx passes for this request (X-Forwarded-For is set to $remote_addr, see proxy-headers.conf)
+ */
+router.route("/client-ip").get(jwtdecode(), validate, async (req, res) => {
+	res.locals.access.canAdmin();
+	res.status(200).send(await internalCrowdsecExceptions.getClientIp(res.locals.access, req.ip));
 });
 
 export default router;

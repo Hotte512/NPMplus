@@ -1,5 +1,12 @@
 import { useQuery } from "@tanstack/react-query";
-import { getCrowdsecAlerts, getCrowdsecConfig, getCrowdsecDecisions, getCrowdsecStatus } from "src/api/backend";
+import {
+	getCrowdsecAlerts,
+	getCrowdsecClientIp,
+	getCrowdsecConfig,
+	getCrowdsecDecisions,
+	getCrowdsecExceptions,
+	getCrowdsecStatus,
+} from "src/api/backend";
 
 const useCrowdsecStatus = () =>
 	useQuery({
@@ -33,4 +40,25 @@ const useCrowdsecAlerts = (params, options = {}) =>
 		...options,
 	});
 
-export { useCrowdsecAlerts, useCrowdsecConfig, useCrowdsecDecisions, useCrowdsecStatus };
+const useCrowdsecExceptions = () =>
+	useQuery({
+		queryKey: ["crowdsec", "exceptions"],
+		queryFn: () => getCrowdsecExceptions(),
+		staleTime: 60 * 1000,
+	});
+
+const useCrowdsecClientIp = () =>
+	useQuery({
+		queryKey: ["crowdsec", "client-ip"],
+		queryFn: () => getCrowdsecClientIp(),
+		staleTime: 60 * 1000,
+	});
+
+export {
+	useCrowdsecAlerts,
+	useCrowdsecClientIp,
+	useCrowdsecConfig,
+	useCrowdsecDecisions,
+	useCrowdsecExceptions,
+	useCrowdsecStatus,
+};

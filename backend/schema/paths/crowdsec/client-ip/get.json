@@ -1,0 +1,38 @@
+{
+	"operationId": "getCrowdsecClientIp",
+	"summary": "Get the client address NPMplus sees for this request and the exceptions which cover it",
+	"tags": [
+		"crowdsec"
+	],
+	"security": [
+		{
+			"cookieAuth": []
+		}
+	],
+	"responses": {
+		"200": {
+			"description": "200 response",
+			"content": {
+				"application/json": {
+					"schema": {
+						"type": "object",
+						"properties": {
+							"ip": {
+								"type": "string"
+							},
+							"exempt_global": {
+								"type": "boolean"
+							},
+							"exempt_proxy_host_ids": {
+								"type": "array",
+								"items": {
+									"type": "integer"
+								}
+							}
+						}
+					}
+				}
+			}
+		}
+	}
+}

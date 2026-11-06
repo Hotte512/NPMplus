@@ -1,0 +1,54 @@
+{
+	"operationId": "createCrowdsecException",
+	"summary": "Add a client address or range the bouncer and AppSec skip, for all hosts or some proxy hosts",
+	"tags": [
+		"crowdsec"
+	],
+	"security": [
+		{
+			"cookieAuth": []
+		}
+	],
+	"requestBody": {
+		"description": "Payload",
+		"required": true,
+		"content": {
+			"application/json": {
+				"schema": {
+					"type": "object",
+					"additionalProperties": false,
+					"required": [
+						"value",
+						"scope"
+					],
+					"properties": {
+						"value": {
+							"$ref": "../../../components/crowdsec-exception-object.json#/properties/value"
+						},
+						"description": {
+							"$ref": "../../../components/crowdsec-exception-object.json#/properties/description"
+						},
+						"scope": {
+							"$ref": "../../../components/crowdsec-exception-object.json#/properties/scope"
+						},
+						"proxy_host_ids": {
+							"$ref": "../../../components/crowdsec-exception-object.json#/properties/proxy_host_ids"
+						}
+					}
+				}
+			}
+		}
+	},
+	"responses": {
+		"201": {
+			"description": "201 response",
+			"content": {
+				"application/json": {
+					"schema": {
+						"$ref": "../../../components/crowdsec-exception-object.json"
+					}
+				}
+			}
+		}
+	}
+}

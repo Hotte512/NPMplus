@@ -4,6 +4,7 @@ import { rm } from "node:fs/promises";
 import app from "./app.js";
 import db from "./db.js";
 import internalCertificate from "./internal/certificate.js";
+import internalCrowdsecExceptions from "./internal/crowdsec-exceptions.js";
 import internalIpRanges from "./internal/ip_ranges.js";
 import internalNginx from "./internal/nginx.js";
 import internalUnifiDns from "./internal/unifi-dns.js";
@@ -27,6 +28,7 @@ async function appStart() {
 		internalCertificate.initTimer();
 		// rebuilds the sync status shown in the ui, runs in the background
 		void internalUnifiDns.syncAll();
+		await internalCrowdsecExceptions.startup();
 		await internalNginx.reload();
 
 		await rm("/run/npmplus.sock", { force: true });
