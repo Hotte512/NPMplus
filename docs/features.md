@@ -24,8 +24,8 @@ Für Dienste, die selbst ein Zertifikat per http-01 anfordern (z. B. Home Assist
 
 - Schalter **„ACME-http-01-Challenges an Upstream weiterleiten“** im Proxy-Host-Dialog (nur bei Schema http/https).
 - **Port für ACME-Challenges** (Standard 80): Challenges gehen immer per http an den Ziel-Host auf diesem Port.
-- Ablauf: Die Challenge wird zuerst an das Ziel weitergeleitet. Antwortet es mit 403/404/5xx oder ist es nicht
-  erreichbar, beantwortet NPMplus die Challenge selbst. So funktionieren die Zertifikate von NPMplus und vom Ziel.
+- Ablauf: Eigene Challenges beantwortet NPMplus selbst, alle anderen Tokens gehen an das Ziel. So funktionieren
+  die Zertifikate von NPMplus und vom Ziel.
 - Zugriffslisten und Authentifizierung gelten für diesen Pfad nicht.
 
 ## Proxy-Hosts: lokaler DNS-Eintrag auf einem UniFi-Gateway

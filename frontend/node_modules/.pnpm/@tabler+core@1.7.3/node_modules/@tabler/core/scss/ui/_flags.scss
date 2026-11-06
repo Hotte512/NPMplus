@@ -1,0 +1,51 @@
+@use 'sass:map';
+@use 'sass:math';
+@use '../config';
+
+@use '../config' as *;
+
+.flag {
+  position: relative;
+  display: inline-block;
+  // explicit height, not `aspect-ratio`: a flex container with the default
+  // `align-items: stretch` would override the ratio and stretch every flag
+  // to the tallest one
+  width: config.$avatar-size;
+  height: math.div(config.$avatar-size, 1.25);
+  vertical-align: bottom;
+  background: no-repeat center/cover;
+  box-shadow: config.$flag-box-shadow;
+  @include config.border-radius(config.$flag-border-radius);
+
+  &.flag-country-np {
+    border-radius: 0;
+    box-shadow: none;
+  }
+}
+
+@each $country in config.$flag-countries {
+  .flag-country-#{$country} {
+    background-image: url('#{config.$assets-base}/img/flags/#{$country}.svg');
+  }
+}
+
+// deprecated(2.0): the old flag codes keep working, each with its own copy
+// of the image, see `$flag-country-aliases`
+@if config.$enable-deprecated {
+  @each $old, $new in config.$flag-country-aliases {
+    .flag-country-#{$old} {
+      background-image: url('#{config.$assets-base}/img/flags/#{$old}.svg');
+    }
+  }
+}
+
+@each $flag-size, $size in config.$flag-sizes {
+  .flag-#{$flag-size} {
+    width: map.get($size, size);
+    height: math.div(map.get($size, size), 1.25);
+
+    @if map.has-key($size, border-radius) {
+      @include config.border-radius(map.get($size, border-radius));
+    }
+  }
+}

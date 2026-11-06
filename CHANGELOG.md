@@ -3,6 +3,19 @@
 Alle Änderungen an NPMplus · Hotte. Format angelehnt an [Keep a Changelog](https://keepachangelog.com/de/1.1.0/),
 Einträge nach Datum. Upstream-Änderungen stehen im [NPMplus-Repository](https://github.com/ZoeyVid/NPMplus).
 
+## 2026-11-06
+
+### Upstream
+- Auf den aktuellen Upstream-`develop` (`c09fb53b`) nachgezogen, u. a. mit diesen Upstream-Änderungen: nur Admins
+  dürfen erweiterte/eigene nginx-Konfigurationen bearbeiten (Schutz vor Konfigurations-Injection), Dialoge sind
+  ohne Verwaltungsrecht schreibgeschützt, Bearbeiten-Knopf direkt in den Tabellen, Rückfrage vor dem Verwerfen
+  ungespeicherter Änderungen, neue Favicons.
+
+### Geändert
+- **ACME-Weiterleitung:** NPMplus beantwortet seine eigenen Challenges zuerst, alle anderen gehen an das Ziel
+  (vorher umgekehrt). Upstream liefert Challenges jetzt aus einem Webroot statt zustandslos.
+- Proxy-Host-Dialog: Tags, ACME-, CrowdSec- und UniFi-DNS-Felder sind ohne Verwaltungsrecht ebenfalls gesperrt.
+
 ## 2026-10-29
 
 ### Behoben
