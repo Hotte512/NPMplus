@@ -5,6 +5,16 @@ Einträge nach Datum. Upstream-Änderungen stehen im [NPMplus-Repository](https:
 
 ## 2026-11-06
 
+### Neu
+- **CrowdSec-Seite, Ausnahmen:** IP-Adressen und Bereiche (IPv4/IPv6, CIDR) vom Bouncer und von AppSec ausnehmen,
+  global oder nur für bestimmte Proxy-Hosts, z. B. die eigene feste IP, wenn AppSec große Uploads (über 10 MB)
+  blockiert. Die eigene Adresse lässt sich mit einem Klick übernehmen
+  ([Doku](docs/features.md#crowdsec-seite)).
+- **CrowdSec-Seite, Einstellungen:** AppSec-Timeouts (Verbindung, Senden, Verarbeitung) und „Requests mit nicht
+  lesbarem Body ablehnen“ einstellbar; ausgenommene Pfade werden jetzt geprüft.
+- **CrowdSec-Seite, Allowlists:** zeigt die Allowlists der CrowdSec Local API mit ihren Einträgen und prüft, ob
+  eine IP oder ein Bereich darauf steht (nur lesen, anlegen weiter mit `cscli allowlists`).
+
 ### Upstream
 - Auf den aktuellen Upstream-`develop` (`c09fb53b`) nachgezogen, u. a. mit diesen Upstream-Änderungen: nur Admins
   dürfen erweiterte/eigene nginx-Konfigurationen bearbeiten (Schutz vor Konfigurations-Injection), Dialoge sind

@@ -114,9 +114,39 @@ Local API erreichbar ist und Bouncer-Key und Machine-Login funktionieren.
   Dauer, Typ (ban/captcha) und Grund, Sperren einzeln entfernen.
 - **Alerts:** die letzten Alerts mit Zeit, Quelle (Land, Provider), Scenario, angegriffenen Hosts und Pfaden (z. B.
   `/.env`) und Anzahl Events. Filter nach IP/Bereich oder Scenario; Entbannen direkt aus dem Alert.
+- **Ausnahmen:** IP-Adressen und Bereiche (IPv4/IPv6, CIDR), für die Bouncer **und** AppSec nicht greifen: keine
+  Sperren, kein Captcha, keine WAF-Prüfung. Gilt wahlweise **global** (alle Hosts, auch Weiterleitungs- und 404-Hosts)
+  oder nur für **bestimmte Proxy-Hosts**. Typischer Fall: AppSec lehnt Request-Bodies über 10 MB ab, große
+  Uploads (z. B. Pushes auf eine Git-Forge) landen dann auf der Sperrseite. Mit der eigenen festen IP als Ausnahme
+  für diesen Host gehen sie durch, für alle anderen bleibt AppSec aktiv.
+  - Oben steht die Adresse, mit der NPMplus dich gerade sieht, mit Knopf **„Meine IP hinzufügen“**. Läuft der
+    Zugriff über das LAN oder einen weiteren Proxy, ist das nicht die öffentliche IP.
+  - Eingaben werden geprüft und vereinheitlicht (`192.0.2.7/24` wird `192.0.2.0/24`). Bereiche größer als `/8`
+    (IPv4) bzw. `/16` (IPv6) sind nicht erlaubt. Maßgeblich ist die Client-Adresse nach Auswertung von Real-IP-Headern,
+    also dieselbe, die der Bouncer prüft.
+  - Technisch: NPMplus schreibt `conf.d/crowdsec-exceptions.conf` (nginx-`geo`-Blöcke) und prüft sie mit `nginx -t`;
+    wird sie abgelehnt, bleiben alte Datei und alter Stand erhalten. Die Datei wird beim Start neu erzeugt. Gelöschte
+    Proxy-Hosts fallen aus den Ausnahmen heraus.
+  - Ausnahmen sind etwas anderes als Allowlists von CrowdSec (siehe unten): eine Allowlist verhindert Decisions,
+    AppSec prüft die Requests trotzdem.
+- **Allowlists:** zeigt die Allowlists der CrowdSec Local API mit Einträgen (IP/Bereich, Beschreibung, Ablauf) und
+  prüft per **„IP prüfen“**, ob eine Adresse oder ein Bereich darauf steht. Nur lesen, braucht den Machine-Login und
+  eine CrowdSec-Version mit Allowlists. Anlegen und Pflegen weiter mit `cscli`, z. B.:
+
+  ```bash
+  docker exec crowdsec cscli allowlists create my_allowlist -d "my allowlist"
+  docker exec crowdsec cscli allowlists add my_allowlist 192.0.2.10 -d "office"
+  ```
+
 - **Einstellungen:** bearbeitet `/data/crowdsec/crowdsec.conf` (Bouncer an/aus, Local-API-URL, Bouncer-Key, Modus,
   Antwort für gesperrte Clients, Captcha, AppSec). Unbekannte Zeilen und Kommentare bleiben erhalten. Speichern lädt
   nginx neu, ein Neustart ist nicht nötig; lehnt nginx die Konfiguration ab, bleibt der alte Stand.
+  - **Ausgenommene Pfade** (`EXCLUDE_LOCATION`): kommagetrennt, jeder Pfad beginnt mit `/`, ohne Leerzeichen,
+    Anführungszeichen oder Backslash; gilt für den Pfad und alles darunter, für Bouncer und AppSec.
+  - **AppSec-Timeouts** für Verbindung, Senden und Verarbeitung in ms (1–60000, leer = Standard 100/100/500). Bei
+    Zeitüberschreitung gilt „Wenn AppSec nicht erreichbar ist“.
+  - **Requests mit nicht lesbarem Body ablehnen** (`APPSEC_DROP_UNREADABLE_BODY`): betrifft HTTP/2- und
+    HTTP/3-Requests ohne Content-Length sowie gRPC. Aus (Standard) gehen sie ohne Body an AppSec.
 - Bouncer-Key, Captcha-Secret und Machine-Passwort werden nur geschrieben, nie angezeigt, und in Logs maskiert.
 - **Machine-Login:** Bannen, Entbannen und Alerts brauchen ihn, nur Anzeigen der Bans geht mit dem Bouncer-Key.
   NPMplus liest ihn aus `/opt/npmplus/crowdsec/lapi-credentials.yaml` (im Container `/data/crowdsec/`). Der
