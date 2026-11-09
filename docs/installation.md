@@ -260,6 +260,7 @@ Danach läuft der normale Ablauf: Fragen mit den bisherigen Antworten als Vorgab
 | „Diese Einstellungen der bisherigen compose.yaml würden geändert …“ | Die Liste zeigt, was der Installer anders setzen würde. Werte von Hand übertragen oder mit `ACCEPT_COMPOSE_CHANGES=yes` bestätigen. |
 | CrowdSec-Seite: Einträge bleiben „ausstehend“, `docker logs crowdsec-helper` zeigt nichts | Mit `PUID`/`PGID`: `/opt/crowdsec/helper/in` muss dem NPMplus-Benutzer gehören (`install.sh --update` setzt das). |
 | CrowdSec-Seite: „Helfer nicht gefunden“ | Installation älter als der Helfer: `install.sh --update` ausführen. Nur mit CrowdSec aus dem Installer. |
+| `crowdsec-helper` startet nicht: „pids.max: no such file or directory“ | Docker kann im LXC keine pids-Grenze setzen. Installer ab 09.11.2026 erneut ausführen (`install.sh --update`), er prüft das und lässt die Grenze dann weg. |
 | CrowdSec-Seite: „Helfer antwortet nicht“ | `docker ps -a` zeigt `crowdsec-helper` beendet, meist nach `docker restart crowdsec`: `docker start crowdsec-helper`. Sonst `docker logs crowdsec-helper`. |
 | Installer wartet lange | Der erste Start von NPMplus dauert etwas; das Skript zeigt alle 15 s den Fortschritt. Nach Zeitüberschreitung: `docker logs npmplus` bzw. `docker logs crowdsec`, dann das Skript erneut ausführen. |
 

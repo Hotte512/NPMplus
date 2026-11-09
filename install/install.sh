@@ -380,8 +380,11 @@ EOF
     read_only: true
     tmpfs:
       - /tmp:size=64m
-    pids_limit: 64
-    mem_limit: 256m
+EOF
+        # pids-/Speichergrenze nur, wenn Docker sie hier setzen kann (in LXC fehlt oft der pids-Controller)
+        [[ "$HELPER_PIDS_LIMIT" == 1 ]] && printf '    pids_limit: 64\n'
+        [[ "$HELPER_MEM_LIMIT" == 1 ]] && printf '    mem_limit: 256m\n'
+        cat << EOF
     # Schreibrechte nur wo nötig: appsec-configs (npmplus-body-limit.yaml), data (cscli allowlists schreibt in die
     # SQLite-Datenbank), spool/out (Status). Den Soll-Zustand in spool/in liest der Helfer nur.
 EOF
@@ -394,6 +397,33 @@ EOF
     fi
     print_extra_services
     print_top_level
+}
+
+# Prüft mit einem Wegwerf-Container, ob Docker pids- und Speichergrenzen setzen kann. In LXC-Containern (Proxmox)
+# fehlt oft der pids-Controller; „pids_limit“ verhindert dann den Start des Helfers. Ohne Docker oder bei DRY_RUN
+# entfallen die Grenzen.
+HELPER_PIDS_LIMIT=0
+HELPER_MEM_LIMIT=0
+probe_helper_limits() {
+    HELPER_PIDS_LIMIT=0
+    HELPER_MEM_LIMIT=0
+    [[ "$CROWDSEC" == yes && "$DRY_RUN" != 1 ]] || return 0
+    have docker || return 0
+    if ! docker image inspect "$CROWDSEC_IMAGE" > /dev/null 2>&1 &&
+        ! docker pull -q "$CROWDSEC_IMAGE" > /dev/null 2>&1; then
+        warn "CrowdSec-Image nicht verfügbar, crowdsec-helper läuft ohne pids-/Speichergrenze."
+        return 0
+    fi
+    if docker run --rm --pids-limit 64 --entrypoint /bin/true "$CROWDSEC_IMAGE" > /dev/null 2>&1; then
+        HELPER_PIDS_LIMIT=1
+    else
+        info "Docker kann hier keine pids-Grenze setzen (z. B. LXC ohne pids-Controller), crowdsec-helper läuft ohne."
+    fi
+    if docker run --rm --memory 256m --entrypoint /bin/true "$CROWDSEC_IMAGE" > /dev/null 2>&1; then
+        HELPER_MEM_LIMIT=1
+    else
+        info "Docker kann hier keine Speichergrenze setzen, crowdsec-helper läuft ohne."
+    fi
 }
 
 carry_or_empty() { if [[ -n "$CARRY_JSON" ]]; then printf '%s' "$CARRY_JSON"; else printf '{}'; fi; }
@@ -2474,6 +2504,7 @@ update_compose() {
     CROWDSEC=$([[ -n "$OLD_CROWDSEC_SVC" ]] && echo yes || echo no)
     [[ "$TZ" =~ ^[A-Za-z0-9_+/-]+$ ]] || die "TZ '$TZ' aus $COMPOSE_FILE ist ungültig."
     filter_extra_services
+    probe_helper_limits
     validate_compose
     review_compose_changes
     [[ "$CROWDSEC" == yes ]] && prepare_crowdsec
@@ -2695,6 +2726,7 @@ main() {
     fi
 
     install_docker
+    probe_helper_limits
     validate_compose
     review_compose_changes
     run mkdir -p "$INSTALL_DIR" "$NPMPLUS_DATA"

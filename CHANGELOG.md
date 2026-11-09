@@ -3,6 +3,13 @@
 Alle Änderungen an NPMplus · Hotte. Format angelehnt an [Keep a Changelog](https://keepachangelog.com/de/1.1.0/),
 Einträge nach Datum. Upstream-Änderungen stehen im [NPMplus-Repository](https://github.com/ZoeyVid/NPMplus).
 
+## 2026-11-09
+
+### Behoben
+- **Installer, CrowdSec-Helfer:** In LXC-Containern (Proxmox) ohne pids-Controller brach `install.sh --update` beim
+  Start von `crowdsec-helper` ab („pids.max: no such file or directory“). Der Installer prüft jetzt, ob Docker
+  pids- und Speichergrenzen setzen kann, und lässt sie sonst weg.
+
 ## 2026-11-06
 
 ### Neu

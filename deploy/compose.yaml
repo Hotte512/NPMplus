@@ -117,6 +117,7 @@ services:
 #    read_only: true
 #    tmpfs:
 #      - /tmp:size=64m
+#    # nur wenn Docker die Grenzen setzen kann, in LXC (Proxmox) fehlt oft der pids-Controller:
 #    pids_limit: 64
 #    mem_limit: 256m
 #    # Schreibrechte nur wo nötig: appsec-configs (npmplus-body-limit.yaml), data (cscli allowlists schreibt in die
