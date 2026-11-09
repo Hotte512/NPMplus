@@ -1,0 +1,3 @@
+# Arbeitskopien aus Builds der Feature-Branches, gehören nicht auf diesen Branch
+/backend/
+/frontend/
