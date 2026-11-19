@@ -5,6 +5,11 @@ Einträge nach Datum. Upstream-Änderungen stehen im [NPMplus-Repository](https:
 
 ## 2026-11-19
 
+### Behoben
+- **Start nach dem Upstream-Update:** Das Backend stürzte beim Start ab („argument handler must be a function“), die
+  Oberfläche blieb auf „Loading“. Ursache: Die Routen von Log-Viewer, CrowdSec-Seite und UniFi-DNS-Status nutzten
+  noch die alte Upstream-Schnittstelle für die Anmeldeprüfung.
+
 ### Upstream
 - Auf den aktuellen Upstream-`develop` (`0bf9373f`) nachgezogen, alle eigenen Funktionen übernommen. Wichtige
   Upstream-Änderungen:
