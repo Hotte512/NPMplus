@@ -27,6 +27,8 @@ Für Dienste, die selbst ein Zertifikat per http-01 anfordern (z. B. Home Assist
 - Ablauf: Eigene Challenges beantwortet NPMplus selbst, alle anderen Tokens gehen an das Ziel. So funktionieren
   die Zertifikate von NPMplus und vom Ziel.
 - Zugriffslisten und Authentifizierung gelten für diesen Pfad nicht.
+- Hat der Host eine eigene Location `/.well-known/acme-challenge/` (Upstream-Funktion), gilt diese, der Schalter
+  wirkt dann nicht.
 
 ## Proxy-Hosts: lokaler DNS-Eintrag auf einem UniFi-Gateway
 
@@ -224,5 +226,5 @@ CrowdSec ein, `install.sh --update` ergänzt ihn bei vorhandenen Installationen)
 
 ## Hotte-Logo
 
-Petrol-farbenes „H“-Monogramm mit Schriftzug „Hotte“ hinter dem NPMplus-Logo im Header, Seitentitel
-„NPMplus · Hotte“.
+Petrol-farbenes „H“-Monogramm mit Schriftzug „Hotte“ hinter dem NPMplus-Logo im Header. Den Seitentitel
+setzt Upstream inzwischen pro Seite („NPMplus – …“), er wird nicht mehr geändert.

@@ -65,9 +65,14 @@ sondern bei Bedarf:
 
 ## Warum nicht auf dem Upstream-Release?
 
-Upstream hat `develop` am 17.10.2026 als neuen Branch ohne Vorgänger angelegt (neu geschriebene Fassung), das
-Release `2026-10-22-r1` stammt noch von der alten Linie. Beide haben keinen gemeinsamen Commit, die Features passen
-nur auf `develop`. Sobald ein Release aus dem neuen `develop` erscheint, kann auf `BASE=release` umgestellt werden.
+Die Upstream-Releases (zuletzt `2026-11-18-r1`) entstehen noch aus der alten Linie: `2026-07-15-r1` plus einzelne
+nginx-Updates. `develop` ist seitdem mehrere hundert Commits weiter (neue Fassung mit geänderten Tabellen und
+Spaltennamen), die Features passen nur darauf. Vor einem Wechsel auf `BASE=release` prüfen, ob das neueste Release
+`FEATURES_BASE` enthält:
+
+```bash
+git merge-base --is-ancestor <FEATURES_BASE> <release-tag> && echo passt
+```
 
 ## Regeln für dieses öffentliche Repository
 

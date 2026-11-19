@@ -3,6 +3,25 @@
 Alle Änderungen an NPMplus · Hotte. Format angelehnt an [Keep a Changelog](https://keepachangelog.com/de/1.1.0/),
 Einträge nach Datum. Upstream-Änderungen stehen im [NPMplus-Repository](https://github.com/ZoeyVid/NPMplus).
 
+## 2026-11-19
+
+### Upstream
+- Auf den aktuellen Upstream-`develop` (`0bf9373f`) nachgezogen, alle eigenen Funktionen übernommen. Wichtige
+  Upstream-Änderungen:
+  - **Nicht abwärtskompatibel:** php-fpm ist nicht mehr im Image. Ist eine `PHP…`-Variable gesetzt, startet der
+    Container nicht. Bei Bedarf einen eigenen php-fpm-Container nutzen.
+  - **Nicht abwärtskompatibel:** Auth-Request-Anbieter (z. B. Authentik) geben keine Identitäts-Header mehr an das
+    Ziel weiter.
+  - `DISABLE_NGINX_BEAUTIFIER` entfällt.
+  - Optionen umbenannt: „CrowdSec AppSec deaktivieren“ und „Request-Buffering deaktivieren“. Bestehende
+    Einstellungen bleiben erhalten.
+  - Eigene Location `/.well-known/acme-challenge/` möglich (hat Vorrang vor „ACME-Challenges weiterleiten“),
+    Klonen für alle Host-Typen, mTLS-Anzeige in den Tabellen, TOTP-Status bei Benutzern, API-Doku im Frontend,
+    weitere Prüfungen gegen Konfigurations-Injection durch Nicht-Admins.
+
+### Geändert
+- Der Browser-Tab zeigt den Seitentitel von Upstream („NPMplus – …“) statt „NPMplus · Hotte“.
+
 ## 2026-11-09
 
 ### Behoben
