@@ -64,6 +64,7 @@ readonly CRON_MARK_END="# <<< npmplus-hotte"
 readonly CRON_TIME="47 4" # Minute Stunde: täglich 04:47 Uhr (Systemzeit des Containers)
 readonly CRON_TIME_TEXT="04:47"
 readonly CRON_PATH="/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin"
+readonly UPDATE_LOG="/var/log/npmplus-hotte-update.log" # Ausgabe des täglichen Updates
 readonly OURS_MARKER="erzeugt von install/install.sh"
 readonly TITLE="NPMplus · Hotte"
 
@@ -2399,12 +2400,18 @@ os_upgrade_cmd() {
     fi
 }
 
+# Ausgabe (auch Fehler) geht nach $UPDATE_LOG; über 1 MB wird die Datei vor dem Lauf nach .1 verschoben, es bleiben
+# also die letzten Läufe erhalten. Kein „%“ im Befehl: cron (Debian) macht daraus einen Zeilenumbruch.
 cron_command() {
+    local log=$UPDATE_LOG
     local cmd="docker compose -f $COMPOSE_FILE pull -q && docker compose -f $COMPOSE_FILE up -d && docker image prune -f > /dev/null"
     if [[ "${AUTO_OS_UPDATE:-no}" == yes ]]; then
-        cmd="{ $(os_upgrade_cmd); } > /dev/null; $cmd"
+        cmd="{ $(os_upgrade_cmd); } || echo \"Betriebssystem-Update fehlgeschlagen (Exit \$?)\"; $cmd"
     fi
-    printf '%s' "$cmd"
+    # shellcheck disable=SC2016 # $(date) und $? wertet erst cron aus
+    printf '[ -f %s ] && [ $(wc -c < %s) -gt 1048576 ] && mv -f %s %s.1; ' "$log" "$log" "$log" "$log"
+    # shellcheck disable=SC2016
+    printf '{ echo "=== Update $(date)"; %s; echo "=== Ende (Exit $?)"; } >> %s 2>&1' "$cmd" "$log"
 }
 
 # crontab_set_block Datei Inhalt – ersetzt den Block zwischen den Markern (leerer Inhalt entfernt ihn).
@@ -2485,6 +2492,24 @@ $CRON_TIME * * * PATH=$CRON_PATH; $cmd"
     ok "Automatische Updates: täglich ${CRON_TIME_TEXT} Uhr ($where)."
 }
 
+# --update: vorhandenen Update-Job neu schreiben (z. B. mit Log), Einstellung zum Betriebssystem-Update bleibt.
+# Ohne Job (AUTO_UPDATE=no) bleibt alles, wie es ist.
+refresh_cron() {
+    local current=""
+    if [[ "$OS_FAMILY" == alpine ]]; then
+        [[ -f "$CRONTAB_ALPINE" ]] && current=$(awk -v b="$CRON_MARK_BEGIN" -v e="$CRON_MARK_END" '
+            index($0, b) == 1 { p = 1; next }
+            index($0, e) == 1 { p = 0 }
+            p' "$CRONTAB_ALPINE")
+    elif [[ -f "$CRON_FILE" ]]; then
+        current=$(cat "$CRON_FILE")
+    fi
+    [[ -n "$current" ]] || return 0
+    AUTO_UPDATE=yes
+    if [[ "$current" == *" upgrade"* ]]; then AUTO_OS_UPDATE=yes; else AUTO_OS_UPDATE=no; fi
+    setup_cron
+}
+
 # --update: compose.yaml mit den bisherigen Antworten neu erzeugen, damit neue Dienste (z. B. crowdsec-helper) und
 # Einstellungen dazukommen. Übernommene bzw. von Hand ergänzte Einträge bleiben wie bei einem erneuten Lauf erhalten.
 update_compose() {
@@ -2548,6 +2573,7 @@ update_mode() {
         fi
     fi
     update_compose
+    refresh_cron
     info "Aktualisiere die Container ($COMPOSE_FILE)"
     run docker compose -f "$COMPOSE_FILE" --project-directory "$INSTALL_DIR" pull -q
     run docker compose -f "$COMPOSE_FILE" --project-directory "$INSTALL_DIR" up -d
