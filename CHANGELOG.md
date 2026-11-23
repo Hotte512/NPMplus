@@ -3,6 +3,14 @@
 Alle Änderungen an NPMplus · Hotte. Format angelehnt an [Keep a Changelog](https://keepachangelog.com/de/1.1.0/),
 Einträge nach Datum. Upstream-Änderungen stehen im [NPMplus-Repository](https://github.com/ZoeyVid/NPMplus).
 
+## 2026-11-23
+
+### Neu
+- **Log für das tägliche Update:** Der Cronjob schreibt seine Ausgabe samt Fehlermeldungen jetzt nach
+  `/var/log/npmplus-hotte-update.log` (mit Zeitstempel und Exit-Code, ab 1 MB eine ältere Datei `.1`). Bisher ging
+  die Ausgabe verloren. Bestehende Installationen bekommen das mit `install.sh --update`.
+- `install.sh --update` schreibt einen vorhandenen Update-Job neu (die Einstellung zum Betriebssystem-Update bleibt).
+
 ## 2026-11-19
 
 ### Behoben

@@ -148,6 +148,7 @@ Entfernte Cronjobs aus `/root/npmplus-hotte-backup-<Zeit>/` zurückkopieren – 
 | `/opt/crowdsec/helper/out` | `status.json`, schreibt nur der Helfer, bei NPMplus schreibgeschützt (`/data/crowdsec/helper/out`) |
 | `/etc/cron.d/npmplus-hotte` | Debian/Ubuntu: tägliches Update (nur mit `AUTO_UPDATE=yes`) |
 | `/etc/crontabs/root` | Alpine: tägliches Update als Block zwischen `# >>> npmplus-hotte` und `# <<< npmplus-hotte` (busybox `crond` liest `/etc/cron.d` nicht) |
+| `/var/log/npmplus-hotte-update.log` | Ausgabe und Fehler des täglichen Updates mit Zeitstempel und Exit-Code; über 1 MB wird sie vor dem nächsten Lauf nach `.1` verschoben |
 
 Docker kommt unter Debian/Ubuntu aus dem offiziellen Docker-Repository, unter Alpine aus den Alpine-Paketen, und
 wird nur installiert, wenn es fehlt.
@@ -217,6 +218,9 @@ Danach läuft der normale Ablauf: Fragen mit den bisherigen Antworten als Vorgab
   Images löschen). Das Betriebssystem bleibt unverändert, außer mit `AUTO_OS_UPDATE=yes`: dann läuft vorher
   `apk -U upgrade` bzw. `apt-get upgrade` (ohne Neustart; ein neuer Kernel bzw. Docker-Dienst wirkt erst nach
   einem Neustart des Containers).
+  Was dabei passiert ist, steht in `/var/log/npmplus-hotte-update.log` (je Lauf ein Abschnitt `=== Update <Zeit>` bis
+  `=== Ende (Exit <Code>)`, Exit 0 = alles gut). Ältere Installationen bekommen das Log mit einem Lauf von
+  `install.sh --update`.
 - **Update von Hand** (Betriebssystem und Container):
 
   ```bash
